@@ -1,7 +1,7 @@
-# Saber_Colorido/Politicas de Segurança da Informação
+# Continuum/Politicas de Segurança da Informação
 
 ## Descrição
-Software Web de Atividades Guiadas para passagem de plantão
+A ferramenta Continuum para passagem de plantão
 Está sendo desenvolvido com as seguintes ferramentas:
     Linguagem de programação: PHP, JavaScript
     Linguagem de marcação e estilização: HTML e CSS
