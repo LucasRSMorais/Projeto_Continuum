@@ -1,4 +1,4 @@
-import React from 'react'
+import { MyInput } from './styles';
 
 function Input({ type, placeholder, value, onChange }) {
   return (

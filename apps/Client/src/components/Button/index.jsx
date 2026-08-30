@@ -1,13 +1,12 @@
-import { MyButton } from './styles' 
-import React from 'react'
+import { MyButton } from './styles';
 
-function Button({ Text, onClick, Type = 'button' }) {
+export function Button({ Text, onClick, Type, type, children }) {
+  const buttonType = Type ?? type ?? 'button';
+
   return (
-    <div>
-      <MyButton type={Type} onClick={onClick}>
-        {Text}
-      </MyButton>
-    </div>
+    <MyButton type={buttonType} onClick={onClick}>
+      {Text ?? children}
+    </MyButton>
   );
 }
 

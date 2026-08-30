@@ -30,15 +30,16 @@ function Login() {
   // Aqui é renderizado o formulário de login, com campos para e-mail e senha, além de um botão para enviar os dados
   return (
     <C.Container>
-      <Title>Login</Title>
+      <Title>SISTEMA DE LOGIN</Title>
       <C.Content>
-        <form onSubmit={handleSubmit}>
+        <C.Form onSubmit={handleSubmit}>
           <Input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(event) => [setEmail(event.target.value), setError('')]}
           />
+          
           <Input
             type="password"
             placeholder="Password"
@@ -47,14 +48,24 @@ function Login() {
           />
           {error && <C.labelError>{error}</C.labelError>}
           <Button type="submit">Login</Button>
-        </form>
+        </C.Form>
         {/* Link para o formulário de primeiro acesso */}
         <C.LabelFirstAcess>
-          Primeiro acesso ? 
+          Primeiro acesso? 
             <C.Strong>
-              <Link to="/first-access">&mbsp;Clique aqui</Link>
+              <Link to="/first-access"> Clique aqui</Link>
             </C.Strong>
         </C.LabelFirstAcess>
+
+        {/* Link para o formulário de cadastro */}
+        {/* APENAS PARA TESTE */}
+        <C.LabelSignup>
+          Não tem uma conta? 
+            <C.Strong> 
+              {/* código "8mbsp" serve para adicionar um espaço em branco */}
+              <Link to="/register"> Clique aqui</Link>
+            </C.Strong>
+        </C.LabelSignup>
       </C.Content>
     </C.Container>
   );

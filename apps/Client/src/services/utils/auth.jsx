@@ -2,7 +2,17 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 // Este arquivo contém a lógica de autenticação
 // Verifica se o usuário está logado com base no token no localStorage
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+
+    if (!context) {
+        throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+    }
+
+    return context;
+};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -46,9 +56,9 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('user_token', JSON.stringify(authData));
             setUser({ email: hasUser.email });
             return null;
-        } else {
-            return 'E-mail ou senha incorreta!';
         }
+
+        return 'E-mail ou senha incorreta!';
     };
 
     // Aqui remove o token do LocalStorage e desloga o usuário
