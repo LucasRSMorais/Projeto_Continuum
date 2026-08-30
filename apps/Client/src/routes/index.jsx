@@ -3,6 +3,7 @@ import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import { useAuth } from '../services/utils/auth';
+import useAuth from '../hooks/useAuth';
 
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();

@@ -1,7 +1,6 @@
-import styled from 'styled-components'
+import styled from 'styled-components';
 
-
-// Estilos específicos para a página de login, aplicados apenas nesta página
+// Estilos específicos para a página de registro, aplicados apenas nesta página
 
 export const Container = styled.div`
   display: flex;
@@ -26,16 +25,17 @@ export const Content = styled.div`
   max-width: 350px;
 `;
 
+export const LabelLogin = styled.label`
+  font-size: 16px;
+  color: #676767;
+`;
+
 export const Title = styled.h1`
   font-size: 18px;
   font-weight: 600;
   color: #676767;
 `;
 
-export const LabelFirstAcess = styled.label`
-  font-size: 14px;
-  color: #676767;
-`;
 
 export const labelError = styled.label`
   font-size: 14px;
