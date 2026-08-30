@@ -1,31 +1,33 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import Button from '../../components/Button';
-import { useAuth } from '../../services/utils/auth';
-import { Title } from './styles';
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const result = login(email, password);
 
-    if (result) {
-      setError(result);
+    const usersStorage = JSON.parse(localStorage.getItem('users_db') ?? '[]');
+    const userExists = usersStorage.some((user) => user.email === email);
+
+    if (userExists) {
+      setMessage('Usuário já cadastrado!');
       return;
     }
 
-    navigate('/home');
+    const newUser = { email, password };
+    usersStorage.push(newUser);
+    localStorage.setItem('users_db', JSON.stringify(usersStorage));
+    setMessage('Cadastro realizado com sucesso!');
+    navigate('/');
   };
 
   return (
     <div>
-      <Title>Login</Title>
+      <h1>Cadastro</h1>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -35,18 +37,18 @@ function Login() {
         />
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Senha"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        {error && <p>{error}</p>}
-        <Button type="submit">Login</Button>
+        {message && <p>{message}</p>}
+        <button type="submit">Cadastrar</button>
       </form>
       <p>
-        Não tem conta? <Link to="/register">Cadastre-se</Link>
+        Já tem conta? <Link to="/">Entrar</Link>
       </p>
     </div>
   );
 }
 
-export default Login;
+export default Register;

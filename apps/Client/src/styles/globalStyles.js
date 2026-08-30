@@ -8,6 +8,13 @@ const MyGlobalStyle = createGlobalStyle`
     padding: 0;
     box-sizing: border-box;
   }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+    background-color: #f5f5f5;
+    font-family: 'Roboto', sans-serif;
+  }
 `
 
 export default MyGlobalStyle
