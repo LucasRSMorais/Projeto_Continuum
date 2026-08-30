@@ -6,11 +6,12 @@ A projeto Continuum consiste no desenvolvimento de uma ferramenta para otimizar 
 Este software tem como finalidade ser apresentado ao SUMMIT UMC 2026, à disciplina de Politicas de Segurança da Informação e futuramente à banca do PFC.
 
 ## Está sendo desenvolvido com as seguintes ferramentas:
-    Linguagem de programação: PHP, JavaScript
+    Linguagem de programação: JavaScript, Node.Js
     Linguagem de marcação e estilização: HTML e CSS
-    FrameWorks: React (JavaScript)
-      Liner: ESlint
+    Bibliotecas: React (JavaScript)
+        Liner: ESlint
     API: REST
+    Ambiente: Node.js
     Banco de dados: MySQL
 
 ## Instrução de instalação
