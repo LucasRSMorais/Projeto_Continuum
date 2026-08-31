@@ -1,81 +1,77 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import {createContext, useContext, useEffect, useMemo, useState} from 'react';
 
-// Este arquivo contém a lógica de autenticação
-// Verifica se o usuário está logado com base no token no localStorage
+// Contexto de autenticação global do app.
+// Ele guarda informações do usuário logado e o estado de carregamento da sessão.
 export const AuthContext = createContext(null);
-
 export const useAuth = () => {
     const context = useContext(AuthContext);
 
     if (!context) {
-        throw new Error('useAuth deve ser usado dentro de um AuthProvider');
+        throw new Error(
+            'useAuth deve ser usado dentro de um AuthProvider'
+        );
     }
-
     return context;
 };
 
+const API_URL = 'http://localhost:8000/api';
+
+// Provider responsável por manter o estado de autenticação em toda a aplicação.
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const userToken = localStorage.getItem('user_token');
-
-        if (!userToken) {
-            setUser(null);
-            return;
-        }
-
+    // Consulta o backend para saber se o usuário já está autenticado.
+    // Se a sessão for válida, salva os dados do usuário no estado.
+    const checkSession = async () => {
         try {
-            const parsedToken = JSON.parse(userToken);
-            const usersStorage = JSON.parse(localStorage.getItem('users_db') ?? '[]');
-            const hasUser = usersStorage.find((user) => user.email === parsedToken.email);
+            const response = await fetch(
+                `${API_URL}/session.php`,{
+                    method: 'GET',
+                    credentials: 'include',
+                }
+            );
 
-            setUser(hasUser ? { email: hasUser.email } : null);
-        } catch {
-            localStorage.removeItem('user_token');
-            setUser(null);
+            const data = await response.json();
+            if (response.ok && data.authenticated) {
+                setUser(data.usuario);
+            } else {
+                setUser(null);
+            }
+
+        } catch (error) {
+            console.error(
+                'Erro ao verificar sessão:',
+                error
+            ); setUser(null);
+        } finally {
+            setLoading(false);
         }
-    }, []);
-
-    // Aqui verifica se o usuário existe no LocalStorage e se a senha está correta, caso positivo, cria um token e salva no LocalStorage
-    const login = (email, password) => {
-        const usersStorage = JSON.parse(localStorage.getItem('users_db') ?? '[]');
-        const hasUser = usersStorage.find((user) => user.email === email);
-
-        // Se o usuário não existir, retorna uma mensagem de erro
-        if (!hasUser) {
-            return 'Usuário não encontrado';
-        }
-
-        // Verifica se o e-mail e a senha estão corretos, caso positivo, cria um token e salva no LocalStorage
-        // Capaz de verificar se um dos requisitos está correto e outro não, retornando uma mensagem de erro igual para segurança
-        if (hasUser.email === email && hasUser.password === password) {
-            const token = Math.random().toString(36).substring(2);
-            const authData = { email, token };
-
-            localStorage.setItem('user_token', JSON.stringify(authData));
-            setUser({ email: hasUser.email });
-            return null;
-        }
-
-        return 'E-mail ou senha incorreta!';
     };
 
-    // Aqui remove o token do LocalStorage e desloga o usuário
-    const logout = () => {
-        localStorage.removeItem('user_token');
+// Ao iniciar a aplicação, valida se já existe uma sessão ativa.
+    useEffect(() => {checkSession();}, []);
+
+    // Faz o logout no backend e limpa os dados do usuário no frontend.
+    const logout = async () => {
+    try {
+        await fetch(`${API_URL}/logout.php`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+    } catch (error) {
+        console.error('Erro ao realizar logout:', error);
+    } finally {
         setUser(null);
-    };
+    }
+};
 
-    const value = useMemo(
-        () => ({
-            user,
-            login,
-            logout,
-            isAuthenticated: !!user,
-        }),
-        [user]
+    const value = useMemo(() => ({user, logout, isAuthenticated: !!user, loading, checkSession,}),[user, loading]
     );
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    );
 };

@@ -4,24 +4,29 @@ import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 
-// Pagina de registro de usuário, onde novos usuários podem se cadastrar no sistema
-// APENAS PARA TESTE, NÃO É UMA PÁGINA DE PRODUÇÃO
+// Página de cadastro de novos usuários.
+// Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
 function Register() {
   const navigate = useNavigate();
+
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Função que lida com o envio do formulário de registro
-  // Formatação do email e senha, validação de campos, verificação de usuário existente e armazenamento no LocalStorage
-  const handleSubmit = (event) => {
+  // Recebe o formulário de cadastro, valida as informações e envia para a API.
+  // Também verifica se o e-mail é válido e se a senha atende ao mínimo necessário.
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
+    setMessage('');
     const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPassword = password.trim();
 
-    if (!normalizedEmail || !normalizedPassword) {
-      setMessage('Preencha email e senha.');
+    // Não usamos trim() na senha.
+    // Espaços podem fazer parte de uma senha.
+    const normalizedPassword = password;
+    if (!nome.trim() || !normalizedEmail || !normalizedPassword) {
+      setMessage('Preencha todos os campos.');
       return;
     }
 
@@ -35,57 +40,86 @@ function Register() {
       return;
     }
 
-    let usersStorage = [];
-
     try {
-      const storedUsers = localStorage.getItem('users_db');
-      usersStorage = storedUsers ? JSON.parse(storedUsers) : [];
-    } catch {
-      usersStorage = [];
+      setLoading(true);
+      const response = await fetch(
+        'http://localhost:8000/api/register.php',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome: nome.trim(),
+            email: normalizedEmail,
+            senha: normalizedPassword,
+            // Para testes, usamos um perfil padrão.
+            // Não permitimos que o usuário escolha "admin".
+            perfil: 'medico',
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.message || 'Não foi possível realizar o cadastro.');
+        return;
+      }
+
+      setMessage('Cadastro realizado com sucesso!');
+
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+
+    } catch (error) {
+      console.error(error);
+      setMessage(
+        'Não foi possível conectar ao servidor.'
+      );
+    } finally {
+      setLoading(false);
     }
-
-    const userExists = usersStorage.some(
-      (user) => user.email?.toLowerCase() === normalizedEmail
-    );
-
-    if (userExists) {
-      setMessage('Usuário já cadastrado!');
-      return;
-    }
-
-    usersStorage.push({
-      email: normalizedEmail,
-      password: normalizedPassword,
-    });
-
-    localStorage.setItem('users_db', JSON.stringify(usersStorage));
-    setMessage('Cadastro realizado com sucesso!');
-
-    setTimeout(() => {
-      navigate('/');
-    }, 500);
   };
 
   return (
     <C.Container>
       <C.Title>SISTEMA DE CADASTRO</C.Title>
+
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
+
+          <Input
+            type="text"
+            placeholder="Nome"
+            value={nome}
+            onChange={(event) => setNome(event.target.value)}
+          />
+
           <Input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
+
           <Input
             type="password"
             placeholder="Senha"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+
           {message && <p>{message}</p>}
-          <Button Type="submit" Text="Cadastrar" onClick={handleSubmit} />
+
+          <Button
+            Type="submit"
+            Text={loading ? 'Cadastrando...' : 'Cadastrar'}
+          />
+
         </C.Form>
+
         <p>
           Já tem conta? <Link to="/">Entrar</Link>
         </p>

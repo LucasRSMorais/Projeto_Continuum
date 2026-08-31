@@ -4,12 +4,20 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import { useAuth } from '../services/utils/auth';
 
+// Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
+// Enquanto a sessão está sendo verificada, mostra uma tela de carregamento.
 const PrivateRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  const {isAuthenticated, loading} = useAuth();
+  if (loading) {
+    return <div>Verificando autenticação...</div>;
+  }
+  return isAuthenticated
+    ? children
+    : <Navigate to="/" replace />;
 };
 
+// Define as rotas da aplicação.
+// A página /home é protegida; as demais podem ser acessadas livremente.
 const RoutesApp = () => {
   return (
     <BrowserRouter>

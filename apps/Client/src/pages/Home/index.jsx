@@ -3,14 +3,13 @@ import { Button } from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
 
-// Esta página é responsável por renderizar a tela inicial após o login do usuário
-// Aqui o usuário pode ver uma mensagem de boas-vindas e um botão para sair do sistema
-
+// Página inicial do app após o usuário já estar autenticado.
+// Ela mostra uma mensagem de boas-vindas e oferece a opção de sair da conta.
 function Home() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Função que lida com o logout do usuário
+  // No clique do botão, o sistema desloga o usuário e manda para a tela de login.
 
   return (
     <C.Conteiner>
