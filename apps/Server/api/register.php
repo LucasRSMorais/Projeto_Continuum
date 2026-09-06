@@ -24,12 +24,16 @@ try {
     $perfil = $dados["perfil"] ?? "";
 
     // Valida se os campos obrigatórios vieram preenchidos.
+    
     if ($nome === "" || $email === "" || $senha === "" || $perfil === "") {
+        
         http_response_code(400);
+       
         echo json_encode([
             "success" => false,
             "message" => "Todos os campos são obrigatórios."
         ]);
+        
         exit;
     }
 
@@ -43,6 +47,7 @@ try {
     ]);
 
     if ($consulta->fetch()) {
+        
         http_response_code(409);
         echo json_encode([
             "success" => false,
@@ -85,6 +90,7 @@ try {
         "senha_hash" => $senhaHash,
         "perfil" => $perfil
     ]);
+   
 
     http_response_code(201);
     echo json_encode([

@@ -6,16 +6,16 @@ import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 
-// Página de login do sistema.
-// Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
-// ele entra no app ou precisa confirmar um código de segurança (2FA).
+// Página do inicio recuperar a senha do sistema.
+// Aqui o usuário informa e-mail 
+// Precisa o email para indetificar o codigo de acesso.
 function Login() {
   const navigate = useNavigate();
   const {checkSession} = useAuth();
 
   // Estado dos campos do formulário e das mensagens de erro.
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+ 
   const [error, setError] = useState('');
 
   // Estados do 2FA: indica se o usuário precisa validar o código
@@ -32,14 +32,14 @@ function Login() {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (!normalizedEmail || !password) {
-      setError('Preencha email e senha.');
+    if (!normalizedEmail ) {
+      setError('Preencha a email .');
       return;
     }
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/login.php',
+        'http://localhost:8000/api/email.php',
         {
           method: 'POST',
           credentials: 'include',
@@ -48,25 +48,25 @@ function Login() {
           },
           body: JSON.stringify({
             email: normalizedEmail,
-            senha: password,
+            
           }),
         }
       );
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.message || 'Email ou senha inválidos.');
+        setError(data.message || 'Email inválidos.');
         return;
       }
 
-      // Login correto, mas ainda precisa do 2FA
+      // email correto, mas ainda precisa do 2FA
       if (data.requires_2fa) {
         setCodigoTeste(data.codigo_teste);
         setRequires2FA(true);
         return;
       }
 
-      navigate('/home');
+      navigate('/pass');
 
     } catch (error) {
       console.error(error);
@@ -87,7 +87,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/verify-2fa.php',
+        'http://localhost:8000/api/verificar.php',
         {
           method: 'POST',
           credentials: 'include',
@@ -109,7 +109,7 @@ function Login() {
 
       await checkSession();
 
-      navigate('/home');
+      navigate('/pass');
 
     } catch (error) {
       console.error(error);
@@ -117,7 +117,7 @@ function Login() {
     }
   };
 
-  // Quando o backend exige 2FA, a tela de login muda para esta etapa.
+  // Quando o backend exige 2FA, no gmail terá o codigo de acesso.
   if (requires2FA) {
     return (
       <C.Container>
@@ -125,7 +125,7 @@ function Login() {
         <C.Content>
           <C.Form onSubmit={handleVerify2FA}>
             <p>
-              Digite o código de verificação enviado.
+              Confira o codigo enviado pelo seu email .
             </p>
             {/* TEMPORÁRIO: apenas para testes */}
             <p>
@@ -146,22 +146,16 @@ function Login() {
             <Button type="submit">Verificar código</Button>
           </C.Form>
 
-          <p><button type="button" onClick={() => {
-                setRequires2FA(false);
-                setCodigo('');
-                setCodigoTeste('');
-                setError('');
-              }}>Voltar
-            </button></p>
+          
         </C.Content>
       </C.Container>
     );
   }
 
-// Aqui é renderizado o formulário de login, com campos para e-mail e senha, além de um botão para enviar os dados
+// Aqui é renderizado inicio do formulário de recuperar a senha, com campo para e-mail. 
   return (
     <C.Container>
-      <Title>SISTEMA DE LOGIN</Title>
+      <Title>Recuperação de Senha</Title>
 
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
@@ -171,29 +165,14 @@ function Login() {
               setError('');
             }}
           />
-          <Input type="password" placeholder="Password" value={password} onChange={(event) => {
-              setPassword(event.target.value);
-              setError('');
-            }}
-          />
+         
           {error && (<C.labelError>{error}</C.labelError>)}
 
-          <Button type="submit"> Login</Button>
+          <Button type="submit"> Recuperar</Button>
         </C.Form>
 
-        <C.LabelFirstAcess>
-          Esqueceu a Senha?
-          <C.Strong>
-            <Link to="/password">{' '}Clique aqui</Link>
-            
-          </C.Strong>
-        </C.LabelFirstAcess>
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/register">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
+        
+       
       </C.Content>
     </C.Container>
   );
