@@ -37,6 +37,11 @@ export const LabelFirstAcess = styled.label`
   color: #676767;
 `;
 
+export const LabelSignup = styled.label`
+  font-size: 16px;
+  color: #676767;
+`;
+
 export const labelError = styled.label`
   font-size: 14px;
   color: red;
@@ -49,4 +54,10 @@ export const Strong = styled.strong`
     text-decoration: none;
     color: #676767;
   }
+`;
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;

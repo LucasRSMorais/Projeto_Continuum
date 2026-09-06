@@ -7,7 +7,7 @@ export const Container = styled.div`
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   height: 100vh;
 `;
 
@@ -30,7 +30,7 @@ export const LabelLogin = styled.label`
   color: #676767;
 `;
 
-export const Title = styled.h1`
+export const Title = styled.h2`
   font-size: 18px;
   font-weight: 600;
   color: #676767;
@@ -49,4 +49,10 @@ export const Strong = styled.strong`
     text-decoration: none;
     color: #676767;
   }
+`;
+
+export const Form = styled.form`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 `;
