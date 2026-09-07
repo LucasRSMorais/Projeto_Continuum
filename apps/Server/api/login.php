@@ -3,7 +3,7 @@
 // Página de autenticação do usuário.
 // Recebe email e senha, valida no banco, e se tudo estiver correto,
 // gera um código temporário de verificação em duas etapas (2FA).
-
+// Um teste
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax'
@@ -84,7 +84,7 @@ try {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senha são obrigatórios."
+            "message" => "Email e senhasão obrigatórios."
         ]);
         exit;
     }
