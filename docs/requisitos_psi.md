@@ -23,13 +23,13 @@ Esta matriz transcreve os requisitos apresentados no PDF de avaliação do proje
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 2.1 | Funcionalidade de recuperação de senha implementada |
-| [ ] | 2.2 | Token criptograficamente seguro |
-| [ ] | 2.3 | Token com tempo de expiração |
-| [ ] | 2.4 | Token invalidado após uso |
-| [ ] | 2.5 | Falha correta para token expirado |
-| [ ] | 2.6 | Registro de solicitação de recuperação em log |
-| [ ] | 2.7 | Registro de sucesso/falha do processo |
+| [x] | 2.1 | Funcionalidade de recuperação de senha implementada |
+| [x] | 2.2 | Token criptograficamente seguro |
+| [x] | 2.3 | Token com tempo de expiração |
+| [x] | 2.4 | Token invalidado após uso |
+| [x] | 2.5 | Falha correta para token expirado |
+| [x] | 2.6 | Registro de solicitação de recuperação em log |
+| [x] | 2.7 | Registro de sucesso/falha do processo |
 
 ## 3. Criptografia e Comunicação Segura
 
