@@ -86,13 +86,15 @@ Sugestão de arquivos:
 ```text
 docs/
 └── Evidencias/
-	├── 08-solicitacao-recuperacao.png
-	├── 09-link-de-recuperacao.png
-	├── 10-token-expirado.png
-	├── 11-token-invalido.png
-	├── 12-token-uso-unico.png
-	├── 13-senha-redefinida.png
-	└── 14-logs-recuperacao.md
+	├── 201-exibidos_na_tabela.png
+	├── 202-tela_para_enviar_email
+	├── 203-codigo_verificacao_email
+	├── 204-tela_verificacao
+	├── 205-tela_de_recupera_senha
+	├── 206-sistema.log_dados_com_sucesso
+	├── 207-erro_tela_para_email
+	├── 208-erro_do_sistema_log
+	└── 209-tela_terminal_serve_pt1
 ```
 
 Não incluir no GitHub senhas reais, tokens válidos, links utilizáveis ou dados pessoais reais.
