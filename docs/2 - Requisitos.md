@@ -101,4 +101,4 @@ Não incluir no GitHub senhas reais, tokens válidos, links utilizáveis ou dado
 
 1. OWASP Foundation. **Forgot Password Cheat Sheet**. Disponível em: <https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html>. Acesso em: 6 set. 2026.
 2. OWASP Foundation. **Password Storage Cheat Sheet**. Disponível em: <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html>. Acesso em: 6 set. 2026.
-3. PHP. **random_bytes**. Disponível em: <https://www.php.net/manual/en/function.random-bytes.php>. Acesso em: 6 set. 2026.
+3. PHP. **random_bytes**. Disponível em: <https://www.php.net/manual/en/function.random-bytes.php>. Acesso em: 6 set. 2026..
