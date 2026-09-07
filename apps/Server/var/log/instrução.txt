@@ -1,0 +1,1 @@
+No sistema log vai fica de olho na ações do usuario durante ele recuperar a senha 

@@ -1,9 +1,15 @@
 <?php
 
-// Página de autenticação do usuário.
-// Recebe email e senha, valida no banco, e se tudo estiver correto,
-// gera um código temporário de verificação em duas etapas (2FA).
-// Um teste
+// É uma parte do backend que vai ser dedicada que caso o usuario esquecer a senha dele  , o usuario vai precisar digitar o email dele para recuperar , e o codigo vai vir pelo email dele
+
+use PHPMailer\PHPMailer\PHPMailer ;
+use PHPMailer\PHPMailer\SMTP ;
+use PHPMailer\PHPMailer\Exception ;
+require_once __DIR__ . '/../vendor/autoload.php';
+
+
+
+
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax'
@@ -35,6 +41,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
+// Importa a conexão do sistema.log
+require_once __DIR__ . "/../config/logger.php";
 
 try {
     // Lê os dados enviados pelo frontend em JSON.
@@ -73,18 +81,16 @@ try {
 
     // Extrai os dados do formulário enviado pelo cliente.
     $email = trim($dados["email"] ?? "");
-    $senha = trim($dados["senha"] ?? "");
-
+    acessadolog_Continuum("Ação do email começando.." , "Ação");
    
 
-    // Valida se email e senha não vieram vazios.
-    if ($email === "" || $senha === "") {
+    // Valida se email  não veio vazio.
+    if ($email === "" ) {
         
-
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senhasão obrigatórios."
+            "message" => "Email é obrigatorio de colocar."
         ]);
         exit;
     }
@@ -92,7 +98,9 @@ try {
     // Busca o usuário pelo email no banco.
     $consulta = $pdo->prepare(
         "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
+        
     );
+   
 
     $consulta->execute([
         "email" => $email
@@ -100,29 +108,18 @@ try {
 
     $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
-    // Se não encontrar o usuário, recusa o login.
+    // Se não encontrar o usuário, recusa a recuperação.
     if (!$usuario) {
-          
+        acessadolog_Continuum("O usuário não identificado.." , "ERRO");
         http_response_code(401);
         echo json_encode([
             "success" => false,
-            "message" => "Email ou senha inválidos."
+            "message" => "O Email não existir ."
         ]);
         exit;
     }
 
-    // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha_hash"])) {
-         
-        http_response_code(401);
-        echo json_encode([
-            "success" => false,
-            "message" => "Email ou senha inválidos."
-        ]);
-        exit;
-    }
-
-    // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
+    
     session_regenerate_id(true);
 
     // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
@@ -133,21 +130,43 @@ try {
 
     // Gera um código de 6 dígitos para simular o 2FA.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-      
 
     // Salva o código em hash e a validade por 5 minutos.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
+// Resumidamente a tag $mail vai ser responsavel de enviar o codigo para o usuario para ele ir na pagina de recuperação de email
+acessadolog_Continuum("O email indeficado..". $email , "Sucesso");
+acessadolog_Continuum("O codigo verificação enviando pelo email.." , "AÇÃO");
+$mail = new PHPMailer(true);
+$mail -> isSMTP();
+$mail -> Host = 'smtp.gmail.com';
+$mail -> SMTPAuth = true ;
+$mail -> Username = 'continuum517@gmail.com';
+$mail -> Password = 'lblt bylz gaqu cegs';
+$mail -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
+$mail ->Port =587;
+$mail -> setFrom('continuum517@gmail.com' , 'Codigo');
+$mail -> addAddress($email);
+$mail -> isHTML(true);
+$mail -> Subject = 'Codigo de verificacao';
 
-    // Em desenvolvimento, retorna o código para testes no frontend.
-    // Mais tarde, pode ser substituído por envio por e-mail/SMS.
+$mail -> Body = "
+<h2>  Verificação de segurança   </h2>
+<p> Seu codigo de verificação é  :  </p>
+<h1>  $codigo  </h1>
+<p> Esse código é valido por 5 minutos  </p>
+";
+$mail->send();
+
+   
+    
     echo json_encode([
         "success" => true,
         "requires_2fa" => true,
-        "message" => "Código de verificação gerado.",
-        "codigo_teste" => $codigo
-    ]);
-    exit;
+        "message" => "Código de verificação enviado para o seu email.",
+        
+    ]); 
+    exit; 
 
     // Código antigo que não será executado porque o script sai antes.
     // Ele seria usado para login direto sem verificação de duas etapas.

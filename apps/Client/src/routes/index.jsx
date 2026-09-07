@@ -3,6 +3,8 @@ import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import { useAuth } from '../services/utils/auth';
+import Password from '../pages/password';
+import NovaSenha from '../pages/new_senha';
 
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
 // Enquanto a sessão está sendo verificada, mostra uma tela de carregamento.
@@ -24,6 +26,13 @@ const RoutesApp = () => {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
+         <Route path="/password" element={<Password />} />
+         <Route path="/pass" element={<NovaSenha />} />
+         
+         
+
+         
+        
         <Route
           path="/home"
           element={
