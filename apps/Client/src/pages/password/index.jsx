@@ -170,9 +170,6 @@ function Login() {
 
           <Button type="submit"> Recuperar</Button>
         </C.Form>
-
-        
-       
       </C.Content>
     </C.Container>
   );

@@ -9,6 +9,8 @@ session_set_cookie_params([
 ]);
 
 session_start();
+
+// Define a resposta JSON e permite que o frontend envie a sessão do navegador.
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
@@ -20,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Remove os dados locais antes de invalidar o identificador da sessão.
 // Zera todos os dados da sessão atual.
 $_SESSION = [];
 

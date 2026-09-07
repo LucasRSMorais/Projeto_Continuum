@@ -11,6 +11,7 @@ session_set_cookie_params([
 
 session_start();
 
+// Mantém na sessão as tentativas de login e os dados temporários do 2FA.
 // Define contadores de tentativas e bloqueio para evitar brute force.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;

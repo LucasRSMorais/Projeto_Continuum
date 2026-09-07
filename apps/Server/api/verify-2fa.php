@@ -10,6 +10,7 @@ session_set_cookie_params([
 
 session_start();
 
+// Esta API confirma o código enviado após o login e conclui a autenticação.
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
@@ -73,6 +74,7 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
 // 2FA aprovado: o usuário passa a ser autenticado de verdade.
 session_regenerate_id(true);
 
+// Recupera os dados temporários antes de criar a sessão autenticada.
 $usuarioId = $_SESSION['2fa_usuario_id'];
 $nome = $_SESSION['2fa_nome'];
 $email = $_SESSION['2fa_email'];

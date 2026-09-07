@@ -75,7 +75,7 @@ try {
         throw new Exception("Não foi possível gerar o hash da senha.");
     }
 
-    // Insere o usuário no banco.
+    // Insere o usuário no banco usando parâmetros para evitar SQL injection.
     $sql = "
         INSERT INTO usuarios
         (nome, email, senha_hash, perfil)

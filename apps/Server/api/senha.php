@@ -1,6 +1,6 @@
 <?php
 
-// A parte do backend que vai ser resposavel de recuperação da senha do usuarios 
+// Atualiza a senha depois que o usuário conclui a verificação em duas etapas.
 
 session_set_cookie_params([
     'httponly' => true,
@@ -9,10 +9,7 @@ session_set_cookie_params([
 
 session_start();
 
-
-
-
-
+// Define a política de resposta e permite o uso da sessão pelo frontend.
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
@@ -48,8 +45,7 @@ exit ;
 }
 
 
-// Avisar que caso não encontrar o id do usuario , identificar que não existir nenhum usuario
-
+// Garante que a sessão contém um usuário identificado para atualizar.
 if (!isset($_SESSION['usuario_id'])){
 http_response_code(401);
 
@@ -68,7 +64,7 @@ true
 );
 
 $SenhaNova = trim($dados["nova_senha"] ?? "");
-// Indetificar se a senha está em branco
+// Recusa a atualização quando a nova senha não foi informada.
 if ($SenhaNova === ""){
 
 http_response_code(400);
@@ -83,7 +79,7 @@ exit ;
 
 
 
-// Avisar a senha que precisa ter pelo menos 6 caracteres
+// Aplica o tamanho mínimo definido pela regra de negócio.
 if (strlen($SenhaNova) <6){
 acessadolog_Continuum("A senha deve ter pelo menos 6 caracteres " , "ERRO");
 http_response_code(400);
@@ -96,10 +92,10 @@ exit ;
 
 }
 
-// A nova senha sera totalmente criptografia 
+// Armazena somente o hash da nova senha, nunca o valor original.
 $senhahash = password_hash($SenhaNova , PASSWORD_DEFAULT);
 
-// O processo da atualização da nova senha .
+// Atualiza a senha do usuário autenticado por meio de uma consulta parametrizada.
 $SQL = $pdo-> prepare("UPDATE usuarios SET senha_hash = :senha_hash WHERE id = :id");
 
 $SQL->execute([

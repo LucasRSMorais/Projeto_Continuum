@@ -7,6 +7,7 @@ use PHPMailer\PHPMailer\SMTP ;
 use PHPMailer\PHPMailer\Exception ;
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// O código gerado será vinculado à sessão até a confirmação do 2FA.
 
 
 
@@ -134,7 +135,7 @@ try {
     // Salva o código em hash e a validade por 5 minutos.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
-// Resumidamente a tag $mail vai ser responsavel de enviar o codigo para o usuario para ele ir na pagina de recuperação de email
+// Configura o envio SMTP do código de recuperação por e-mail.
 acessadolog_Continuum("O email indeficado..". $email , "Sucesso");
 acessadolog_Continuum("O codigo verificação enviando pelo email.." , "AÇÃO");
 $mail = new PHPMailer(true);
