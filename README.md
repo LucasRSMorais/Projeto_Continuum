@@ -1,4 +1,4 @@
-# Continuum/Politicas de Segurança da Informação
+# Continuum/Politicas de Segurança da Informação.
 
 ## Descrição
 O projeto Continuum consiste no desenvolvimento de uma ferramenta destinada a otimizar o processo de passagem de plantão entre profissionais de saúde.
