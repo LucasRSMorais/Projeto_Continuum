@@ -4,6 +4,13 @@
 // Recebe email e senha, valida no banco, e se tudo estiver correto,
 // gera um código temporário de verificação em duas etapas (2FA).
 // Um teste
+
+use PHPMailer\PHPMailer\PHPMailer ;
+use PHPMailer\PHPMailer\SMTP ;
+use PHPMailer\PHPMailer\Exception ;
+require_once __DIR__ . '/../vendor/autoload.php';
+
+
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax'
@@ -139,13 +146,36 @@ try {
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-    // Em desenvolvimento, retorna o código para testes no frontend.
-    // Mais tarde, pode ser substituído por envio por e-mail/SMS.
+$verificacao_email = new PHPMailer(true);
+$verificacao_email -> isSMTP();
+$verificacao_email  -> Host = 'smtp.gmail.com';
+$verificacao_email  -> SMTPAuth = true ;
+$verificacao_email  -> Username = 'continuum517@gmail.com';
+$verificacao_email  -> Password = 'lblt bylz gaqu cegs';
+$verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
+$verificacao_email  ->Port =587;
+$verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
+$verificacao_email  -> addAddress($email);
+$verificacao_email  -> isHTML(true);
+$verificacao_email  -> Subject = 'Codigo de verificacao';
+
+$verificacao_email  -> Body = "
+<h2>  Verificação de segurança   </h2>
+<p> Seu codigo de verificação de login é   :  </p>
+<h1>  $codigo  </h1>
+<p> Esse código é valido por 5 minutos  </p>
+";
+$verificacao_email->send();
+
+
+
+
+
     echo json_encode([
         "success" => true,
         "requires_2fa" => true,
         "message" => "Código de verificação gerado.",
-        "codigo_teste" => $codigo
+        
     ]);
     exit;
 
