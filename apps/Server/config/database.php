@@ -3,11 +3,11 @@
 // Arquivo responsável por conectar a API ao banco de dados MySQL.
 // Ele cria o objeto $pdo, que será reutilizado pelas páginas que fazem consultas.
 
-$host = getenv('DB_HOST') ?: 'mysql-16a584b0-continuum.a.aivencloud.com';
-$port = getenv('DB_PORT') ?: '16138';
-$db   = getenv('DB_NAME') ?: 'continuumdb';
-$user = getenv('DB_USER') ?: 'avnadmin';
-$pass = getenv('DB_PASS') ?: 'DB_PASSWORD';
+$host = getenv('DB_HOST') ?: 'mysql.railway.internal';
+$port = getenv('DB_PORT') ?: '3306';
+$db   = getenv('DB_NAME') ?: 'railway';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: 'bwWUrvxOfhGAYWzWSvdsXEvhyhlpIuBH';
 
 $caCandidates = [
     getenv('DB_SSL_CA') ?: '',
