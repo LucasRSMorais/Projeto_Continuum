@@ -7,7 +7,7 @@ $host = getenv('DB_HOST') ?: 'mysql-16a584b0-continuum.a.aivencloud.com';
 $port = getenv('DB_PORT') ?: '16138';
 $db   = getenv('DB_NAME') ?: 'continuumdb';
 $user = getenv('DB_USER') ?: 'avnadmin';
-$pass = getenv('DB_PASS') ?: '';
+$pass = getenv('DB_PASS') ?: 'DB_PASSWORD';
 
 $caCandidates = [
     getenv('DB_SSL_CA') ?: '',
