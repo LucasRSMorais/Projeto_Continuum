@@ -3,6 +3,7 @@ import { useAuth } from '../../services/utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
 
@@ -42,7 +43,7 @@ function nova_() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/senha.php',
+        buildApiUrl('senha.php'),
         {
           method: 'POST',
           credentials: 'include',

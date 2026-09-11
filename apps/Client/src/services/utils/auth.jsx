@@ -1,4 +1,5 @@
 import {createContext, useContext, useEffect, useMemo, useState} from 'react';
+import { buildApiUrl } from '../../config/api';
 
 // Contexto de autenticação global do app.
 // Ele guarda informações do usuário logado e o estado de carregamento da sessão.
@@ -14,7 +15,7 @@ export const useAuth = () => {
     return context;
 };
 
-const API_URL = 'http://localhost:8000/api';
+const API_URL = buildApiUrl('');
 
 // Provider responsável por manter o estado de autenticação em toda a aplicação.
 export const AuthProvider = ({ children }) => {

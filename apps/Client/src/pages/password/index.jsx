@@ -3,6 +3,7 @@ import { useAuth } from '../../services/utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
+import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
 
@@ -39,7 +40,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/email.php',
+        buildApiUrl('email.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -87,7 +88,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/verificar.php',
+        buildApiUrl('verificar.php'),
         {
           method: 'POST',
           credentials: 'include',

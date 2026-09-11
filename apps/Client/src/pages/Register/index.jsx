@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
+import { buildApiUrl } from '../../config/api';
 
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
@@ -43,7 +44,7 @@ function Register() {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://localhost:8000/api/register.php',
+        buildApiUrl('register.php'),
         {
           method: 'POST',
           headers: {
