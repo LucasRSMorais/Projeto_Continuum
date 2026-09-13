@@ -2,10 +2,10 @@ import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
-// informações
+
 // Página inicial do app após o usuário já estar autenticado.
 // Ela mostra uma mensagem de boas-vindas e oferece a opção de sair da conta.
-function Home() {
+function HomePaciente() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -14,12 +14,12 @@ function Home() {
   return (
     <C.Conteiner>
       <C.Title>Home</C.Title>
-      <p>Bem-vindo, {user?.email || 'usuário'}!</p>
-      <Button type="button" Text="Sair" onClick={() => { logout(); navigate('/'); }}>
+      <p>Seja bem-vindo  {user?.email || 'usuário'}! </p>
+      <Button type="button" Text="Sair" onClick={() => { logout(); navigate('/login_pacientes'); }}>
         Sair
       </Button>
     </C.Conteiner>
   );
 }
 
-export default Home;
+export default HomePaciente;

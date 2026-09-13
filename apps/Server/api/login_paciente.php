@@ -18,7 +18,6 @@ session_set_cookie_params([
 
 session_start();
 
-// Mantém na sessão as tentativas de login e os dados temporários do 2FA.
 // Define contadores de tentativas e bloqueio para evitar brute force.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
@@ -31,8 +30,10 @@ if (!isset($_SESSION['bloqueio_login'])) {
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
-require_once __DIR__ . "/../config/cors.php";
-applyCorsHeaders();
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -90,14 +91,14 @@ try {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senhasão obrigatórios."
+            "message" => "Email e senha são obrigatórios."
         ]);
         exit;
     }
 
     // Busca o usuário pelo email no banco.
     $consulta = $pdo->prepare(
-        "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
+        "SELECT * FROM dados_pessoais WHERE email = :email LIMIT 1"
     );
 
     $consulta->execute([
@@ -118,7 +119,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha_hash"])) {
+    if (!password_verify($senha, $usuario["senha"])) {
          
         http_response_code(401);
         echo json_encode([
@@ -135,7 +136,7 @@ try {
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome'];
     $_SESSION['2fa_email'] = $usuario['email'];
-    $_SESSION['2fa_perfil'] = $usuario['perfil'];
+   
 
     // Gera um código de 6 dígitos para simular o 2FA.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -160,7 +161,7 @@ $verificacao_email  -> Subject = 'Codigo de verificacao';
 
 $verificacao_email  -> Body = "
 <h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação de login é   :  </p>
+<p> Seu codigo de verificação da tela de login é   :  </p>
 <h1>  $codigo  </h1>
 <p> Esse código é valido por 5 minutos  </p>
 ";

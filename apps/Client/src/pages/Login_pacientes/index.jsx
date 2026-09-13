@@ -3,14 +3,13 @@ import { useAuth } from '../../services/utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
-import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
 
 // Página de login do sistema.
 // Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
 // ele entra no app ou precisa confirmar um código de segurança (2FA).
-function Login() {
+function LoginPacientes() {
   const navigate = useNavigate();
   const {checkSession} = useAuth();
 
@@ -40,7 +39,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('login.php'),
+        'http://localhost:8000/api/login_paciente.php',
         {
           method: 'POST',
           credentials: 'include',
@@ -67,7 +66,7 @@ function Login() {
         return;
       }
 
-      navigate('/home');
+      navigate('/home_paciente');
 
     } catch (error) {
       console.error(error);
@@ -88,7 +87,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('verify-2fa.php'),
+        'http://localhost:8000/api/verificar2FA_paciente.php',
         {
           method: 'POST',
           credentials: 'include',
@@ -110,7 +109,7 @@ function Login() {
 
       await checkSession();
 
-      navigate('/home');
+      navigate('/home_paciente');
 
     } catch (error) {
       console.error(error);
@@ -162,7 +161,7 @@ function Login() {
 // Aqui é renderizado o formulário de login, com campos para e-mail e senha, além de um botão para enviar os dados
   return (
     <C.Container>
-      <Title>SISTEMA DE LOGIN</Title>
+      <Title>SISTEMA DE LOGIN PARA O PACIENTE</Title>
 
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
@@ -182,24 +181,31 @@ function Login() {
           <Button type="submit"> Login</Button>
         </C.Form>
 
-        <C.LabelFirstAcess>
-          Esqueceu a Senha?
-          <C.Strong>
-            <Link to="/password">{' '}Clique aqui</Link>
-            
-          </C.Strong>
-        </C.LabelFirstAcess>
+      
         <C.LabelSignup>
           Não tem uma conta?
           <C.Strong>
-            <Link to="/register">{' '}Clique aqui</Link>
+            <Link to="/register_pacientes">{' '}Clique aqui</Link>
+          </C.Strong>
+        </C.LabelSignup>
+        <C.LabelSignup>
+          Deleta conta!
+          <C.Strong>
+            <Link to="/deleta_conta">{' '}Clique aqui</Link>
           </C.Strong>
         </C.LabelSignup>
 
+        <C.LabelSignup>
+          Consultar conta
+          <C.Strong>
+            <Link to="/consultar">{' '}Clique aqui</Link>
+          </C.Strong>
+        </C.LabelSignup>
+          
          
       </C.Content>
     </C.Container>
   );
 }
 
-export default Login;
+export default LoginPacientes;

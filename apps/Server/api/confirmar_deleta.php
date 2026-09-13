@@ -1,14 +1,5 @@
 <?php
 
-// Página de autenticação do usuário.
-// Recebe email e senha, valida no banco, e se tudo estiver correto,
-// gera um código temporário de verificação em duas etapas (2FA).
-// Um teste
-
-use PHPMailer\PHPMailer\PHPMailer ;
-use PHPMailer\PHPMailer\SMTP ;
-use PHPMailer\PHPMailer\Exception ;
-require_once __DIR__ . '/../vendor/autoload.php';
 
 
 session_set_cookie_params([
@@ -18,7 +9,6 @@ session_set_cookie_params([
 
 session_start();
 
-// Mantém na sessão as tentativas de login e os dados temporários do 2FA.
 // Define contadores de tentativas e bloqueio para evitar brute force.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
@@ -31,8 +21,11 @@ if (!isset($_SESSION['bloqueio_login'])) {
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
-require_once __DIR__ . "/../config/cors.php";
-applyCorsHeaders();
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: DELETE, OPTIONS");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -90,21 +83,18 @@ try {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senhasão obrigatórios."
+            "message" => "Email e senha são obrigatórios."
         ]);
         exit;
     }
 
     // Busca o usuário pelo email no banco.
-    $consulta = $pdo->prepare(
-        "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
-    );
+   
+    $sql = "SELECT * FROM dados_pessoais WHERE email = :email LIMIT 1";
+   $stmt = $pdo->prepare($sql);
+    $stmt->execute([':email' => $email]);
 
-    $consulta->execute([
-        "email" => $email
-    ]);
-
-    $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
+    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
@@ -118,7 +108,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha_hash"])) {
+    if (!password_verify($senha, $usuario["senha"])) {
          
         http_response_code(401);
         echo json_encode([
@@ -128,43 +118,18 @@ try {
         exit;
     }
 
-    // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
-    session_regenerate_id(true);
 
-    // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
-    $_SESSION['2fa_usuario_id'] = $usuario['id'];
-    $_SESSION['2fa_nome'] = $usuario['nome'];
-    $_SESSION['2fa_email'] = $usuario['email'];
-    $_SESSION['2fa_perfil'] = $usuario['perfil'];
+$sql = "DELETE FROM dados_pessoais WHERE email = :email";
 
-    // Gera um código de 6 dígitos para simular o 2FA.
-    $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-      
 
-    // Salva o código em hash e a validade por 5 minutos.
-    $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
-    $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-$verificacao_email = new PHPMailer(true);
-$verificacao_email -> isSMTP();
-$verificacao_email  -> Host = 'smtp.gmail.com';
-$verificacao_email  -> SMTPAuth = true ;
-$verificacao_email  -> Username = 'continuum517@gmail.com';
-$verificacao_email  -> Password = 'lblt bylz gaqu cegs';
-$verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
-$verificacao_email  ->Port =587;
-$verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
-$verificacao_email  -> addAddress($email);
-$verificacao_email  -> isHTML(true);
-$verificacao_email  -> Subject = 'Codigo de verificacao';
+$stmt = $pdo->prepare($sql);
+$stmt->execute([':email' => $usuario['email']]);
 
-$verificacao_email  -> Body = "
-<h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação de login é   :  </p>
-<h1>  $codigo  </h1>
-<p> Esse código é valido por 5 minutos  </p>
-";
-$verificacao_email->send();
+
+
+
+   
 
 
 
@@ -172,8 +137,7 @@ $verificacao_email->send();
 
     echo json_encode([
         "success" => true,
-        "requires_2fa" => true,
-        "message" => "Código de verificação gerado.",
+        "message" => "Conta deletada com sucesso.",
         
     ]);
     exit;
@@ -196,6 +160,6 @@ $verificacao_email->send();
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro interno do servidor."
+        "message" => "Erro ao acessar o banco de dados."
     ]);
 }
