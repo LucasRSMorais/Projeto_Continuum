@@ -2,7 +2,7 @@ import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
-
+// informações
 // Página inicial do app após o usuário já estar autenticado.
 // Ela mostra uma mensagem de boas-vindas e oferece a opção de sair da conta.
 function Home() {
