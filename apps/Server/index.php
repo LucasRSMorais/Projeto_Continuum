@@ -6,5 +6,4 @@ require_once "config/logger.php";
 // Registra a inicialização do backend e exibe uma mensagem simples para teste.
 acessadolog_Continuum("O sistema esta sendo iniciado" , "LOG");
 
-echo "Log esta em funcionamento ";
-
+echo "Backend esta em funcionamento ";

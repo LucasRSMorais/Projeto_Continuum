@@ -3,28 +3,80 @@
 // Arquivo responsável por conectar a API ao banco de dados MySQL.
 // Ele cria o objeto $pdo, que será reutilizado pelas páginas que fazem consultas.
 
-$host = getenv('DB_HOST') ?: 'mysql.railway.internal';
-$port = getenv('DB_PORT') ?: '3306';
-$db   = getenv('DB_NAME') ?: 'railway';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: 'bwWUrvxOfhGAYWzWSvdsXEvhyhlpIuBH';
+if (!function_exists('loadDotenvFromProjectRoot')) {
+    function loadDotenvFromProjectRoot(): void
+    {
+        $dotenvCandidates = [
+            __DIR__ . '/../.env',
+            dirname(__DIR__) . '/.env',
+            dirname(__DIR__, 2) . '/.env',
+        ];
 
-$caCandidates = [
-    getenv('DB_SSL_CA') ?: '',
-    __DIR__ . '/certs/ca.pem',
-    dirname(__DIR__) . '/config/certs/ca.pem',
-    dirname(__DIR__, 2) . '/config/certs/ca.pem'
-];
+        foreach ($dotenvCandidates as $dotenvFile) {
+            if (!is_file($dotenvFile)) {
+                continue;
+            }
 
-$caCert = null;
-foreach ($caCandidates as $candidate) {
-    if ($candidate !== '' && file_exists($candidate)) {
-        $caCert = $candidate;
-        break;
+            $lines = file($dotenvFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            if ($lines === false) {
+                continue;
+            }
+
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '' || str_starts_with($line, '#')) {continue;}
+
+                if (!str_contains($line, '=')) {continue;}
+
+                [$key, $value] = array_map('trim', explode('=', $line, 2));
+                $key = trim($key);
+                $value = trim($value);
+
+                if ($key === '') {
+                    continue;
+                }
+
+                if (!array_key_exists($key, $_ENV)) {
+                    $_ENV[$key] = $value;
+                }
+
+                if (getenv($key) === false) {
+                    putenv($key . '=' . $value);
+                }
+            }
+            return;
+        }
     }
 }
 
-$dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+loadDotenvFromProjectRoot();
+
+$host = getenv('DB_HOST') ?: 'localhost';
+$port = getenv('DB_PORT') ?: '3306';
+$db   = getenv('DB_NAME') ?: 'continuum';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS') ?: '';
+$charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+$isLocalDb = in_array($host, ['localhost', '127.0.0.1', '::1'], true);
+
+$caCert = null;
+if (!$isLocalDb) {
+    $caCandidates = [
+        getenv('DB_SSL_CA') ?: '',
+        __DIR__ . '/certs/ca.pem',
+        dirname(__DIR__) . '/config/certs/ca.pem',
+        dirname(__DIR__, 2) . '/config/certs/ca.pem'
+    ];
+
+    foreach ($caCandidates as $candidate) {
+        if ($candidate !== '' && file_exists($candidate)) {
+            $caCert = $candidate;
+            break;
+        }
+    }
+}
+
+$dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
 
 try {
     $pdoOptions = [
