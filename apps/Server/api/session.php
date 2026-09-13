@@ -45,6 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Se o usuário ainda não estiver autenticado, responde 401.
 if (!isset($_SESSION['usuario_id'])) {
     http_response_code(401);
+    
     echo json_encode([
         "success" => false,
         "authenticated" => false,
@@ -62,5 +63,6 @@ echo json_encode([
         "nome" => $_SESSION['nome'],
         "email" => $_SESSION['email'],
         "perfil" => $_SESSION['perfil']
+        
     ]
 ]);

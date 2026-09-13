@@ -5,7 +5,11 @@ import Register from '../pages/Register';
 import { useAuth } from '../services/utils/auth';
 import Password from '../pages/password';
 import NovaSenha from '../pages/new_senha';
-
+import Register_Pacientes from '../pages/Registrer_pacientes';
+import LoginPacientes from '../pages/Login_pacientes';
+import HomePaciente from '../pages/Home_paciente';
+import DeletaConta from '../pages/deleta_conta';
+import ConsultarConta from '../pages/consultar';
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
 // Enquanto a sessão está sendo verificada, mostra uma tela de carregamento.
 const PrivateRoute = ({ children }) => {
@@ -28,8 +32,11 @@ const RoutesApp = () => {
         <Route path="/register" element={<Register />} />
          <Route path="/password" element={<Password />} />
          <Route path="/pass" element={<NovaSenha />} />
-         
-         
+        <Route path="/register_pacientes" element={<Register_Pacientes />} />
+        <Route path="/login_pacientes" element={<LoginPacientes />} />
+        <Route path = "/home_paciente" element = {<HomePaciente />} />
+        <Route path="/deleta_conta" element={<DeletaConta />} />
+        <Route path="/consultar" element={<ConsultarConta />} />
 
          
         
