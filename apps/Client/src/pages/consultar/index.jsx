@@ -64,6 +64,8 @@ window.location.href = `http://localhost:8000/api/exportar.php?email=${encodeURI
 };
     
   
+
+
 return(
 <C.Container>
       <Title>Consultar Conta</Title>
@@ -93,6 +95,12 @@ return(
           Deleta conta!
           <C.Strong>
             <Link to="/deleta_conta">{' '}Clique aqui</Link>
+          </C.Strong>
+        </C.LabelSignup>
+           <C.LabelSignup>
+          Revogação de Conta
+          <C.Strong>
+            <Link to="/revogar">{' '}Clique aqui</Link>
           </C.Strong>
         </C.LabelSignup>
 

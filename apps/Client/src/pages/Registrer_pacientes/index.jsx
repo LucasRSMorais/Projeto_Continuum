@@ -192,6 +192,8 @@ function Register_Pacientes() {
             
               Concordo com a Política de Privacidade
           </label>
+
+          <p>Versão do Consetimento V1.0</p>
         
 
          

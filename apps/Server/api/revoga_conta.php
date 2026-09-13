@@ -90,43 +90,49 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-    $sql = "SELECT nome , cpf ,email , endereço FROM dados_pessoais WHERE email = :email LIMIT 1";
+    $sql = "UPDATE dados_pessoais SET  data_cosentimento = NULL , versao_consentimento = NULL WHERE email = :email";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
-    $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+   
+
+if ($stmt->rowCount() > 0){
+
+echo json_encode([
+"success"=> true ,
+"message"=> "Consetimento revogado com sucesso"
+
+]);
+
+
+}else{
+
+http_response_code(400);
+echo json_encode([
+"success" => false ,
+"message"=> "Email inexistente"
+
+]);
+
+}
+exit;
+
 
     // Se não encontrar o usuário, recusa o login.
-    if (!$usuario) {
-          
-        http_response_code(401);
-        echo json_encode([
-            "success" => false,
-            "message" => "Email inválido."
-        ]);
-        exit;
-    }
+    
 
    
 
 
-    
-    echo json_encode([
-        "success" => true,
-        "message" => "Dados do usuário consultados com sucesso.",
-        "usuario" => [
-            "nome" => $usuario["nome"],
-            "email" => $usuario["email"],
-            "cpf" => $usuario["cpf"],
-            "endereço" => $usuario["endereço"]
-        ]
-    ]);
+
+   
+
 
 } catch (PDOException $e) {
     // Caso ocorra algum erro de banco de dados.
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao acessar o banco de dados."
+        "message" => $e->getMessage()
     ]);
 }
