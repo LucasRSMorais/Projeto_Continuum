@@ -7,6 +7,7 @@ import { AuthProvider } from './services/utils/auth';
 // Ponto de entrada da aplicação.
 // Aqui o React é inicializado, os estilos globais são carregados
 // e o provedor de autenticação é envolvido em torno das rotas do app.
+// Em outras palavras, toda a aplicação recebe acesso ao contexto de sessão.
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <MyGlobalStyles />

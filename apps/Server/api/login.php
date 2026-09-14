@@ -19,7 +19,7 @@ session_set_cookie_params([
 session_start();
 
 // Mantém na sessão as tentativas de login e os dados temporários do 2FA.
-// Define contadores de tentativas e bloqueio para evitar brute force.
+// Isso permite controlar ataques de força bruta e guardar informações do processo de autenticação.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
 }
@@ -61,6 +61,7 @@ try {
     }
 
     // Conta cada tentativa para proteger contra ataques de força bruta.
+    // Quando o limite é atingido, o sistema bloqueia temporariamente o acesso.
     $_SESSION['tentativas_login']++;
 
     // Depois de 5 tentativas, bloqueia por 60 segundos.
@@ -96,6 +97,7 @@ try {
     }
 
     // Busca o usuário pelo email no banco.
+    // O uso de prepared statement evita injeção SQL.
     $consulta = $pdo->prepare(
         "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
     );
@@ -118,6 +120,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
+    // password_verify é o método correto para validar a senha sem expor o valor em texto puro.
     if (!password_verify($senha, $usuario["senha_hash"])) {
          
         http_response_code(401);
@@ -129,23 +132,28 @@ try {
     }
 
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
+    // A sessão atual é renovada para reduzir o risco de fixação de sessão.
     session_regenerate_id(true);
 
     // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
+    // Isso mantém o contexto do usuário sem autenticar a sessão final ainda.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome'];
     $_SESSION['2fa_email'] = $usuario['email'];
     $_SESSION['2fa_perfil'] = $usuario['perfil'];
 
     // Gera um código de 6 dígitos para simular o 2FA.
+    // Esse valor é enviado ao usuário e depois comparado com o hash salvo na sessão.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-      
 
     // Salva o código em hash e a validade por 5 minutos.
+    // A validação futura usa password_verify, que compara o valor informado com o hash armazenado.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-$verificacao_email = new PHPMailer(true);
+    // Envia o código por e-mail usando PHPMailer.
+    // Essa etapa simula a verificação em duas etapas do sistema.
+    $verificacao_email = new PHPMailer(true);
 $verificacao_email -> isSMTP();
 $verificacao_email  -> Host = 'smtp.gmail.com';
 $verificacao_email  -> SMTPAuth = true ;

@@ -2,6 +2,7 @@
 
 // Arquivo responsável por conectar a API ao banco de dados MySQL.
 // Ele cria o objeto $pdo, que será reutilizado pelas páginas que fazem consultas.
+// Esse arquivo centraliza as configurações e evita duplicação de conexão.
 
 if (!function_exists('loadDotenvFromProjectRoot')) {
     function loadDotenvFromProjectRoot(): void
@@ -51,6 +52,8 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
 loadDotenvFromProjectRoot();
 
+// Carrega as variáveis de conexão do ambiente.
+// Quando não há valores definidos, usa configurações padrão para ambiente local.
 $host = getenv('DB_HOST') ?: 'localhost';
 $port = getenv('DB_PORT') ?: '3306';
 $db   = getenv('DB_NAME') ?: 'continuum';
@@ -76,9 +79,11 @@ if (!$isLocalDb) {
     }
 }
 
+// DSN do PDO: define o driver, host, porta, banco e charset.
 $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=$charset";
 
 try {
+    // Opções de conexão robustas para tratamento de erros e leitura padrão em arrays associativos.
     $pdoOptions = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

@@ -11,8 +11,9 @@ import HomePaciente from '../pages/Home_paciente';
 import DeletaConta from '../pages/deleta_conta';
 import ConsultarConta from '../pages/consultar';
 import Revogacao from '../pages/revogar';
+
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
-// Enquanto a sessão está sendo verificada, mostra uma tela de carregamento.
+// Enquanto a sessão está sendo verificada, o usuário vê uma tela de carregamento.
 const PrivateRoute = ({ children }) => {
   const {isAuthenticated, loading} = useAuth();
   if (loading) {
@@ -25,6 +26,7 @@ const PrivateRoute = ({ children }) => {
 
 // Define as rotas da aplicação.
 // A página /home é protegida; as demais podem ser acessadas livremente.
+// Essa estrutura centraliza a navegação e facilita a manutenção do fluxo do sistema.
 const RoutesApp = () => {
   return (
     <BrowserRouter>
