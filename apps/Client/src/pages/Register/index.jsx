@@ -69,10 +69,7 @@ function Register() {
       }
 
       setMessage('Cadastro realizado com sucesso!');
-
-      setTimeout(() => {
-        navigate('/');
-      }, 1000);
+      navigate('/', { replace: true });
 
     } catch (error) {
       console.error(error);

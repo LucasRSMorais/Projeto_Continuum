@@ -37,7 +37,7 @@ const RoutesApp = () => {
          <Route path="/pass" element={<NovaSenha />} />
         <Route path="/register_pacientes" element={<Register_Pacientes />} />
         <Route path="/login_pacientes" element={<LoginPacientes />} />
-        <Route path = "/home_paciente" element = {<HomePaciente />} />
+        <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>}/>
         <Route path="/deleta_conta" element={<DeletaConta />} />
         <Route path="/consultar" element={<ConsultarConta />} />
         <Route path="/revogar" element={<Revogacao />} />
