@@ -13,7 +13,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+    'samesite' => 'None'
 ]);
 
 session_start();
@@ -160,6 +161,7 @@ $verificacao_email  -> SMTPAuth = true ;
 $verificacao_email  -> Username = 'continuum517@gmail.com';
 $verificacao_email  -> Password = 'lblt bylz gaqu cegs';
 $verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
+$verificacao_email  -> Timeout = 10;
 $verificacao_email  ->Port =587;
 $verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
 $verificacao_email  -> addAddress($email);
@@ -172,7 +174,11 @@ $verificacao_email  -> Body = "
 <h1>  $codigo  </h1>
 <p> Esse código é valido por 5 minutos  </p>
 ";
-$verificacao_email->send();
+try {
+    $verificacao_email->send();
+} catch (Exception $emailError) {
+    error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
+}
 
 
 
@@ -182,7 +188,7 @@ $verificacao_email->send();
         "success" => true,
         "requires_2fa" => true,
         "message" => "Código de verificação gerado.",
-        
+        "codigo_teste" => $codigo
     ]);
     exit;
 
