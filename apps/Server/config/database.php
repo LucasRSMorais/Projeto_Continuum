@@ -60,22 +60,11 @@ $db   = getenv('DB_NAME') ?: 'continuum';
 $user = getenv('DB_USER') ?: 'root';
 $pass = getenv('DB_PASS') ?: '';
 $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
-$isLocalDb = in_array($host, ['localhost', '127.0.0.1', '::1'], true);
-
 $caCert = null;
-if (!$isLocalDb) {
-    $caCandidates = [
-        getenv('DB_SSL_CA') ?: '',
-        __DIR__ . '/certs/ca.pem',
-        dirname(__DIR__) . '/config/certs/ca.pem',
-        dirname(__DIR__, 2) . '/config/certs/ca.pem'
-    ];
-
-    foreach ($caCandidates as $candidate) {
-        if ($candidate !== '' && file_exists($candidate)) {
-            $caCert = $candidate;
-            break;
-        }
+if (getenv('DB_SSL_CA')) {
+    $candidate = getenv('DB_SSL_CA');
+    if (file_exists($candidate)) {
+        $caCert = $candidate;
     }
 }
 
@@ -103,8 +92,7 @@ try {
 
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao conectar ao banco de dados.",
-        "details" => $e->getMessage()
+        "message" => "Erro ao conectar ao banco de dados."
     ]);
 
     exit;
