@@ -1,7 +1,7 @@
 <?php
 
 // Página de validação do código de autenticação em duas etapas (2FA).
-
+//Corrigido
 
 session_set_cookie_params([
     'httponly' => true,

@@ -2,7 +2,7 @@
 
 // Página de validação do código de autenticação em duas etapas (2FA).
 // Após o login, o frontend envia o código gerado na etapa anterior e esta API confirma.
-
+//Corrigido
 session_set_cookie_params([
     'httponly' => true,
     'samesite' => 'Lax'
