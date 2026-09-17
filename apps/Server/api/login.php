@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
-
+require_once __DIR__ . "/registrarLog.php";
 try {
     // Lê os dados enviados pelo frontend em JSON.
     $dados = json_decode(
@@ -86,6 +86,7 @@ try {
 
     // Valida se email e senha não vieram vazios.
     if ($email === "" || $senha === "") {
+         
         
 
         http_response_code(400);
@@ -109,6 +110,15 @@ try {
 
     // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
+        registrarLog(
+        $pdo ,
+        null,
+        "LOGIN_Falha",
+        "Tentativa de login com usuário não encontrando."
+
+
+    );
+
           
         http_response_code(401);
         echo json_encode([
@@ -120,7 +130,14 @@ try {
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
     if (!password_verify($senha, $usuario["senha_hash"])) {
-         
+          registrarLog(
+        $pdo ,
+        $usuario['id'],
+        "LOGIN_Falha",
+        "O usuarío " . $usuario['nome'] . " informou uma senha inválida."
+
+
+    );
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -128,6 +145,17 @@ try {
         ]);
         exit;
     }
+
+
+    registrarLog(
+        $pdo ,
+        $usuario['id'],
+        "LOGIN_2FA",
+        "O usuarío " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA"
+
+
+    );
+
 
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
     session_regenerate_id(true);

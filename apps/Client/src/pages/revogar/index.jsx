@@ -95,18 +95,11 @@ return(
         {message && <p>{message}</p>}
 
       
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/register_pacientes">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-        <C.LabelSignup>
-          Deleta conta!
-          <C.Strong>
-            <Link to="/deleta_conta">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
+        <Link to="/consultar">{' '}
+                <Button  type="submit"> Voltar para tela de consultar</Button>
+                 </Link> 
+       
+        
 
        
           

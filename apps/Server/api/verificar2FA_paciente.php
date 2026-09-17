@@ -11,10 +11,17 @@ session_set_cookie_params([
 session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
+<<<<<<< HEAD
 header("Access-Control-Allow-Origin: http://localhost:5173");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
+=======
+require_once __DIR__ . "/../config/cors.php";
+require_once __DIR__ . "/registrarLog.php";
+require_once __DIR__ . "/../config/database.php";
+applyCorsHeaders();
+>>>>>>> cbb65d9 (Atualiza sistema de logs e autenticação)
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -62,6 +69,15 @@ if (time() > $_SESSION['2fa_expira']) {
 
 // Compara o código informado com o hash salvo na sessão.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
+    registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "2FA_FALHA",
+        "O usuarío " . $_SESSION['2fa_nome'] . " Informou um codigo verificação errado"
+
+
+    );
+   
     http_response_code(401);
     echo json_encode([
         "success" => false,
@@ -69,6 +85,25 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     ]);
     exit;
 }
+
+registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "2FA_SUCESSO",
+        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação corretamente."
+
+
+    );
+
+ registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "LOGIN_SUCESSO",
+        "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso"
+
+
+    );
+
 
 
 // 2FA aprovado: o usuário passa a ser autenticado de verdade.

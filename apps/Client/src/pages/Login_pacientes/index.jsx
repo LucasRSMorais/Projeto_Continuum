@@ -183,18 +183,11 @@ function LoginPacientes() {
 
       
         <C.LabelSignup>
-          Não tem uma conta?
+          Criar uma conta
           <C.Strong>
             <Link to="/register_pacientes">{' '}Clique aqui</Link>
           </C.Strong>
-        </C.LabelSignup>
-        <C.LabelSignup>
-          Deleta conta!
-          <C.Strong>
-            <Link to="/deleta_conta">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-
+       </C.LabelSignup> 
         <C.LabelSignup>
           Consultar conta
           <C.Strong>

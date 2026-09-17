@@ -83,27 +83,11 @@ return(
 
           <Button type="submit">Consultar</Button>
         </C.Form>
+         <Link to="/login_pacientes">{' '}
+                          <Button  type="submit"> Voltar para tela de login </Button>
+                           </Link> 
 
       
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/register_pacientes">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-        <C.LabelSignup>
-          Deleta conta!
-          <C.Strong>
-            <Link to="/deleta_conta">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-           <C.LabelSignup>
-          Revogação de Conta
-          <C.Strong>
-            <Link to="/revogar">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-
        
           
          
@@ -118,6 +102,17 @@ return(
           <Button type="submit" onClick={exportarUsuario}>
             Exportar Dados
           </Button>
+          <br />
+          <br />
+            <Link to="/deleta_conta">{' '}
+                          <Button  type="submit"> Deleta conta</Button>
+                
+                           </Link>
+                           <br /> 
+                           <br />
+                           <Link to="/revogar">{' '}
+                          <Button  type="submit">  Revogar</Button>
+                           </Link> 
         
       </C.DadoUsuario>)}
 
