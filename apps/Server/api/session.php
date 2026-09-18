@@ -5,11 +5,13 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+    'samesite' => 'None'
 ]);
 
 session_start();
 
+// Define o tempo máximo permitido sem atividade do usuário.
 $tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
 
 // Se o tempo de inatividade excedeu o limite, encerra a sessão.
@@ -32,10 +34,8 @@ if (
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+require_once __DIR__ . "/../config/cors.php";
+applyCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);

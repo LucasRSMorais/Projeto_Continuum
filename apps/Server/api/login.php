@@ -13,12 +13,14 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+    'samesite' => 'None'
 ]);
 
 session_start();
 
-// Define contadores de tentativas e bloqueio para evitar brute force.
+// Mantém na sessão as tentativas de login e os dados temporários do 2FA.
+// Isso permite controlar ataques de força bruta e guardar informações do processo de autenticação.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
 }
@@ -30,10 +32,8 @@ if (!isset($_SESSION['bloqueio_login'])) {
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+require_once __DIR__ . "/../config/cors.php";
+applyCorsHeaders();
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -62,6 +62,7 @@ try {
     }
 
     // Conta cada tentativa para proteger contra ataques de força bruta.
+    // Quando o limite é atingido, o sistema bloqueia temporariamente o acesso.
     $_SESSION['tentativas_login']++;
 
     // Depois de 5 tentativas, bloqueia por 60 segundos.
@@ -97,6 +98,7 @@ try {
     }
 
     // Busca o usuário pelo email no banco.
+    // O uso de prepared statement evita injeção SQL.
     $consulta = $pdo->prepare(
         "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
     );
@@ -119,6 +121,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
+    // password_verify é o método correto para validar a senha sem expor o valor em texto puro.
     if (!password_verify($senha, $usuario["senha_hash"])) {
          
         http_response_code(401);
@@ -130,29 +133,35 @@ try {
     }
 
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
+    // A sessão atual é renovada para reduzir o risco de fixação de sessão.
     session_regenerate_id(true);
 
     // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
+    // Isso mantém o contexto do usuário sem autenticar a sessão final ainda.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome'];
     $_SESSION['2fa_email'] = $usuario['email'];
     $_SESSION['2fa_perfil'] = $usuario['perfil'];
 
     // Gera um código de 6 dígitos para simular o 2FA.
+    // Esse valor é enviado ao usuário e depois comparado com o hash salvo na sessão.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-      
 
     // Salva o código em hash e a validade por 5 minutos.
+    // A validação futura usa password_verify, que compara o valor informado com o hash armazenado.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-$verificacao_email = new PHPMailer(true);
+    // Envia o código por e-mail usando PHPMailer.
+    // Essa etapa simula a verificação em duas etapas do sistema.
+    $verificacao_email = new PHPMailer(true);
 $verificacao_email -> isSMTP();
 $verificacao_email  -> Host = 'smtp.gmail.com';
 $verificacao_email  -> SMTPAuth = true ;
 $verificacao_email  -> Username = 'continuum517@gmail.com';
 $verificacao_email  -> Password = 'lblt bylz gaqu cegs';
 $verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
+$verificacao_email  -> Timeout = 10;
 $verificacao_email  ->Port =587;
 $verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
 $verificacao_email  -> addAddress($email);
@@ -165,7 +174,11 @@ $verificacao_email  -> Body = "
 <h1>  $codigo  </h1>
 <p> Esse código é valido por 5 minutos  </p>
 ";
-$verificacao_email->send();
+try {
+    $verificacao_email->send();
+} catch (Exception $emailError) {
+    error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
+}
 
 
 
@@ -175,7 +188,7 @@ $verificacao_email->send();
         "success" => true,
         "requires_2fa" => true,
         "message" => "Código de verificação gerado.",
-        
+        "codigo_teste" => $codigo
     ]);
     exit;
 
