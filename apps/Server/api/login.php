@@ -5,12 +5,14 @@
 // gera um código temporário de verificação em duas etapas (2FA).
 // Um teste
 
-use PHPMailer\PHPMailer\PHPMailer ;
-use PHPMailer\PHPMailer\SMTP ;
-use PHPMailer\PHPMailer\Exception ;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+// Carrega as dependências do PHPMailer para envio de e-mail.
 require_once __DIR__ . '/../vendor/autoload.php';
 
-
+// Configura a sessão com cookies protegidos para reduzir risco de roubo de sessão.
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
@@ -19,8 +21,8 @@ session_set_cookie_params([
 
 session_start();
 
-// Mantém na sessão as tentativas de login e os dados temporários do 2FA.
-// Isso permite controlar ataques de força bruta e guardar informações do processo de autenticação.
+// Mantém o estado do usuário durante o processo de autenticação.
+// Isso ajuda a bloquear tentativas de força bruta e guardar o contexto do 2FA.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
 }
@@ -29,12 +31,15 @@ if (!isset($_SESSION['bloqueio_login'])) {
     $_SESSION['bloqueio_login'] = 0;
 }
 
+// Registra a última atividade para controle de expiração da sessão.
 $_SESSION['ultima_atividade'] = time();
 
+// Responde em JSON e aplica CORS para permitir a comunicação com o frontend.
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
 
+// Preflight do navegador para requisições CORS.
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
@@ -79,13 +84,11 @@ try {
         exit;
     }
 
-    // Extrai os dados do formulário enviado pelo cliente.
+    // Extrai os dados enviados pelo frontend no corpo da requisição.
     $email = trim($dados["email"] ?? "");
     $senha = trim($dados["senha"] ?? "");
 
-   
-
-    // Valida se email e senha não vieram vazios.
+    // Valida se os campos obrigatórios foram preenchidos antes de consultar o banco.
     if ($email === "" || $senha === "") {
          
         
@@ -98,8 +101,8 @@ try {
         exit;
     }
 
-    // Busca o usuário pelo email no banco.
-    // O uso de prepared statement evita injeção SQL.
+    // Busca o usuário pelo e-mail para validar a identidade antes do 2FA.
+    // O uso de prepared statement evita SQL injection.
     $consulta = $pdo->prepare(
         "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
     );
@@ -110,16 +113,14 @@ try {
 
     $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
-    // Se não encontrar o usuário, recusa o login.
+    // Se não encontrar o usuário, recusa o login e registra a falha.
     if (!$usuario) {
         registrarLog(
-        $pdo ,
-        null,
-        "LOGIN_Falha",
-        "Tentativa de login com usuário não encontrando."
-
-
-    );
+            $pdo,
+            null,
+            "LOGIN_Falha",
+            "Tentativa de login com usuário não encontrado."
+        );
 
           
         http_response_code(401);
@@ -130,17 +131,15 @@ try {
         exit;
     }
 
-    // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    // password_verify é o método correto para validar a senha sem expor o valor em texto puro.
+    // Compara a senha informada com o hash salvo no banco.
+    // password_verify é a maneira correta de validar senhas sem expor o valor em texto puro.
     if (!password_verify($senha, $usuario["senha_hash"])) {
-          registrarLog(
-        $pdo ,
-        $usuario['id'],
-        "LOGIN_Falha",
-        "O usuarío " . $usuario['nome'] . " informou uma senha inválida."
-
-
-    );
+        registrarLog(
+            $pdo,
+            $usuario['id'],
+            "LOGIN_Falha",
+            "O usuário " . $usuario['nome'] . " informou uma senha inválida."
+        );
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -150,68 +149,93 @@ try {
     }
 
 
+    // Registra que o usuário passou pela etapa de autenticação inicial e entrou no processo de 2FA.
     registrarLog(
-        $pdo ,
+        $pdo,
         $usuario['id'],
         "LOGIN_2FA",
-        "O usuarío " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA"
-
-
+        "O usuário " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA."
     );
-
 
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
     // A sessão atual é renovada para reduzir o risco de fixação de sessão.
     session_regenerate_id(true);
 
-    // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
-    // Isso mantém o contexto do usuário sem autenticar a sessão final ainda.
+    // Armazena temporariamente as informações do usuário até a validação do código 2FA.
+    // Isso permite manter o contexto do login sem autenticar a sessão final ainda.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome'];
     $_SESSION['2fa_email'] = $usuario['email'];
     $_SESSION['2fa_perfil'] = $usuario['perfil'];
 
-    // Gera um código de 6 dígitos para simular o 2FA.
-    // Esse valor é enviado ao usuário e depois comparado com o hash salvo na sessão.
+    // Gera um código de 6 dígitos para simular a etapa de 2FA.
+    // Esse valor será enviado ao usuário e comparado com o hash armazenado em sessão.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-    // Salva o código em hash e a validade por 5 minutos.
-    // A validação futura usa password_verify, que compara o valor informado com o hash armazenado.
+    // Guarda o código em hash e define o prazo de validade por 5 minutos.
+    // Isso evita que o código seja armazenado em texto puro e reduz o risco de exposição.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-    // Envia o código por e-mail usando PHPMailer.
-    // Essa etapa simula a verificação em duas etapas do sistema.
-    $verificacao_email = new PHPMailer(true);
-$verificacao_email -> isSMTP();
-$verificacao_email  -> Host = 'smtp.gmail.com';
-$verificacao_email  -> SMTPAuth = true ;
-$verificacao_email  -> Username = 'continuum517@gmail.com';
-$verificacao_email  -> Password = 'lblt bylz gaqu cegs';
-$verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
-$verificacao_email  -> Timeout = 10;
-$verificacao_email  ->Port =587;
-$verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
-$verificacao_email  -> addAddress($email);
-$verificacao_email  -> isHTML(true);
-$verificacao_email  -> Subject = 'Codigo de verificacao';
+    // Configura e envia o código por e-mail usando PHPMailer.
+    // Isso conclui a etapa de verificação em duas etapas do processo de login.
+    // Lê as credenciais do provedor de e-mail via variáveis de ambiente do Railway.
+    $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+    $smtpUsername = getenv('SMTP_USERNAME');
+    $smtpPassword = getenv('SMTP_PASSWORD');
+    $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
 
-$verificacao_email  -> Body = "
+    // Se o e-mail não estiver configurado, não continua o login para evitar falha silenciosa.
+    if (!$smtpUsername || !$smtpPassword) {
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Configuração de e-mail do 2FA não encontrada."
+        ]);
+        exit;
+    }
+
+    $verificacao_email = new PHPMailer(true);
+    $verificacao_email->CharSet = 'UTF-8';
+    $verificacao_email->isSMTP();
+    $verificacao_email->Host = $smtpHost;
+    $verificacao_email->SMTPAuth = true;
+    $verificacao_email->Username = $smtpUsername;
+    $verificacao_email->Password = $smtpPassword;
+    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $verificacao_email->Timeout = 10;
+    $verificacao_email->Port = $smtpPort;
+    $verificacao_email->setFrom($smtpUsername, 'Continuum');
+    $verificacao_email->addAddress($email);
+    $verificacao_email->isHTML(true);
+    $verificacao_email->Subject = 'Codigo de verificacao';
+
+    // Corpo do e-mail com o código de verificação.
+    $verificacao_email->Body = "
 <h2>  Verificação de segurança   </h2>
 <p> Seu codigo de verificação de login é   :  </p>
 <h1>  $codigo  </h1>
 <p> Esse código é valido por 5 minutos  </p>
 ";
-try {
-    $verificacao_email->send();
-} catch (Exception $emailError) {
-    error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
-}
+
+    // Tenta enviar o e-mail e, se falhar, responde com erro explícito para o frontend.
+    try {
+        $verificacao_email->send();
+    } catch (Exception $emailError) {
+        error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Não foi possível enviar o código de verificação."
+        ]);
+        exit;
+    }
 
 
 
 
 
+    // Se o e-mail foi enviado com sucesso, retorna o status e informa que o usuário precisa confirmar o 2FA.
     echo json_encode([
         "success" => true,
         "requires_2fa" => true,
@@ -220,8 +244,8 @@ try {
     ]);
     exit;
 
-    // Código antigo que não será executado porque o script sai antes.
-    // Ele seria usado para login direto sem verificação de duas etapas.
+    // Bloco legado: não executa porque o fluxo sai antes.
+    // Era usado para fazer login direto sem a etapa de verificação em duas etapas.
     echo json_encode([
         "success" => true,
         "message" => "Login realizado com sucesso.",

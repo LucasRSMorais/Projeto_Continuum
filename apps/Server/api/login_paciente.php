@@ -184,6 +184,7 @@ try {
     }
 
     $verificacao_email = new PHPMailer(true);
+    $verificacao_email->CharSet = 'UTF-8';
     $verificacao_email->isSMTP();
     $verificacao_email->Host = $smtpHost;
     $verificacao_email->SMTPAuth = true;
@@ -191,7 +192,7 @@ try {
     $verificacao_email->Password = $smtpPassword;
     $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $verificacao_email->Port = $smtpPort;
-    $verificacao_email->setFrom($smtpUsername, 'Codigo');
+    $verificacao_email->setFrom($smtpUsername, 'Continuum');
     $verificacao_email->addAddress($email);
     $verificacao_email->isHTML(true);
     $verificacao_email->Subject = 'Codigo de verificacao';
