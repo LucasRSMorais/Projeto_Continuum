@@ -10,13 +10,12 @@ session_set_cookie_params([
 
 session_start();
 
+require_once __DIR__ . "/registrarLog.php";
+require_once __DIR__ . "/../config/database.php";
+
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
-
-require_once __DIR__ . "/../config/cors.php";
-require_once __DIR__ . "/registrarLog.php";
-require_once __DIR__ . "/../config/database.php";
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -25,7 +24,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Lê o código enviado no corpo da requisição em JSON.
-$data = json_decode(file_get_contents("php://input"), true);
+$rawBody = file_get_contents("php://input");
+$data = json_decode($rawBody, true);
+
+if (!is_array($data)) {
+    http_response_code(400);
+    echo json_encode([
+        "success" => false,
+        "message" => "Corpo da requisição inválido."
+    ]);
+    exit;
+}
+
 $codigo = trim($data['codigo'] ?? '');
 
 // Se o código não vier, retorna erro 400.
@@ -67,14 +77,12 @@ if (time() > $_SESSION['2fa_expira']) {
 // Compara o código informado com o hash salvo na sessão.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
-        "O usuarío " . $_SESSION['2fa_nome'] . " Informou um codigo verificação errado"
-
-
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação inválido."
     );
-   
+
     http_response_code(401);
     echo json_encode([
         "success" => false,
@@ -84,22 +92,18 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
 }
 
 registrarLog(
-        $pdo ,
-        $_SESSION['2fa_usuario_id'],
-        "2FA_SUCESSO",
-        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação corretamente."
+    $pdo,
+    $_SESSION['2fa_usuario_id'],
+    "2FA_SUCESSO",
+    "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente."
+);
 
-
-    );
-
- registrarLog(
-        $pdo ,
-        $_SESSION['2fa_usuario_id'],
-        "LOGIN_SUCESSO",
-        "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso"
-
-
-    );
+registrarLog(
+    $pdo,
+    $_SESSION['2fa_usuario_id'],
+    "LOGIN_SUCESSO",
+    "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso."
+);
 
 
 
