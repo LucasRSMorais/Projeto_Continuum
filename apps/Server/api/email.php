@@ -133,23 +133,41 @@ try {
     // Salva o código em hash e a validade por 5 minutos.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
-// Configura o envio SMTP do código de recuperação por e-mail.
+// Configura o envio SMTP do código de recuperação por e-mail usando apenas variáveis de ambiente.
 acessadolog_Continuum("O email indeficado..". $email , "Sucesso");
 acessadolog_Continuum("O codigo verificação enviando pelo email.." , "AÇÃO");
-$mail = new PHPMailer(true);
-$mail -> isSMTP();
-$mail -> Host = 'smtp.gmail.com';
-$mail -> SMTPAuth = true ;
-$mail -> Username = 'continuum517@gmail.com';
-$mail -> Password = 'lblt bylz gaqu cegs';
-$mail -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
-$mail ->Port =587;
-$mail -> setFrom('continuum517@gmail.com' , 'Codigo');
-$mail -> addAddress($email);
-$mail -> isHTML(true);
-$mail -> Subject = 'Codigo de verificacao';
 
-$mail -> Body = "
+$smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+$smtpUsername = getenv('SMTP_USERNAME');
+$smtpPassword = getenv('SMTP_PASSWORD');
+$smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
+$fromEmail = getenv('SMTP_FROM_EMAIL') ?: $smtpUsername;
+$fromName = getenv('SMTP_FROM_NAME') ?: 'Continuum';
+
+if (!$smtpUsername || !$smtpPassword) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Configuração de e-mail do 2FA não encontrada."
+    ]);
+    exit;
+}
+
+$mail = new PHPMailer(true);
+$mail->isSMTP();
+$mail->Host = $smtpHost;
+$mail->SMTPAuth = true;
+$mail->Username = $smtpUsername;
+$mail->Password = $smtpPassword;
+$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+$mail->Port = $smtpPort;
+$mail->Timeout = 10;
+$mail->setFrom($fromEmail, $fromName);
+$mail->addAddress($email);
+$mail->isHTML(true);
+$mail->Subject = 'Codigo de verificacao';
+
+$mail->Body = "
 <h2>  Verificação de segurança   </h2>
 <p> Seu codigo de verificação é  :  </p>
 <h1>  $codigo  </h1>
