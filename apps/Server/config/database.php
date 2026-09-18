@@ -52,14 +52,36 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
 loadDotenvFromProjectRoot();
 
-// Carrega as variáveis de conexão do ambiente.
-// Quando não há valores definidos, usa configurações padrão para ambiente local.
-$host = getenv('DB_HOST') ?: 'localhost';
-$port = getenv('DB_PORT') ?: '3306';
-$db   = getenv('DB_NAME') ?: 'continuum';
-$user = getenv('DB_USER') ?: 'root';
-$pass = getenv('DB_PASS') ?: '';
-$charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+$isProduction = getenv('RAILWAY_ENVIRONMENT') !== false || getenv('RAILWAY_PUBLIC_DOMAIN') !== false || getenv('PORT') !== false;
+
+// Em produção, nunca usamos localhost. Se as variáveis do banco não forem configuradas,
+// a aplicação deve falhar de forma explícita para evitar erros silenciosos em runtime.
+if ($isProduction) {
+    $host = getenv('DB_HOST');
+    $port = getenv('DB_PORT');
+    $db   = getenv('DB_NAME');
+    $user = getenv('DB_USER');
+    $pass = getenv('DB_PASS');
+    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+
+    if (!$host || !$port || !$db || !$user || !$pass) {
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Configuração do banco ausente em produção. Defina DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASS no Railway."
+        ]);
+        exit;
+    }
+} else {
+    // Ambiente local: usa valores seguros para desenvolvimento local.
+    $host = getenv('DB_HOST') ?: 'localhost';
+    $port = getenv('DB_PORT') ?: '3306';
+    $db   = getenv('DB_NAME') ?: 'continuum';
+    $user = getenv('DB_USER') ?: 'root';
+    $pass = getenv('DB_PASS') ?: '';
+    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+}
+
 $caCert = null;
 if (getenv('DB_SSL_CA')) {
     $candidate = getenv('DB_SSL_CA');
