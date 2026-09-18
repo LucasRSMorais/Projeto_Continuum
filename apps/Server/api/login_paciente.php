@@ -162,46 +162,46 @@ try {
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome'];
     $_SESSION['2fa_email'] = $usuario['email'];
-   
+    $_SESSION['2fa_perfil'] = $usuario['perfil'] ?? null;
 
     // Gera um código de 6 dígitos para simular o 2FA.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
-      
 
     // Salva o código em hash e a validade por 5 minutos.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-$verificacao_email = new PHPMailer(true);
-$verificacao_email -> isSMTP();
-$verificacao_email  -> Host = 'smtp.gmail.com';
-$verificacao_email  -> SMTPAuth = true ;
-$verificacao_email  -> Username = 'continuum517@gmail.com';
-$verificacao_email  -> Password = 'lblt bylz gaqu cegs';
-$verificacao_email  -> SMTPSecure = PHPMailer ::ENCRYPTION_STARTTLS;
-$verificacao_email  ->Port =587;
-$verificacao_email  -> setFrom('continuum517@gmail.com' , 'Codigo');
-$verificacao_email  -> addAddress($email);
-$verificacao_email  -> isHTML(true);
-$verificacao_email  -> Subject = 'Codigo de verificacao';
+    $verificacao_email = new PHPMailer(true);
+    $verificacao_email->isSMTP();
+    $verificacao_email->Host = 'smtp.gmail.com';
+    $verificacao_email->SMTPAuth = true;
+    $verificacao_email->Username = 'continuum517@gmail.com';
+    $verificacao_email->Password = 'lblt bylz gaqu cegs';
+    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $verificacao_email->Port = 587;
+    $verificacao_email->setFrom('continuum517@gmail.com', 'Codigo');
+    $verificacao_email->addAddress($email);
+    $verificacao_email->isHTML(true);
+    $verificacao_email->Subject = 'Codigo de verificacao';
 
-$verificacao_email  -> Body = "
+    $verificacao_email->Body = "
 <h2>  Verificação de segurança   </h2>
 <p> Seu codigo de verificação da tela de login é   :  </p>
 <h1>  $codigo  </h1>
 <p> Esse código é valido por 5 minutos  </p>
 ";
-$verificacao_email->send();
 
-
-
-
+    try {
+        $verificacao_email->send();
+    } catch (Exception $emailError) {
+        error_log('Falha ao enviar o código 2FA do paciente: ' . $emailError->getMessage());
+    }
 
     echo json_encode([
         "success" => true,
         "requires_2fa" => true,
         "message" => "Código de verificação gerado.",
-        
+        "codigo_teste" => $codigo
     ]);
     exit;
 
