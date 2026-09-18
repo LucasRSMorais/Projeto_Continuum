@@ -235,12 +235,13 @@ try {
             "perfil" => $usuario["perfil"]
         ]
     ]);
-
+ 
+    // aqui termina o bloco try, e o catch abaixo captura qualquer exceção de banco de dados.
 } catch (PDOException $e) {
     // Caso ocorra algum erro de banco de dados.
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro interno do servidor."
+        "message" => $e->getMessage()
     ]);
 }
