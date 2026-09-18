@@ -21,8 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/registrarLog.php";
 // Importa a conexão do sistema.log
-require_once __DIR__ . "/../config/logger.php";
+
 
 if (
 
@@ -53,7 +54,22 @@ echo json_encode([
 ]);
 exit ;
 
+
 }
+$usuario = $pdo -> prepare (
+
+"SELECT nome FROM usuarios WHERE id = :id"
+
+);
+
+$usuario-> execute([
+
+":id" => $_SESSION['usuario_id']
+
+
+]);
+
+$nomeUsuario = $usuario ->fetch(PDO::FETCH_ASSOC);
 
 try {
 $dados = json_decode(
@@ -79,7 +95,17 @@ exit ;
 
 // Aplica o tamanho mínimo definido pela regra de negócio.
 if (strlen($SenhaNova) <6){
-acessadolog_Continuum("A senha deve ter pelo menos 6 caracteres " , "ERRO");
+
+registrarLog(
+        $pdo ,
+        $_SESSION['usuario_id'],
+        "LOGIN_SUCESSO",
+        "O usuário " . $nomeUsuario['nome'] . " precisa uma senha pelo menos 6 caracteres"
+
+
+    );
+
+
 http_response_code(400);
 echo json_encode([
 "success"=> false ,
@@ -102,6 +128,16 @@ $SQL->execute([
 
 ]);
 
+registrarLog(
+        $pdo ,
+        $_SESSION['usuario_id'],
+        "LOGIN_SUCESSO",
+        "O usuário " . $nomeUsuario['nome'] . " realizou recuperação de senha com sucesso"
+
+
+    );
+
+
 unset ($_SESSION['2fa_verificado']);
 
 echo json_encode([
@@ -109,7 +145,7 @@ echo json_encode([
 "message" => "Senha atualizada com sucesso"
 
 ]);
-acessadolog_Continuum(" Senha atualizado com sucesso " , "SUCESSO");
+
 exit ;
 
 }catch (PDOException $e){

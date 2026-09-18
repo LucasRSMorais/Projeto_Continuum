@@ -61,8 +61,8 @@ echo json_encode([
     "usuario" => [
         "id" => $_SESSION['usuario_id'],
         "nome" => $_SESSION['nome'],
-        "email" => $_SESSION['email'],
-        "perfil" => $_SESSION['perfil']
+        "email" => $_SESSION['email']
+        
         
     ]
 ]);

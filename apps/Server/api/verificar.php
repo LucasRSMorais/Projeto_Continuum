@@ -1,7 +1,7 @@
 <?php
 
 // Página de validação do código de autenticação em duas etapas (2FA).
-
+//Corrigido
 
 session_set_cookie_params([
     'httponly' => true,
@@ -10,10 +10,18 @@ session_set_cookie_params([
 
 session_start();
 
-// Esta API transforma a sessão temporária do 2FA em uma sessão autenticada.
 header("Content-Type: application/json; charset=UTF-8");
+
+header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
 require_once __DIR__ . "/../config/cors.php";
-applyCorsHeaders();
+require_once __DIR__ . "/registrarLog.php";
+require_once __DIR__ . "/../config/database.php";
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -23,6 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Lê o código enviado no corpo da requisição em JSON.
 $data = json_decode(file_get_contents("php://input"), true);
 $codigo = trim($data['codigo'] ?? '');
+
+ registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "[Email]",
+        "O usuário " . $_SESSION['2fa_nome'] . " começou a recuperar a senha ."
+
+
+    );
 
 // Se o código não vier, retorna erro 400.
 if (!$codigo==='') {
@@ -61,6 +78,16 @@ if (time() > $_SESSION['2fa_expira']) {
 
 // Compara o código informado com o hash salvo na sessão.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
+    registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "[2FA_ERROR]",
+        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação incorretamente ."
+
+
+    );
+
+
     http_response_code(401);
     echo json_encode([
         "success" => false,
@@ -69,11 +96,23 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     exit;
 }
 
+registrarLog(
+        $pdo ,
+        $_SESSION['2fa_usuario_id'],
+        "2FA_SUCESSO",
+        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação corretamente."
+
+
+    );
+
+ 
+
+
+
 
 // 2FA aprovado: o usuário passa a ser autenticado de verdade.
 session_regenerate_id(true);
 
-// Copia os dados temporários antes de promover a sessão.
 $usuarioId = $_SESSION['2fa_usuario_id'];
 $nome = $_SESSION['2fa_nome'];
 $email = $_SESSION['2fa_email'];

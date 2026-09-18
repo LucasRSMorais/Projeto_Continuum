@@ -94,15 +94,12 @@ const [message, setMessage] = useState('');
 
           <Button   type="submit"> Deletar Conta</Button>
         </C.Form>
+        <Link to="/consultar">{' '}
+         <Button  type="submit"> Voltar para tela de consultar</Button>
+          </Link> 
 
       
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/register_pacientes">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-
+        
          
       </C.Content>
 

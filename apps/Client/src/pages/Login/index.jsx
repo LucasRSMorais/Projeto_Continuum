@@ -130,7 +130,7 @@ function Login() {
             </p>
             {/* TEMPORÁRIO: apenas para testes */}
             <p>
-              Código de teste: <strong>{codigoTeste}</strong>
+              Código de teste: <strong>{}</strong>
             </p>
             <Input
               type="text"

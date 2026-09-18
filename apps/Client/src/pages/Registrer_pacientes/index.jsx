@@ -207,9 +207,11 @@ function Register_Pacientes() {
 
         </C.Form>
 
-        <p>
-          Já tem conta? <Link to="/login_pacientes">Entrar</Link>
-        </p>
+        <Link to="/login_pacientes">{' '}
+                <Button  type="submit"> Você ja tem conta ?</Button>
+                 </Link> 
+       
+
       </C.Content>
     </C.Container>
   );

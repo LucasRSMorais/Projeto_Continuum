@@ -1,5 +1,5 @@
 <?php
-
+// esta pagina é crucial para funcionar....
 if (!function_exists('loadDotenvFromProjectRoot')) {
     function loadDotenvFromProjectRoot(): void
     {

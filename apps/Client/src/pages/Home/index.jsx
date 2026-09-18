@@ -5,6 +5,7 @@ import * as C from './styles';
 // informações
 // Página inicial do app após o usuário já estar autenticado.
 // Ela mostra uma mensagem de boas-vindas e oferece a opção de sair da conta.
+// home do usuario
 function Home() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
