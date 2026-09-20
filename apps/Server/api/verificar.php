@@ -32,17 +32,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $data = json_decode(file_get_contents("php://input"), true);
 $codigo = trim($data['codigo'] ?? '');
 
+// Registra o início do processo de recuperação de senha após a validação do primeiro fator.
+// Esse evento ajuda a rastrear que o usuário entrou no fluxo de alteração de credencial.
  registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
-        "[Email]",
-        "O usuário " . $_SESSION['2fa_nome'] . " começou a recuperar a senha ."
-
-
+        "RECUPERACAO_INICIADA",
+        "O usuário " . $_SESSION['2fa_nome'] . " começou a recuperar a senha.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
     );
 
 // Se o código não vier, retorna erro 400.
-if (!$codigo==='') {
+if ($codigo === '') {
     http_response_code(400);
     echo json_encode([
         "success" => false,
@@ -77,14 +82,18 @@ if (time() > $_SESSION['2fa_expira']) {
 }
 
 // Compara o código informado com o hash salvo na sessão.
+// Caso o valor esteja incorreto, um evento de falha de 2FA é gravado para auditoria.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
-        "[2FA_ERROR]",
-        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação incorretamente ."
-
-
+        "2FA_FALHA",
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação incorretamente.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'SECURITY'
     );
 
 
@@ -96,13 +105,17 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     exit;
 }
 
+// Quando o código estiver correto, o sistema grava a confirmação da etapa de verificação.
 registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
         "2FA_SUCESSO",
-        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação corretamente."
-
-
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
     );
 
  

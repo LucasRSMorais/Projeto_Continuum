@@ -102,9 +102,9 @@ try {
         exit;
     }
 
-    // Busca o usuário pelo email no banco.
+    // Busca o usuário pelo e-mail na tabela de pacientes.
     $consulta = $pdo->prepare(
-        "SELECT * FROM dados_pessoais WHERE email = :email LIMIT 1"
+        "SELECT * FROM pacientes WHERE email = :email LIMIT 1"
     );
 
     $consulta->execute([
@@ -119,7 +119,12 @@ try {
         $pdo,
         null,
         "LOGIN_FALHA",
-        "Tentativa de login com paciente não encontrado."
+        "Tentativa de login com paciente não encontrado.",
+        'pacientes',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'SECURITY'
     );
 
     http_response_code(401);
@@ -133,10 +138,15 @@ try {
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
     if (!password_verify($senha, $usuario["senha"])) {
          registrarLog(
-        $pdo ,
+        $pdo,
         $usuario['id'],
         "LOGIN_FALHA",
-        "O paciente chamado " . $usuario['nome'] . " informou uma senha inválida."
+        "O paciente chamado " . $usuario['nome_completo'] . " informou uma senha inválida.",
+        'pacientes',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'SECURITY'
     );
         http_response_code(401);
         echo json_encode([
@@ -150,7 +160,12 @@ try {
     $pdo,
     $usuario['id'],
     "LOGIN_2FA",
-    "O usuário " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA."
+    "O usuário " . $usuario['nome_completo'] . " iniciou o login e recebeu o código 2FA.",
+    'pacientes',
+    $_SERVER['REMOTE_ADDR'] ?? null,
+    $_SERVER['HTTP_USER_AGENT'] ?? null,
+    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+    'INFO'
 );
 
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
@@ -158,9 +173,9 @@ try {
 
     // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
-    $_SESSION['2fa_nome'] = $usuario['nome'];
+    $_SESSION['2fa_nome'] = $usuario['nome_completo'];
     $_SESSION['2fa_email'] = $usuario['email'];
-    $_SESSION['2fa_perfil'] = $usuario['perfil'] ?? null;
+    $_SESSION['2fa_perfil'] = $usuario['fk_medic_id'] ?? null;
 
     // Gera um código de 6 dígitos para simular o 2FA.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);

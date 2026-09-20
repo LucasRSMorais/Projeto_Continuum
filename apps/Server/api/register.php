@@ -17,40 +17,37 @@ require_once __DIR__ . "/../config/database.php";
 try {
     // Lê os dados enviados em JSON pelo frontend.
     $dados = json_decode(file_get_contents("php://input"), true);
-    $nome = trim($dados["nome"] ?? "");
+    $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $senha = $dados["senha"] ?? "";
-    $perfil = $dados["perfil"] ?? "";
+    $registro = trim($dados["registro"] ?? "");
+    $cargo = trim($dados["cargo"] ?? "medico");
 
     // Valida se os campos obrigatórios vieram preenchidos.
-    
-    if ($nome === "" || $email === "" || $senha === "" || $perfil === "") {
-        
+    if ($nome === "" || $email === "" || $senha === "" || $registro === "") {
         http_response_code(400);
-       
         echo json_encode([
             "success" => false,
-            "message" => "Todos os campos são obrigatórios."
+            "message" => "Nome completo, e-mail, senha e registro são obrigatórios."
         ]);
-        
         exit;
     }
 
-    // Verifica se o email já existe antes de inserir um novo usuário.
+    // Verifica se o e-mail ou registro já existem antes de inserir um novo médico.
     $consulta = $pdo->prepare(
-        "SELECT id FROM usuarios WHERE email = :email"
+        "SELECT id FROM medicos WHERE email = :email OR registro = :registro"
     );
 
     $consulta->execute([
-        "email" => $email
+        "email" => $email,
+        "registro" => $registro
     ]);
 
     if ($consulta->fetch()) {
-        
         http_response_code(409);
         echo json_encode([
             "success" => false,
-            "message" => "Este e-mail já está cadastrado."
+            "message" => "Este e-mail ou registro já está cadastrado."
         ]);
         exit;
     }
@@ -74,22 +71,40 @@ try {
         throw new Exception("Não foi possível gerar o hash da senha.");
     }
 
-    // Insere o usuário no banco usando parâmetros para evitar SQL injection.
+    // Insere o médico no banco conforme o modelo ER definido.
     $sql = "
-        INSERT INTO usuarios
-        (nome, email, senha_hash, perfil)
+        INSERT INTO medicos
+        (nome_completo, email, senha_hash, registro, cargo, status)
         VALUES
-        (:nome, :email, :senha_hash, :perfil)
+        (:nome_completo, :email, :senha_hash, :registro, :cargo, :status)
     ";
 
     $consulta = $pdo->prepare($sql);
     $consulta->execute([
-        "nome" => $nome,
+        "nome_completo" => $nome,
         "email" => $email,
         "senha_hash" => $senhaHash,
-        "perfil" => $perfil
+        "registro" => $registro,
+        "cargo" => $cargo,
+        "status" => true
     ]);
-   
+
+    $usuarioId = $pdo->lastInsertId();
+
+    // Após a criação do cadastro, o sistema registra o evento de sucesso.
+    // Isso ajuda a manter um histórico de usuários criados e facilita auditoria operacional.
+    require_once __DIR__ . "/registrarLog.php";
+    registrarLog(
+        $pdo,
+        $usuarioId ?: null,
+        "CADASTRO_SUCESSO",
+        "Usuário " . $nome . " foi cadastrado com sucesso.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
+    );
 
     http_response_code(201);
     echo json_encode([

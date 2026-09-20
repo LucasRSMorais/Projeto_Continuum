@@ -11,6 +11,7 @@ function Register() {
   const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
+  const [registro, setRegistro] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -26,8 +27,8 @@ function Register() {
     // Não usamos trim() na senha.
     // Espaços podem fazer parte de uma senha.
     const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword) {
-      setMessage('Preencha todos os campos.');
+    if (!nome.trim() || !registro.trim() || !normalizedEmail || !normalizedPassword) {
+      setMessage('Preencha nome completo, registro, e-mail e senha.');
       return;
     }
 
@@ -51,12 +52,11 @@ function Register() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            nome: nome.trim(),
+            nome_completo: nome.trim(),
             email: normalizedEmail,
             senha: normalizedPassword,
-            // Para testes, usamos um perfil padrão.
-            // Não permitimos que o usuário escolha "admin".
-            perfil: 'medico',
+            registro: registro.trim(),
+            cargo: 'medico',
           }),
         }
       );
@@ -93,6 +93,13 @@ function Register() {
             placeholder="Nome"
             value={nome}
             onChange={(event) => setNome(event.target.value)}
+          />
+
+          <Input
+            type="text"
+            placeholder="Registro profissional"
+            value={registro}
+            onChange={(event) => setRegistro(event.target.value)}
           />
 
           <Input

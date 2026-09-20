@@ -58,7 +58,7 @@ exit ;
 }
 $usuario = $pdo -> prepare (
 
-"SELECT nome FROM usuarios WHERE id = :id"
+"SELECT nome_completo FROM medicos WHERE id = :id"
 
 );
 
@@ -94,15 +94,19 @@ exit ;
 
 
 // Aplica o tamanho mínimo definido pela regra de negócio.
+// Se a senha nova for inválida, o sistema registra a tentativa para manter o histórico de ações.
 if (strlen($SenhaNova) <6){
 
 registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['usuario_id'],
-        "LOGIN_SUCESSO",
-        "O usuário " . $nomeUsuario['nome'] . " precisa uma senha pelo menos 6 caracteres"
-
-
+        "SENHA_VALIDACAO_FALHA",
+        "O usuário " . $nomeUsuario['nome'] . " informou uma senha com menos de 6 caracteres.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'WARNING'
     );
 
 
@@ -120,7 +124,7 @@ exit ;
 $senhahash = password_hash($SenhaNova , PASSWORD_DEFAULT);
 
 // Atualiza a senha do usuário autenticado por meio de uma consulta parametrizada.
-$SQL = $pdo-> prepare("UPDATE usuarios SET senha_hash = :senha_hash WHERE id = :id");
+$SQL = $pdo-> prepare("UPDATE medicos SET senha_hash = :senha_hash WHERE id = :id");
 
 $SQL->execute([
 "senha_hash"=> $senhahash ,
@@ -128,13 +132,18 @@ $SQL->execute([
 
 ]);
 
+// Registra a recuperação de senha concluída com sucesso.
+// Esse evento fornece um histórico confiável de ações sensíveis do usuário.
 registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['usuario_id'],
-        "LOGIN_SUCESSO",
-        "O usuário " . $nomeUsuario['nome'] . " realizou recuperação de senha com sucesso"
-
-
+        "SENHA_ALTERADA",
+        "O usuário " . $nomeUsuario['nome'] . " realizou recuperação de senha com sucesso.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
     );
 
 

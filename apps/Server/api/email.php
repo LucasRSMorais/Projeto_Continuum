@@ -80,10 +80,12 @@ try {
 
     // Extrai os dados do formulário enviado pelo cliente.
     $email = trim($dados["email"] ?? "");
+    // Registra no arquivo de log o início do processo de recuperação por e-mail.
     acessadolog_Continuum("Ação do email começando.." , "Ação");
    
 
     // Valida se email  não veio vazio.
+    // Se estiver vazio, a operação é interrompida antes de gerar ou enviar qualquer código.
     if ($email === "" ) {
         
         http_response_code(400);
@@ -96,7 +98,7 @@ try {
 
     // Busca o usuário pelo email no banco.
     $consulta = $pdo->prepare(
-        "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
+        "SELECT * FROM medicos WHERE email = :email LIMIT 1"
         
     );
    
@@ -108,8 +110,9 @@ try {
     $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
     // Se não encontrar o usuário, recusa a recuperação.
+    // O log registra a falha para investigação e auditoria de abuso ou tentativa indevida.
     if (!$usuario) {
-        acessadolog_Continuum("O usuário não identificado.." , "ERRO");
+        SecurityLogger::logSecurityEvent($pdo, null, 'EMAIL_RECOVERY', 'Tentativa de recuperação de senha com email não encontrado.', ['email' => $email]);
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -131,9 +134,12 @@ try {
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
     // Salva o código em hash e a validade por 5 minutos.
+    // A sessão guarda o valor protegido, e não o código em texto puro.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
+
 // Configura o envio SMTP do código de recuperação por e-mail usando apenas variáveis de ambiente.
+// Esses logs ajudam a rastrear que a recuperação foi iniciada e que o código estava sendo enviado.
 acessadolog_Continuum("O email indeficado..". $email , "Sucesso");
 acessadolog_Continuum("O codigo verificação enviando pelo email.." , "AÇÃO");
 

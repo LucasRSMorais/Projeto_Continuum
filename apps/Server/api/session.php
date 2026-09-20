@@ -12,9 +12,11 @@ session_set_cookie_params([
 session_start();
 
 // Define o tempo máximo permitido sem atividade do usuário.
+// Isso protege contra sessões abertas por muito tempo sem uso real.
 $tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
 
 // Se o tempo de inatividade excedeu o limite, encerra a sessão.
+// Em seguida, a API responde 401 para indicar que o usuário precisa autenticar novamente.
 if (
     isset($_SESSION['ultima_atividade']) &&
     time() - $_SESSION['ultima_atividade'] > $tempoExpiracao

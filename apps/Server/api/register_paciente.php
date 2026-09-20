@@ -17,34 +17,31 @@ require_once __DIR__ . "/../config/database.php";
 try {
     // Lê os dados enviados em JSON pelo frontend.
     $dados = json_decode(file_get_contents("php://input"), true);
-    $nome = trim($dados["nome"] ?? "");
+    $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $senha = $dados["senha"] ?? "";
-    $cpf = trim($dados["cpf"] ?? "");
-    $endereco = trim($dados["endereco"] ?? "");
+    $dataNascimento = trim($dados["data_nascimento"] ?? "");
     $sexo = trim($dados["sexo"] ?? "");
-    $raca= trim($dados["raça"] ?? "");
-    $doenca = trim($dados["doença"] ?? "");
-    $key = "segredo"; // Chave de criptografia para AES_ENCRYPT
+    $etnia = trim($dados["etnia"] ?? "");
+    $telefone = trim($dados["telefone"] ?? "");
+    $aceiteTermo = strtolower(trim((string) ($dados["aceite_termo"] ?? "nao")));
+    $alergias = trim($dados["alergias"] ?? "");
+    $endereco = trim($dados["endereco"] ?? "");
+    $fkMedicoId = isset($dados["fk_medic_id"]) ? (int) $dados["fk_medic_id"] : null;
 
-
-    // Valida se os campos obrigatórios vieram preenchidos.
-    
-    if ($nome === "" || $email === "" || $senha === "" || $cpf === "" || $endereco === "" || $sexo === "" || $raca === "" || $doenca === "" ) {
-        
+    // Valida os campos obrigatórios do cadastro do paciente conforme o ER.
+    if ($nome === "" || $email === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $endereco === "") {
         http_response_code(400);
-       
         echo json_encode([
             "success" => false,
-            "message" => "Todos os campos são obrigatórios."
+            "message" => "Nome completo, e-mail, senha, data de nascimento, sexo e endereço são obrigatórios."
         ]);
-        
         exit;
     }
 
-    // Verifica se o email já existe antes de inserir um novo usuário.
+    // Verifica se o e-mail já existe antes de inserir um novo paciente.
     $consulta = $pdo->prepare(
-        "SELECT id FROM usuarios WHERE email = :email"
+        "SELECT id FROM pacientes WHERE email = :email"
     );
 
     $consulta->execute([
@@ -52,7 +49,6 @@ try {
     ]);
 
     if ($consulta->fetch()) {
-        
         http_response_code(409);
         echo json_encode([
             "success" => false,
@@ -61,7 +57,11 @@ try {
         exit;
     }
 
-   
+    // Valida o valor do consentimento do termo.
+    if (!in_array($aceiteTermo, ['sim', 'nao'], true)) {
+        $aceiteTermo = 'nao';
+    }
+
     $senhaHash = password_hash(
         $senha,
         PASSWORD_ARGON2ID,
@@ -76,31 +76,43 @@ try {
         throw new Exception("Não foi possível gerar o hash da senha.");
     }
 
-    // Insere os dados pessoais do paciente no banco.
+    // Insere os dados do paciente no banco de acordo com o ER definido.
     $sql = "
-        INSERT INTO dados_pessoais
-        (nome, cpf , email , endereço , senha , sexo , raça , doença)
+        INSERT INTO pacientes
+        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco, fk_medic_id, status)
         VALUES
-        (:nome, :cpf, :email, :endereco, :senha, AES_ENCRYPT(:sexo, :key),  AES_ENCRYPT(:raca, :key),  AES_ENCRYPT(:doenca, :key))
+        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco, :fk_medic_id, :status)
     ";
 
     $consulta = $pdo->prepare($sql);
     $consulta->execute([
-        "nome" => $nome,
+        "nome_completo" => $nome,
         "email" => $email,
-        "senha" => $senhaHash,
-        "cpf" => $cpf,
-        "endereco" => $endereco,
+        "data_nascimento" => $dataNascimento,
         "sexo" => $sexo,
-        "raca" => $raca,
-        "doenca" => $doenca,
-        "key" => $key
+        "etnia" => $etnia !== "" ? $etnia : null,
+        "senha" => $senhaHash,
+        "telefone" => $telefone !== "" ? $telefone : null,
+        "aceite_termo" => $aceiteTermo,
+        "alergias" => $alergias !== "" ? $alergias : null,
+        "endereco" => $endereco,
+        "fk_medic_id" => $fkMedicoId,
+        "status" => true
     ]);
 
-    
-   
-
-
+    // Grava no log a criação do cadastro do paciente como evento de auditoria.
+    require_once __DIR__ . "/registrarLog.php";
+    registrarLog(
+        $pdo,
+        $pdo->lastInsertId(),
+        "CADASTRO_PACIENTE_SUCESSO",
+        "Paciente " . $nome . " foi cadastrado com sucesso.",
+        'pacientes',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
+    );
 
     http_response_code(201);
     echo json_encode([

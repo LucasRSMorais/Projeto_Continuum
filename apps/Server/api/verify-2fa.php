@@ -32,6 +32,7 @@ $data = json_decode(file_get_contents("php://input"), true);
 $codigo = trim($data['codigo'] ?? '');
 
 // Se o código não vier, retorna erro 400.
+// Essa validação impede que a API aceite requisições vazias ou malformadas.
 if (!$codigo) {
     http_response_code(400);
     echo json_encode([
@@ -67,14 +68,18 @@ if (time() > $_SESSION['2fa_expira']) {
 }
 
 // Compara o código informado com o hash salvo na sessão.
+// Se o valor estiver errado, o evento é registrado como falha de verificação em duas etapas.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
      registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
-        "O usuarío " . $_SESSION['2fa_nome'] . " Informou um codigo verificação errado"
-
-
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação inválido.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'SECURITY'
     );
     http_response_code(401);
     echo json_encode([
@@ -83,22 +88,30 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     ]);
     exit;
 }
+// Em caso de sucesso, o sistema registra o evento de verificação e o login concluído.
+// Isso permite auditar tanto a aprovação do 2FA quanto a autenticação final do usuário.
  registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
         "2FA_SUCESSO",
-        "O usuário " . $_SESSION['2fa_nome'] . " Informou um codigo verificação corretamente."
-
-
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
     );
 
  registrarLog(
-        $pdo ,
+        $pdo,
         $_SESSION['2fa_usuario_id'],
         "LOGIN_SUCESSO",
-        "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso"
-
-
+        "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
     );
  
 
@@ -121,6 +134,11 @@ $_SESSION['nome'] = $nome;
 $_SESSION['email'] = $email;
 $_SESSION['perfil'] = $perfil;
 $_SESSION['ultima_atividade'] = time();
+
+$atualizaUltimoAcesso = $pdo->prepare(
+    "UPDATE medicos SET ultimo_acesso = NOW() WHERE id = :id"
+);
+$atualizaUltimoAcesso->execute(['id' => $usuarioId]);
 
 // Remove os dados temporários do 2FA após a autenticação bem-sucedida.
 unset(

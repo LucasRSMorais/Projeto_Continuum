@@ -75,12 +75,18 @@ if (time() > $_SESSION['2fa_expira']) {
 }
 
 // Compara o código informado com o hash salvo na sessão.
+// Quando a validação falha, a ação é registrada para rastrear tentativas indevidas.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     registrarLog(
         $pdo,
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
-        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação inválido."
+        "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação inválido.",
+        'dados_pessoais',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'SECURITY'
     );
 
     http_response_code(401);
@@ -91,18 +97,29 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
     exit;
 }
 
+// Em caso de sucesso, o sistema grava a confirmação da segunda etapa e a autenticação final.
 registrarLog(
     $pdo,
     $_SESSION['2fa_usuario_id'],
     "2FA_SUCESSO",
-    "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente."
+    "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
+    'dados_pessoais',
+    $_SERVER['REMOTE_ADDR'] ?? null,
+    $_SERVER['HTTP_USER_AGENT'] ?? null,
+    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+    'INFO'
 );
 
 registrarLog(
     $pdo,
     $_SESSION['2fa_usuario_id'],
     "LOGIN_SUCESSO",
-    "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso."
+    "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso.",
+    'dados_pessoais',
+    $_SERVER['REMOTE_ADDR'] ?? null,
+    $_SERVER['HTTP_USER_AGENT'] ?? null,
+    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+    'INFO'
 );
 
 

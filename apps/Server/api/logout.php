@@ -21,10 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Remove os dados locais antes de invalidar o identificador da sessão.
-// Zera todos os dados da sessão atual.
+// Zera todos os dados da sessão atual para impedir uso posterior dos dados do usuário.
 $_SESSION = [];
 
 // Se estiver usando cookies de sessão, remove o cookie do navegador.
+// Isso força o cliente a encerrar a sessão no lado do navegador também.
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(

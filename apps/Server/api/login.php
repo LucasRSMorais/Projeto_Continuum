@@ -104,7 +104,7 @@ try {
     // Busca o usuário pelo e-mail para validar a identidade antes do 2FA.
     // O uso de prepared statement evita SQL injection.
     $consulta = $pdo->prepare(
-        "SELECT * FROM usuarios WHERE email = :email LIMIT 1"
+        "SELECT * FROM medicos WHERE email = :email LIMIT 1"
     );
 
     $consulta->execute([
@@ -113,15 +113,20 @@ try {
 
     $usuario = $consulta->fetch(PDO::FETCH_ASSOC);
 
-    // Se não encontrar o usuário, recusa o login e registra a falha.
+    // Se não encontrar o usuário, recusa o login e registra a falha no histórico de auditoria.
+    // Isso ajuda a detectar tentativas de acesso com e-mail inexistente ou brute force.
     if (!$usuario) {
         registrarLog(
             $pdo,
             null,
-            "LOGIN_Falha",
-            "Tentativa de login com usuário não encontrado."
+            "LOGIN_FALHA",
+            "Tentativa de login com usuário não encontrado.",
+            'usuarios',
+            $_SERVER['REMOTE_ADDR'] ?? null,
+            $_SERVER['HTTP_USER_AGENT'] ?? null,
+            $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+            'SECURITY'
         );
-
           
         http_response_code(401);
         echo json_encode([
@@ -133,12 +138,18 @@ try {
 
     // Compara a senha informada com o hash salvo no banco.
     // password_verify é a maneira correta de validar senhas sem expor o valor em texto puro.
+    // Quando a senha estiver incorreta, o sistema registra a falha associada ao usuário.
     if (!password_verify($senha, $usuario["senha_hash"])) {
         registrarLog(
             $pdo,
             $usuario['id'],
-            "LOGIN_Falha",
-            "O usuário " . $usuario['nome'] . " informou uma senha inválida."
+            "LOGIN_FALHA",
+            "O usuário " . $usuario['nome'] . " informou uma senha inválida.",
+            'usuarios',
+            $_SERVER['REMOTE_ADDR'] ?? null,
+            $_SERVER['HTTP_USER_AGENT'] ?? null,
+            $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+            'SECURITY'
         );
         http_response_code(401);
         echo json_encode([
@@ -149,14 +160,6 @@ try {
     }
 
 
-    // Registra que o usuário passou pela etapa de autenticação inicial e entrou no processo de 2FA.
-    registrarLog(
-        $pdo,
-        $usuario['id'],
-        "LOGIN_2FA",
-        "O usuário " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA."
-    );
-
     // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
     // A sessão atual é renovada para reduzir o risco de fixação de sessão.
     session_regenerate_id(true);
@@ -164,9 +167,23 @@ try {
     // Armazena temporariamente as informações do usuário até a validação do código 2FA.
     // Isso permite manter o contexto do login sem autenticar a sessão final ainda.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
-    $_SESSION['2fa_nome'] = $usuario['nome'];
+
+    // Registra que o usuário passou pela etapa de autenticação inicial e entrou no processo de 2FA.
+    // Esse evento marca o início da verificação em duas etapas, antes da confirmação final do código.
+    registrarLog(
+        $pdo,
+        $usuario['id'],
+        "LOGIN_2FA",
+        "O usuário " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA.",
+        'usuarios',
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        $_SERVER['HTTP_USER_AGENT'] ?? null,
+        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        'INFO'
+    );
+    $_SESSION['2fa_nome'] = $usuario['nome_completo'];
     $_SESSION['2fa_email'] = $usuario['email'];
-    $_SESSION['2fa_perfil'] = $usuario['perfil'];
+    $_SESSION['2fa_perfil'] = $usuario['cargo'];
 
     // Gera um código de 6 dígitos para simular a etapa de 2FA.
     // Esse valor será enviado ao usuário e comparado com o hash armazenado em sessão.
@@ -212,11 +229,11 @@ try {
 
     // Corpo do e-mail com o código de verificação.
     $verificacao_email->Body = "
-<h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação de login é   :  </p>
-<h1>  $codigo  </h1>
-<p> Esse código é valido por 5 minutos  </p>
-";
+    <h2>  Verificação de segurança   </h2>
+    <p> Seu codigo de verificação de login é   :  </p>
+    <h1>  $codigo  </h1>
+    <p> Esse código é valido por 5 minutos  </p>
+    ";
 
     // Tenta enviar o e-mail e, se falhar, responde com erro explícito para o frontend.
     try {
@@ -230,10 +247,6 @@ try {
         ]);
         exit;
     }
-
-
-
-
 
     // Se o e-mail foi enviado com sucesso, retorna o status e informa que o usuário precisa confirmar o 2FA.
     echo json_encode([

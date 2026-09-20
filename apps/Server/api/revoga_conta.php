@@ -85,7 +85,8 @@ try {
         exit;
     }
 
-    // Busca o usuário pelo email no banco.
+    // Busca o usuário pelo email no banco e revoga o consentimento informado.
+    // A ação é registrada para manter um histórico de eventos sensíveis.
    
     $sql = "UPDATE dados_pessoais SET  data_cosentimento = NULL , versao_consentimento = NULL WHERE email = :email";
    $stmt = $pdo->prepare($sql);
@@ -94,6 +95,14 @@ try {
    
 
 if ($stmt->rowCount() > 0){
+
+    require_once __DIR__ . "/registrarLog.php";
+    registrarLog(
+        $pdo,
+        null,
+        "REVOGACAO_CONSENTIMENTO",
+        "Consentimento revogado para o e-mail " . $email . "."
+    );
 
 echo json_encode([
 "success"=> true ,

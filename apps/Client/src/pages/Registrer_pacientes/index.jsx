@@ -13,20 +13,16 @@ function Register_Pacientes() {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [cpf, setCpf] = useState('');
-  const [endereco, setEndereco] = useState('');
+  const [dataNascimento, setDataNascimento] = useState('');
   const [sexo, setSexo] = useState('');
-  const [raça, setRaça] = useState('');
-  const [doença, setDoença] = useState('');
-  const [dados_consetimento, setDados_consetimento] = useState("");
+  const [etnia, setEtnia] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [alergias, setAlergias] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [aceiteTermo, setAceiteTermo] = useState(false);
   const [erro, setErro] = useState("");
-  const [erro_dados , setDados] = useState('');
-  const [assinado, setAssinado] = useState('');
-  const [data_assinatura, setData_assinatura] = useState('');
-
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,8 +31,8 @@ function Register_Pacientes() {
 
     
     const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !cpf.trim() || !endereco.trim() ){
-      setMessage('Preencha todos os campos de dados pessoais.');
+    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !dataNascimento || !sexo || !endereco.trim()){
+      setMessage('Preencha nome, e-mail, senha, data de nascimento, sexo e endereço.');
       return;
     }
 
@@ -44,8 +40,8 @@ function Register_Pacientes() {
       setMessage('Digite um email válido.');
       return;
     }
-    if (!sexo || !raça || !doença) {
-      setDados('Preencha todos os campos de dados sensíveis.');
+    if (!sexo) {
+      setErro('Selecione o sexo do paciente.');
       return;
     }
 
@@ -54,7 +50,7 @@ function Register_Pacientes() {
       return;
     }
 
-    if (!dados_consetimento) {
+    if (!aceiteTermo) {
       setMessage('Você deve aceitar a política de privacidade.');
       return;
     }
@@ -69,16 +65,17 @@ function Register_Pacientes() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            nome: nome.trim(),
+            nome_completo: nome.trim(),
             email: normalizedEmail,
             senha: normalizedPassword,
-            cpf: cpf.trim(),
-            endereco: endereco.trim(),
+            data_nascimento: dataNascimento,
             sexo: sexo,
-            raça: raça,
-            doença: doença,
-            
-          
+            etnia: etnia || null,
+            telefone: telefone || null,
+            aceite_termo: aceiteTermo ? 'sim' : 'nao',
+            alergias: alergias || null,
+            endereco: endereco.trim(),
+            fk_medic_id: null,
           }),
         }
       );
@@ -141,6 +138,7 @@ function Register_Pacientes() {
             value={cpf}
             onChange={(event) => setCpf(event.target.value)}
           />
+
           <Input
             type="text"
             placeholder="Endereço"
@@ -148,7 +146,7 @@ function Register_Pacientes() {
             onChange={(event) => setEndereco(event.target.value)}
           />
           <hr />
-          <h3>Dados Sensíveis</h3>
+          <h3>Dados complementares</h3>
           <select 
             value={sexo}
             onChange={(event) => setSexo(event.target.value)}
@@ -156,47 +154,42 @@ function Register_Pacientes() {
             <option value="">Selecione o sexo</option>
             <option value="masculino">Masculino</option>
             <option value="feminino">Feminino</option>
+            <option value="outro">Outro</option>
+            <option value="nao_informado">Não informado</option>
           </select>
 
-            <select  value={raça} onChange={(event) => setRaça(event.target.value)}>
-            <option value="">Selecione a raça</option>
-            <option value="branco">Branco</option>
-            <option value="negro">Negro</option>
-            <option value="pardo">Pardo</option>
-          </select>
-          <select  value={doença} onChange={(event) => setDoença(event.target.value)}>
-            <option value="">Selecione a doença</option>
-            <option value="hipertensao">Hipertensão</option>
-            <option value="diabetes">Diabetes</option>
-             <option value="cancer">Câncer</option>
-          </select>
+          <Input
+            type="text"
+            placeholder="Etnia"
+            value={etnia}
+            onChange={(event) => setEtnia(event.target.value)}
+          />
+
+          <Input
+            type="text"
+            placeholder="Alergias"
+            value={alergias}
+            onChange={(event) => setAlergias(event.target.value)}
+          />
           <hr />
-            <h3>Politica de Privacidade</h3>
+            <h3>Política de Privacidade</h3>
             <a href="/politica_privacidade.pdf" target="_blank" rel="noopener noreferrer">
             Ver Política de Privacidade
           </a>
-          
-          
 
           <label >
             <input
               type="checkbox"
-              
-              checked={dados_consetimento}
+              checked={aceiteTermo}
               onChange={(event) => {
-                setDados_consetimento(event.target.checked);
+                setAceiteTermo(event.target.checked);
                 setErro("");
-               
               }}
             />
-            
               Concordo com a Política de Privacidade
           </label>
 
           <p>Versão do Consetimento V1.0</p>
-        
-
-         
 
           {message && <p>{message}</p>}
 
