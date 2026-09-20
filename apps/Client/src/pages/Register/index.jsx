@@ -11,7 +11,10 @@ function Register() {
   const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
-  const [registro, setRegistro] = useState('');
+  const formatCRM = (value) => {
+    const cleaned = value.replace(/\D/g, '');
+    return cleaned.slice(0, 6);
+  };
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -97,10 +100,41 @@ function Register() {
 
           <Input
             type="text"
-            placeholder="Registro profissional"
-            value={registro}
-            onChange={(event) => setRegistro(event.target.value)}
+            placeholder="Número do CRM"
+            value={crm}
+            maxLength={6}
+            onChange={(event) => setCrm(formatCRM(event.target.value))}
           />
+          
+          <select value={crmUf} onChange={(e) => setCrmUf(e.target.value)}>
+            <option value="AC">Acre</option>
+            <option value="AL">Alagoas</option>
+            <option value="AP">Amapá</option>
+            <option value="AM">Amazonas</option>
+            <option value="BA">Bahia</option>
+            <option value="CE">Ceará</option>
+            <option value="DF">Distrito Federal</option>
+            <option value="ES">Espírito Santo</option>
+            <option value="GO">Goiás</option>
+            <option value="MA">Maranhão</option>
+            <option value="MT">Mato Grosso</option>
+            <option value="MS">Mato Grosso do Sul</option>
+            <option value="MG">Minas Gerais</option>
+            <option value="PA">Pará</option>
+            <option value="PB">Paraíba</option>
+            <option value="PR">Paraná</option>
+            <option value="PE">Pernambuco</option>
+            <option value="PI">Piauí</option>
+            <option value="RJ">Rio de Janeiro</option>
+            <option value="RN">Rio Grande do Norte</option>
+            <option value="RS">Rio Grande do Sul</option>
+            <option value="RO">Rondônia</option>
+            <option value="RR">Roraima</option>
+            <option value="SC">Santa Catarina</option>
+            <option value="SP">São Paulo</option>
+            <option value="SE">Sergipe</option>
+            <option value="TO">Tocantins</option>
+          </select>
 
           <Input
             type="email"

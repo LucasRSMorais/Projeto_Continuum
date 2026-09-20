@@ -20,8 +20,12 @@ try {
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $senha = $dados["senha"] ?? "";
-    $registro = trim($dados["registro"] ?? "");
     $cargo = trim($dados["cargo"] ?? "medico");
+    $crm = $_POST['crm'] ?? '';
+    $crmUf = $_POST['crm_uf'] ?? '';
+
+    $crm = preg_replace('/\D/', '', $crm);
+    $crmUf = strtoupper(trim($crmUf));
 
     // Valida se os campos obrigatórios vieram preenchidos.
     if ($nome === "" || $email === "" || $senha === "" || $registro === "") {
@@ -51,6 +55,26 @@ try {
         ]);
         exit;
     }
+
+    // Valida o formato do CRM e da UF do CRM.
+    if (!preg_match('/^\d{1,6}$/', $crm)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'CRM inválido.'
+        ]);
+        exit;
+    }
+
+    if (!preg_match('/^[A-Z]{2}$/', $crmUf)) {
+        http_response_code(400);
+        echo json_encode([
+            'success' => false,
+            'message' => 'UF do CRM inválida.'
+        ]);
+        exit;
+    }
+
 
     // Criptografa a senha com Argon2id.
     // Isso é importante para proteger a senha mesmo se o banco for vazado.
