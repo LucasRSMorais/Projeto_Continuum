@@ -16,16 +16,38 @@ require_once __DIR__ . "/../config/database.php";
 
 try {
     // Lê os dados enviados em JSON pelo frontend.
-    $dados = json_decode(file_get_contents("php://input"), true);
+    $dados = json_decode(file_get_contents("php://input"), true) ?? [];
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $senha = $dados["senha"] ?? "";
     $cargo = trim($dados["cargo"] ?? "medico");
-    $crm = $_POST['crm'] ?? '';
-    $crmUf = $_POST['crm_uf'] ?? '';
+    $crm   = preg_replace('/\D/', '', $dados["crm"] ?? "");
+    $crmUf = strtoupper(trim($dados["crm_uf"] ?? ""));
 
-    $crm = preg_replace('/\D/', '', $crm);
-    $crmUf = strtoupper(trim($crmUf));
+    if ($nome === "" || $email === "" || $senha === "" || $crm === "" || $crmUf === "") {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Nome completo, e-mail, senha, CRM e UF do CRM são obrigatórios."
+        ]);
+        exit;
+    }
+
+    if (!preg_match('/^\d{1,6}$/', $crm)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "CRM inválido."]);
+        exit;
+    }
+
+    if (!preg_match('/^[A-Z]{2}$/', $crmUf)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "UF do CRM inválida."]);
+        exit;
+    }
+
+    // Monta o registro a partir do CRM e da UF, ex.: "123456/SP".
+    // Assim a mesma numeração em estados diferentes não conta como duplicada.
+    $registro = $crm . "/" . $crmUf;
 
     // Valida se os campos obrigatórios vieram preenchidos.
     if ($nome === "" || $email === "" || $senha === "" || $registro === "") {
@@ -39,12 +61,12 @@ try {
 
     // Verifica se o e-mail ou registro já existem antes de inserir um novo médico.
     $consulta = $pdo->prepare(
-        "SELECT id FROM medicos WHERE email = :email OR registro = :registro"
+        "SELECT id FROM medicos WHERE email = :email OR (crm = :crm_numero AND crm_uf = :crm_uf)"
     );
-
     $consulta->execute([
         "email" => $email,
-        "registro" => $registro
+        "crm_numero" => $crm_numero,
+        "crm_uf" => $crmUF
     ]);
 
     if ($consulta->fetch()) {
@@ -98,9 +120,9 @@ try {
     // Insere o médico no banco conforme o modelo ER definido.
     $sql = "
         INSERT INTO medicos
-        (nome_completo, email, senha_hash, registro, cargo, status)
+        (nome_completo, email, senha_hash, crm_numero, crm_uf, cargo, status)
         VALUES
-        (:nome_completo, :email, :senha_hash, :registro, :cargo, :status)
+        (:nome_completo, :email, :senha_hash, :crm_numero, :crm_uf, :cargo, :status)
     ";
 
     $consulta = $pdo->prepare($sql);
@@ -108,7 +130,8 @@ try {
         "nome_completo" => $nome,
         "email" => $email,
         "senha_hash" => $senhaHash,
-        "registro" => $registro,
+        "crm_numero" => $crm_numero,
+        "crm_uf" => $crmUF,
         "cargo" => $cargo,
         "status" => true
     ]);
@@ -137,7 +160,21 @@ try {
     ]);
 
 } catch (PDOException $e) {
-    // Erro relacionado ao banco.
+    // 23000 = violação de integridade (chave duplicada, UNIQUE etc.)
+    // 1062 = código específico do MySQL para "Duplicate entry"
+    $codigoMysql = $e->errorInfo[1] ?? null;
+
+    if ($e->getCode() === '23000' && $codigoMysql === 1062) {
+        http_response_code(409);
+        echo json_encode([
+            "success" => false,
+            "message" => "Este e-mail ou registro já está cadastrado."
+        ]);
+        exit;
+    }
+
+    // Qualquer outro erro de banco continua sendo 500.
+    error_log("Erro no cadastro: ". $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,

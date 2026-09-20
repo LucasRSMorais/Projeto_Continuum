@@ -5,16 +5,17 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { buildApiUrl } from '../../config/api';
 
+const formatCRM = (value) => value.replace(/\D/g, '').slice(0, 6);
+
+
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
 function Register() {
   const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
-  const formatCRM = (value) => {
-    const cleaned = value.replace(/\D/g, '');
-    return cleaned.slice(0, 6);
-  };
+  const [crm, setCrm] = useState('');
+  const [crmUf, setCrmUf] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
@@ -30,8 +31,8 @@ function Register() {
     // Não usamos trim() na senha.
     // Espaços podem fazer parte de uma senha.
     const normalizedPassword = password;
-    if (!nome.trim() || !registro.trim() || !normalizedEmail || !normalizedPassword) {
-      setMessage('Preencha nome completo, registro, e-mail e senha.');
+    if (!nome.trim() || !crm || !crmUf || !normalizedEmail || !normalizedPassword) {
+      setMessage('Preencha nome completo, CRM, UF do CRM, e-mail e senha.');
       return;
     }
 
@@ -58,7 +59,8 @@ function Register() {
             nome_completo: nome.trim(),
             email: normalizedEmail,
             senha: normalizedPassword,
-            registro: registro.trim(),
+            crm,
+            crm_uf: crmUF,
             cargo: 'medico',
           }),
         }
@@ -107,6 +109,7 @@ function Register() {
           />
           
           <select value={crmUf} onChange={(e) => setCrmUf(e.target.value)}>
+            <option value="">UF do CRM</option>
             <option value="AC">Acre</option>
             <option value="AL">Alagoas</option>
             <option value="AP">Amapá</option>
