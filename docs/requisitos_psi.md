@@ -35,39 +35,39 @@ Esta matriz transcreve os requisitos apresentados no PDF de avaliação do proje
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 3.1 | Comunicação protegida por TLS/HTTPS |
-| [ ] | 3.2 | Bloqueio de conexões não seguras |
-| [ ] | 3.3 | Evidência de tráfego cifrado |
-| [ ] | 3.4 | Dados sensíveis criptografados em repouso |
-| [ ] | 3.5 | Uso de algoritmo criptográfico adequado (ex.: AES) |
-| [ ] | 3.6 | Chaves criptográficas protegidas |
-| [ ] | 3.7 | Estratégia de criptografia documentada |
-| [ ] | 3.8 | Justificativa técnica das escolhas |
+| [X] | 3.1 | Comunicação protegida por TLS/HTTPS |
+| [X] | 3.2 | Bloqueio de conexões não seguras |
+| [X] | 3.3 | Evidência de tráfego cifrado |
+| [X] | 3.4 | Dados sensíveis criptografados em repouso |
+| [X] | 3.5 | Uso de algoritmo criptográfico adequado (ex.: AES) |
+| [X] | 3.6 | Chaves criptográficas protegidas |
+| [X] | 3.7 | Estratégia de criptografia documentada |
+| [X] | 3.8 | Justificativa técnica das escolhas |
 
 ## 4. Conformidade com a LGPD
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 4.1 | Listagem completa dos dados pessoais coletados |
-| [ ] | 4.2 | Associação de cada dado a uma finalidade |
-| [ ] | 4.3 | Evidência de minimização de dados |
-| [ ] | 4.4 | Registro explícito de consentimento |
-| [ ] | 4.5 | Consentimento associado à finalidade |
-| [ ] | 4.6 | Possibilidade de revogação do consentimento |
-| [ ] | 4.7 | Registro de data e versão do consentimento |
-| [ ] | 4.8 | Funcionalidade de consulta aos dados do titular |
-| [ ] | 4.9 | Funcionalidade de exportação dos dados |
-| [ ] | 4.10 | Funcionalidade de exclusão dos dados pessoais |
-| [ ] | 4.11 | Fluxo de atendimento aos direitos documentado |
+| [X] | 4.1 | Listagem completa dos dados pessoais coletados |
+| [X] | 4.2 | Associação de cada dado a uma finalidade |
+| [X] | 4.3 | Evidência de minimização de dados |
+| [X] | 4.4 | Registro explícito de consentimento |
+| [X] | 4.5 | Consentimento associado à finalidade |
+| [X] | 4.6 | Possibilidade de revogação do consentimento |
+| [X] | 4.7 | Registro de data e versão do consentimento |
+| [X] | 4.8 | Funcionalidade de consulta aos dados do titular |
+| [X] | 4.9 | Funcionalidade de exportação dos dados |
+| [X] | 4.10 | Funcionalidade de exclusão dos dados pessoais |
+| [X] | 4.11 | Fluxo de atendimento aos direitos documentado |
 
 ## 5. Auditoria e Logs
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 5.1 | Logs de autenticação registrados |
-| [ ] | 5.2 | Logs de falhas e 2FA registrados |
-| [ ] | 5.3 | Proteção contra alteração dos logs |
-| [ ] | 5.4 | Exemplo de análise de logs apresentado |
+| [X]| 5.1 | Logs de autenticação registrados |
+| [X] | 5.2 | Logs de falhas e 2FA registrados |
+| [X] | 5.3 | Proteção contra alteração dos logs |
+| [X] | 5.4 | Exemplo de análise de logs apresentado |
 
 ## 6. Documentação Técnico-Científica
 

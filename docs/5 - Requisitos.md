@@ -216,32 +216,22 @@ A implementação atual já oferece uma base funcional, mas ainda há oportunida
 
 ## 9. Evidências de funcionamento
 
-Nesta seção, os dados de prova devem ser registrados para comprovar que o sistema está funcionando conforme a arquitetura implementada.
+As imagens e registros dos testes foram adicionados à pasta `docs/evidence/`.
 
-### 9.1 Evidência de criação da estrutura de auditoria
-
-- Local reservado para captura da tabela logs_auditoria em execução.
-- Exemplo de referência esperada: [inserir link, screenshot, export do banco ou print do MySQL Workbench].
-
-### 9.2 Evidência de alertas de segurança
-
-- Local reservado para captura dos registros em logs_alertas após tentativas repetidas.
-- Exemplo de referência esperada: [inserir link, evidência do banco ou print do trigger disparando].
-
-### 9.3 Evidência de retenção automática
-
-- Local reservado para registro do evento agendado e da política de exclusão.
-- Exemplo de referência esperada: [inserir print do SHOW EVENTS, evidência de cronograma ou log da execução].
-
-### 9.4 Evidência de eventos de login e 2FA
-
-- Local reservado para imagens ou prints das entradas em logs_auditoria relacionadas a LOGIN_FALHA, LOGIN_2FA, 2FA_SUCESSO e LOGIN_SUCESSO.
-- Exemplo de referência esperada: [inserir link do banco, export, print ou evidência do endpoint em execução].
-
-### 9.5 Evidência final de funcionamento
-
-- Local reservado para relatório final de validação do sistema.
-- Exemplo de referência esperada: [inserir link do arquivo de evidência, vídeo, print final ou relatório de testes].
+```
+docs/
+└── evidence/
+	├── teste_invalido_501
+	├── login_medico_502
+	├── senha_invalida_503
+	├── senhaCorreta_504
+	├── cod_tela.505
+	├── codigoInvalido_506
+	├── resultado_508
+   ├── tab_log_alert_hosp_509
+   ├── tab_log_aud_510
+	└── tabela_log_hosp_511
+```
 
 ## 10. Considerações finais
 
