@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
+import { buildApiUrl } from '../../config/api';
 import { IMaskInput1 } from './styles';
 
 // Página de cadastro de novos usuários.
@@ -31,8 +32,8 @@ function Register_Pacientes() {
 
     
     const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !dataNascimento || !sexo || !endereco.trim()){
-      setMessage('Preencha nome, e-mail, senha, data de nascimento, sexo e endereço.');
+    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !endereco.trim() || !telefone || dataNascimento){
+      setMessage('Preencha nome, e-mail, senha, sexo , endereço , telefone e data nascimento.');
       return;
     }
 
@@ -58,7 +59,7 @@ function Register_Pacientes() {
     try {
       setLoading(true);
       const response = await fetch(
-        'http://localhost:8000/api/register_paciente.php',
+         buildApiUrl('register_paciente.php'),
         {
           method: 'POST',
           headers: {
@@ -67,15 +68,17 @@ function Register_Pacientes() {
           body: JSON.stringify({
             nome_completo: nome.trim(),
             email: normalizedEmail,
+             data_nascimento : dataNascimento ,
             senha: normalizedPassword,
-            data_nascimento: dataNascimento,
             sexo: sexo,
             etnia: etnia || null,
-            telefone: telefone || null,
+            telefone : telefone,
             aceite_termo: aceiteTermo ? 'sim' : 'nao',
             alergias: alergias || null,
             endereco: endereco.trim(),
-            fk_medic_id: null,
+
+            //fk_medic_id: null,
+           
           }),
         }
       );
@@ -96,7 +99,8 @@ function Register_Pacientes() {
     } catch (error) {
       console.error(error);
       setMessage(
-        'Não foi possível conectar ao servidor.'
+          'Não foi possível conectar ao servidor.'
+      
       );
     } finally {
       setLoading(false);
@@ -132,12 +136,27 @@ function Register_Pacientes() {
             onChange={(event) => setPassword(event.target.value)}
           />
          
-          <IMaskInput1
-            mask="000.000.000-00"
-            placeholder="CPF"
-            value={cpf}
-            onChange={(event) => setCpf(event.target.value)}
+         <Input
+            type="tel"
+            placeholder="(11) 99999-9999"
+            value={telefone}
+            maxLength={15}
+            onChange={(event) => setTelefone(event.target.value)}
           />
+          
+          <Input
+            type="data"
+            placeholder="data de nascimento"
+            value={FormData.dataNascimento}
+            
+            onChange={(event) => setDataNascimento(event.target.value)}
+          />
+          
+
+
+
+
+
 
           <Input
             type="text"

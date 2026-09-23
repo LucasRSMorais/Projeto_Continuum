@@ -81,7 +81,7 @@ try {
     // Extrai os dados do formulário enviado pelo cliente.
     $email = trim($dados["email"] ?? "");
     // Registra no arquivo de log o início do processo de recuperação por e-mail.
-    acessadolog_Continuum("Ação do email começando.." , "Ação");
+   
    
 
     // Valida se email  não veio vazio.
@@ -126,9 +126,9 @@ try {
 
     // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
-    $_SESSION['2fa_nome'] = $usuario['nome'];
+    $_SESSION['2fa_nome'] = $usuario['nome_completo'];
     $_SESSION['2fa_email'] = $usuario['email'];
-    $_SESSION['2fa_perfil'] = $usuario['perfil'];
+    
 
     // Gera um código de 6 dígitos para simular o 2FA.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -140,57 +140,67 @@ try {
 
 // Configura o envio SMTP do código de recuperação por e-mail usando apenas variáveis de ambiente.
 // Esses logs ajudam a rastrear que a recuperação foi iniciada e que o código estava sendo enviado.
-acessadolog_Continuum("O email indeficado..". $email , "Sucesso");
-acessadolog_Continuum("O codigo verificação enviando pelo email.." , "AÇÃO");
 
-$smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpUsername = getenv('SMTP_USERNAME');
-$smtpPassword = getenv('SMTP_PASSWORD');
-$smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
-$fromEmail = getenv('SMTP_FROM_EMAIL') ?: $smtpUsername;
-$fromName = getenv('SMTP_FROM_NAME') ?: 'Continuum';
+ $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+    $smtpUsername = getenv('SMTP_USERNAME');
+    $smtpPassword = getenv('SMTP_PASSWORD');
+    $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
 
-if (!$smtpUsername || !$smtpPassword) {
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Configuração de e-mail do 2FA não encontrada."
-    ]);
-    exit;
-}
+    // Se o e-mail não estiver configurado, não continua o login para evitar falha silenciosa.
+    if (!$smtpUsername || !$smtpPassword) {
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Configuração de e-mail do 2FA não encontrada."
+        ]);
+        exit;
+    }
 
-$mail = new PHPMailer(true);
-$mail->isSMTP();
-$mail->Host = $smtpHost;
-$mail->SMTPAuth = true;
-$mail->Username = $smtpUsername;
-$mail->Password = $smtpPassword;
-$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-$mail->Port = $smtpPort;
-$mail->Timeout = 10;
-$mail->setFrom($fromEmail, $fromName);
-$mail->addAddress($email);
-$mail->isHTML(true);
-$mail->Subject = 'Codigo de verificacao';
 
-$mail->Body = "
-<h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação é  :  </p>
-<h1>  $codigo  </h1>
-<p> Esse código é valido por 5 minutos  </p>
-";
-$mail->send();
+    $verificacao_email = new PHPMailer(true);
+    $verificacao_email->CharSet = 'UTF-8';
+    $verificacao_email->isSMTP();
+    $verificacao_email->Host = $smtpHost;
+    $verificacao_email->SMTPAuth = true;
+    $verificacao_email->Username = $_ENV['SMTP_USERNAME'];
+    $verificacao_email->Password = $_ENV['SMTP_PASSWORD'];
+    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+    $verificacao_email->Timeout = 10;
+    $verificacao_email->Port = $smtpPort;
+    $verificacao_email->setFrom($smtpUsername, 'Continuum');
+    $verificacao_email->addAddress($email);
+    $verificacao_email->isHTML(true);
+    $verificacao_email->Subject = 'Codigo de verificacao';
 
-   
-    
+    // Corpo do e-mail com o código de verificação.
+    $verificacao_email->Body = "
+    <h2>  Verificação de segurança   </h2>
+    <p> Seu codigo de verificação de login é   :  </p>
+    <h1>  $codigo  </h1>
+    <p> Esse código é valido por 5 minutos  </p>
+    ";
+
+    // Tenta enviar o e-mail e, se falhar, responde com erro explícito para o frontend.
+    try {
+        $verificacao_email->send();
+    } catch (Exception $emailError) {
+        error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => $emailError->getMessage()
+        ]);
+        exit;
+    }
+
+    // Se o e-mail foi enviado com sucesso, retorna o status e informa que o usuário precisa confirmar o 2FA.
     echo json_encode([
         "success" => true,
         "requires_2fa" => true,
-        "message" => "Código de verificação enviado para o seu email.",
-        
-    ]); 
-    exit; 
-
+        "message" => "Código de verificação gerado.",
+        "codigo_teste" => ""
+    ]);
+    exit;
     // Código antigo que não será executado porque o script sai antes.
     // Ele seria usado para login direto sem verificação de duas etapas.
     echo json_encode([

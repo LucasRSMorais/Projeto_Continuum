@@ -61,12 +61,12 @@ try {
 
     // Verifica se o e-mail ou registro já existem antes de inserir um novo médico.
     $consulta = $pdo->prepare(
-        "SELECT id FROM medicos WHERE email = :email OR (crm = :crm_numero AND crm_uf = :crm_uf)"
+        "SELECT id FROM medicos WHERE email = :email OR (crm_numero = :crm_numero AND crm_uf = :crm_uf)"
     );
     $consulta->execute([
         "email" => $email,
-        "crm_numero" => $crm_numero,
-        "crm_uf" => $crmUF
+        "crm_numero" => $crm,
+        "crm_uf" => $crmUf
     ]);
 
     if ($consulta->fetch()) {
@@ -130,8 +130,8 @@ try {
         "nome_completo" => $nome,
         "email" => $email,
         "senha_hash" => $senhaHash,
-        "crm_numero" => $crm_numero,
-        "crm_uf" => $crmUF,
+        "crm_numero" => $crm,
+        "crm_uf" => $crmUf,
         "cargo" => $cargo,
         "status" => true
     ]);
@@ -178,7 +178,7 @@ try {
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao realizar cadastro."
+        "message" =>  $e->getMessage()
     ]);
 
 } catch (Exception $e) {

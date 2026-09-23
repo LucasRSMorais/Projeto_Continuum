@@ -34,7 +34,7 @@ $codigo = trim($data['codigo'] ?? '');
 
 // Registra o início do processo de recuperação de senha após a validação do primeiro fator.
 // Esse evento ajuda a rastrear que o usuário entrou no fluxo de alteração de credencial.
- registrarLog(
+ /*registrarLog(
         $pdo,
         $_SESSION['2fa_usuario_id'],
         "RECUPERACAO_INICIADA",
@@ -45,7 +45,7 @@ $codigo = trim($data['codigo'] ?? '');
         $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
         'INFO'
     );
-
+*/
 // Se o código não vier, retorna erro 400.
 if ($codigo === '') {
     http_response_code(400);
@@ -129,7 +129,7 @@ session_regenerate_id(true);
 $usuarioId = $_SESSION['2fa_usuario_id'];
 $nome = $_SESSION['2fa_nome'];
 $email = $_SESSION['2fa_email'];
-$perfil = $_SESSION['2fa_perfil'];
+
 
 // Agora transforma a sessão temporária em sessão autenticada.
 session_regenerate_id(true);
@@ -137,16 +137,16 @@ session_regenerate_id(true);
 $_SESSION['usuario_id'] = $usuarioId;
 $_SESSION['nome'] = $nome;
 $_SESSION['email'] = $email;
-$_SESSION['perfil'] = $perfil;
+
 $_SESSION['ultima_atividade'] = time();
 
 // Remove os dados temporários do 2FA após a autenticação bem-sucedida.
 $_SESSION['2fa_verificado'] = true ;
 unset(
-    $_SESSION['2fa_usuario_id'],
+     $_SESSION['2fa_usuario_id'],
     $_SESSION['2fa_nome'],
     $_SESSION['2fa_email'],
-    $_SESSION['2fa_perfil'],
+   
     $_SESSION['2fa_codigo'],
     $_SESSION['2fa_expira']
 );

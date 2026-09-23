@@ -96,7 +96,7 @@ try {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senhasão obrigatórios."
+            "message" => "Email e senha são obrigatórios."
         ]);
         exit;
     }
@@ -174,7 +174,7 @@ try {
         $pdo,
         $usuario['id'],
         "LOGIN_2FA",
-        "O usuário " . $usuario['nome'] . " iniciou o login e recebeu o código 2FA.",
+        "O usuário " . $usuario['nome_completo'] . " iniciou o login e recebeu o código 2FA.",
         'usuarios',
         $_SERVER['REMOTE_ADDR'] ?? null,
         $_SERVER['HTTP_USER_AGENT'] ?? null,
@@ -212,13 +212,14 @@ try {
         exit;
     }
 
+
     $verificacao_email = new PHPMailer(true);
     $verificacao_email->CharSet = 'UTF-8';
     $verificacao_email->isSMTP();
     $verificacao_email->Host = $smtpHost;
     $verificacao_email->SMTPAuth = true;
-    $verificacao_email->Username = $smtpUsername;
-    $verificacao_email->Password = $smtpPassword;
+    $verificacao_email->Username = $_ENV['SMTP_USERNAME'];
+    $verificacao_email->Password = $_ENV['SMTP_PASSWORD'];
     $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $verificacao_email->Timeout = 10;
     $verificacao_email->Port = $smtpPort;
@@ -243,7 +244,7 @@ try {
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "Não foi possível enviar o código de verificação."
+            "message" => $emailError->getMessage()
         ]);
         exit;
     }

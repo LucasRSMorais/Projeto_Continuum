@@ -59,8 +59,8 @@ function Register() {
             nome_completo: nome.trim(),
             email: normalizedEmail,
             senha: normalizedPassword,
-            crm,
-            crm_uf: crmUF,
+            crm : crm,
+            crm_uf: crmUf,
             cargo: 'medico',
           }),
         }
