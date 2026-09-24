@@ -4,7 +4,15 @@ import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { buildApiUrl } from '../../config/api';
-import { IMaskInput1 } from './styles';
+
+
+const formatTelefone = (value) => {
+return value
+.replace(/\D/g, '').slice(0,11)
+.replace(/^(\d{2})(\d)/g, '($1) $2' )
+.replace(/(\d)(\d{4})$/, '$1-$2');
+
+};
 
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
@@ -32,7 +40,7 @@ function Register_Pacientes() {
 
     
     const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !endereco.trim() || !telefone || dataNascimento){
+    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !endereco.trim() || !telefone || !dataNascimento){
       setMessage('Preencha nome, e-mail, senha, sexo , endereço , telefone e data nascimento.');
       return;
     }
@@ -76,8 +84,7 @@ function Register_Pacientes() {
             aceite_termo: aceiteTermo ? 'sim' : 'nao',
             alergias: alergias || null,
             endereco: endereco.trim(),
-
-            //fk_medic_id: null,
+            
            
           }),
         }
@@ -135,20 +142,19 @@ function Register_Pacientes() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-         
+        
+
          <Input
             type="tel"
             placeholder="(11) 99999-9999"
             value={telefone}
+            onChange={(event) => setTelefone(formatTelefone(event.target.value))}
             maxLength={15}
-            onChange={(event) => setTelefone(event.target.value)}
           />
           
           <Input
-            type="data"
-            placeholder="data de nascimento"
-            value={FormData.dataNascimento}
-            
+            type="date"
+            value={dataNascimento}
             onChange={(event) => setDataNascimento(event.target.value)}
           />
           

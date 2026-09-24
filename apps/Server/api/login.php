@@ -218,8 +218,8 @@ try {
     $verificacao_email->isSMTP();
     $verificacao_email->Host = $smtpHost;
     $verificacao_email->SMTPAuth = true;
-    $verificacao_email->Username = $_ENV['SMTP_USERNAME'];
-    $verificacao_email->Password = $_ENV['SMTP_PASSWORD'];
+    $verificacao_email->Username = $smtpUsername;
+    $verificacao_email->Password = $smtpPassword;
     $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $verificacao_email->Timeout = 10;
     $verificacao_email->Port = $smtpPort;

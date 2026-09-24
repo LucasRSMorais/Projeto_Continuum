@@ -1,0 +1,30 @@
+header{
+color: white;
+padding: -15px;
+min-width: 120px;
+background-image: linear-gradient(to right , rgb(2, 73, 2) , rgb(7, 160, 58)) ;
+padding-bottom: 25px;
+
+}
+
+header h2{
+text-shadow: 5px 2px 1px black;
+margin-right: 15px;
+}
+
+
+.nav{
+display: flex;
+gap: 20px;
+
+}
+
+.link{
+    color: white;
+    text-decoration: none;
+    
+}
+
+.link:hover{
+    color: #032e25;
+}

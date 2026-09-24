@@ -30,7 +30,7 @@ try {
     $fkMedicoId = isset($dados["fk_medic_id"]) ? (int) $dados["fk_medic_id"] : null;
 
     // Valida os campos obrigatórios do cadastro do paciente conforme o ER.
-    if ($nome === "" || $email === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $endereco === "") {
+    if ($nome === "" || $email === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $endereco === "" || $telefone==="") {
         http_response_code(400);
         echo json_encode([
             "success" => false,
@@ -79,9 +79,9 @@ try {
     // Insere os dados do paciente no banco de acordo com o ER definido.
     $sql = "
         INSERT INTO pacientes
-        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco, fk_medic_id, status)
+        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco,  status)
         VALUES
-        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco, :fk_medic_id, :status)
+        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco,  :status)
     ";
 
     $consulta = $pdo->prepare($sql);
@@ -96,7 +96,7 @@ try {
         "aceite_termo" => $aceiteTermo,
         "alergias" => $alergias !== "" ? $alergias : null,
         "endereco" => $endereco,
-        "fk_medic_id" => $fkMedicoId,
+        //"fk_medic_id" => $fkMedicoId,
         "status" => true
     ]);
 

@@ -25,9 +25,13 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
             foreach ($lines as $line) {
                 $line = trim($line);
-                if ($line === '' || str_starts_with($line, '#')) {continue;}
+                if ($line === '' || str_starts_with($line, '#')) {
+                    continue;
+                }
 
-                if (!str_contains($line, '=')) {continue;}
+                if (!str_contains($line, '=')) {
+                    continue;
+                }
 
                 [$key, $value] = array_map('trim', explode('=', $line, 2));
                 $key = trim($key);
@@ -37,13 +41,8 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
                     continue;
                 }
 
-                if (!array_key_exists($key, $_ENV)) {
-                    $_ENV[$key] = $value;
-                }
-
-                if (getenv($key) === false) {
-                    putenv($key . '=' . $value);
-                }
+                $_ENV[$key] = $value;
+                putenv($key . '=' . $value);
             }
             return;
         }
@@ -52,17 +51,26 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
 loadDotenvFromProjectRoot();
 
+$readEnv = static function (string $key, $fallback = null) {
+    $value = getenv($key);
+    if ($value === false || $value === '') {
+        $value = $_ENV[$key] ?? $fallback;
+    }
+
+    return $value !== null ? trim((string) $value) : $fallback;
+};
+
 $isProduction = getenv('RAILWAY_ENVIRONMENT') !== false || getenv('RAILWAY_PUBLIC_DOMAIN') !== false || getenv('PORT') !== false;
 
 // Em produção, nunca usamos localhost. Se as variáveis do banco não forem configuradas,
 // a aplicação deve falhar de forma explícita para evitar erros silenciosos em runtime.
 if ($isProduction) {
-    $host = getenv('DB_HOST');
-    $port = getenv('DB_PORT');
-    $db   = getenv('DB_NAME');
-    $user = getenv('DB_USER');
-    $pass = getenv('DB_PASS');
-    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+    $host = $readEnv('DB_HOST', 'mysql.railway.internal');
+    $port = $readEnv('DB_PORT', '3306');
+    $db   = $readEnv('DB_NAME', 'railway');
+    $user = $readEnv('DB_USER', 'root');
+    $pass = $readEnv('DB_PASS');
+    $charset = $readEnv('DB_CHARSET', 'utf8mb4');
 
     if (!$host || !$port || !$db || !$user || !$pass) {
         http_response_code(500);
@@ -74,12 +82,12 @@ if ($isProduction) {
     }
 } else {
     // Ambiente local: usa valores seguros para desenvolvimento local.
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $port = getenv('DB_PORT') ?: '3306';
-    $db   = getenv('DB_NAME') ?: 'continuum';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: '';
-    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+    $host = $readEnv('DB_HOST', 'localhost');
+    $port = $readEnv('DB_PORT', '3306');
+    $db   = $readEnv('DB_NAME', 'continuum');
+    $user = $readEnv('DB_USER', 'root');
+    $pass = $readEnv('DB_PASS', '');
+    $charset = $readEnv('DB_CHARSET', 'utf8mb4');
 }
 
 $caCert = null;
