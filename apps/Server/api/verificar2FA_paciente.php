@@ -63,7 +63,7 @@ if (time() > $_SESSION['2fa_expira']) {
     unset(
         $_SESSION['2fa_codigo'],
         $_SESSION['2fa_expira'],
-        $_SESSION['2fa_perfil']
+        //$_SESSION['2fa_perfil']
     );
 
     http_response_code(401);
@@ -130,13 +130,13 @@ session_regenerate_id(true);
 $usuarioId = $_SESSION['2fa_usuario_id'];
 $nome = $_SESSION['2fa_nome'];
 $email = $_SESSION['2fa_email'];
-$perfil = $_SESSION['2fa_perfil'] ?? null;
+//$perfil = $_SESSION['2fa_perfil'] ?? null;
 
 // Agora transforma a sessão temporária em sessão autenticada.
 $_SESSION['usuario_id'] = $usuarioId;
 $_SESSION['nome'] = $nome;
 $_SESSION['email'] = $email;
-$_SESSION['perfil'] = $perfil;
+//$_SESSION['perfil'] = $perfil;
 $_SESSION['ultima_atividade'] = time();
 
 // Remove os dados temporários do 2FA após a autenticação bem-sucedida.

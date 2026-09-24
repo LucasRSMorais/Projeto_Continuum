@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
-
+import { buildApiUrl } from '../../config/api';
 // Página de login do sistema.
 // Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
 // ele entra no app ou precisa confirmar um código de segurança (2FA).
@@ -39,7 +39,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/login_paciente.php',
+          buildApiUrl('login_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -87,7 +87,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/verificar2FA_paciente.php',
+         buildApiUrl('verificar2FA_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -129,7 +129,7 @@ function LoginPacientes() {
             </p>
             {/* TEMPORÁRIO: apenas para testes */}
             <p>
-              Código de teste: <strong>{codigoTeste}</strong>
+              Verifique na caixa de Email: <strong>{}</strong>
             </p>
             <Input
               type="text"
@@ -188,13 +188,13 @@ function LoginPacientes() {
             <Link to="/register_pacientes">{' '}Clique aqui</Link>
           </C.Strong>
        </C.LabelSignup> 
-        <C.LabelSignup>
+        {/*<C.LabelSignup>
           Consultar conta
           <C.Strong>
             <Link to="/consultar">{' '}Clique aqui</Link>
           </C.Strong>
         </C.LabelSignup>
-          
+        */}
          
       </C.Content>
     </C.Container>
