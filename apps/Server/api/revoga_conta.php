@@ -88,7 +88,7 @@ try {
     // Busca o usuário pelo email no banco e revoga o consentimento informado.
     // A ação é registrada para manter um histórico de eventos sensíveis.
    
-    $sql = "UPDATE dados_pessoais SET  data_cosentimento = NULL , versao_consentimento = NULL WHERE email = :email";
+    $sql = "UPDATE pacientes SET  aceite_termo = 'nao'  WHERE email = :email";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 

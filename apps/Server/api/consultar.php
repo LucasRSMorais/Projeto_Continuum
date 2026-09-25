@@ -87,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-    $sql = "SELECT nome , cpf ,email , endereço FROM dados_pessoais WHERE email = :email LIMIT 1";
+    $sql = "SELECT nome_completo , telefone ,email , endereco  , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -112,10 +112,14 @@ try {
         "success" => true,
         "message" => "Dados do usuário consultados com sucesso.",
         "usuario" => [
-            "nome" => $usuario["nome"],
+            "nome_completo" => $usuario["nome_completo"],
             "email" => $usuario["email"],
-            "cpf" => $usuario["cpf"],
-            "endereço" => $usuario["endereço"]
+            "endereco" => $usuario["endereco"],
+            "telefone" => $usuario["telefone"],
+            "sexo" => $usuario["sexo"],
+            "data_nascimento" => $usuario["data_nascimento"],
+
+
         ]
     ]);
 

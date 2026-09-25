@@ -6,6 +6,8 @@ import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 import { FaTrash } from 'react-icons/fa';
+import { buildApiUrl } from '../../config/api';
+import { FaEye , FaEyeSlash } from 'react-icons/fa';
 
 function DeletaConta() {
   const navigate = useNavigate();
@@ -17,8 +19,8 @@ function DeletaConta() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 const [message, setMessage] = useState('');
-
-
+const {user} = useAuth();
+const [exibirSenha , setExibir] = useState(false);
 
 
  const deletarConta = async (event) => {
@@ -27,7 +29,7 @@ const [message, setMessage] = useState('');
     setMessage('');
 
    
-    if (!email || !password) {
+    if (!user?.email || !password) {
       setError('Preencha email e senha para conseguir deletar a conta.');
       return;
     }
@@ -38,14 +40,14 @@ const [message, setMessage] = useState('');
 
     try {
       const response = await fetch(
-        'http://localhost:8000/api/confirmar_deleta.php',{
+         buildApiUrl('confirmar_deleta.php'),{
           method: 'DELETE',
           credentials: 'include',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: email,
+            email: user?.email,
             senha: password,
           }),
         }
@@ -79,17 +81,27 @@ const [message, setMessage] = useState('');
 
       <C.Content>
         <C.Form onSubmit={deletarConta}>
-          <Input type="email" placeholder="Email" value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
+           <Input type="email" placeholder="Email" value={user?.email|| ""}
+          readOnly
+            
           />
-          <Input type="password" placeholder="Password" value={password} onChange={(event) => {
+         
+           <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
               setPassword(event.target.value);
               setError('');
             }}
           />
+            <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
+          
+          
           {error && (<C.labelError>{error}</C.labelError>)}
 
           <Button   type="submit"> Deletar Conta</Button>

@@ -6,6 +6,7 @@ import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 import { buildApiUrl } from '../../config/api';
+ import { FaEye , FaEyeSlash } from 'react-icons/fa';
 // Página de login do sistema.
 // Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
 // ele entra no app ou precisa confirmar um código de segurança (2FA).
@@ -17,7 +18,7 @@ function LoginPacientes() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
+ const [exibirSenha , setExibir] = useState(false);
   // Estados do 2FA: indica se o usuário precisa validar o código
   // e guarda o valor do código informado.
   const [requires2FA, setRequires2FA] = useState(false);
@@ -171,11 +172,21 @@ function LoginPacientes() {
               setError('');
             }}
           />
-          <Input type="password" placeholder="Password" value={password} onChange={(event) => {
+            <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
               setPassword(event.target.value);
               setError('');
             }}
           />
+            <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
+         
           {error && (<C.labelError>{error}</C.labelError>)}
 
           <Button type="submit"> Login</Button>

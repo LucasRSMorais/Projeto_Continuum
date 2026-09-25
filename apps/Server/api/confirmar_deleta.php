@@ -87,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-    $sql = "SELECT * FROM dados_pessoais WHERE email = :email LIMIT 1";
+    $sql = "SELECT * FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -116,7 +116,7 @@ try {
     }
 
 
-$sql = "DELETE FROM dados_pessoais WHERE email = :email";
+$sql = "DELETE FROM pacientes WHERE email = :email";
 
 
 

@@ -4,7 +4,7 @@ import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { buildApiUrl } from '../../config/api';
-
+ import { FaEye , FaEyeSlash } from 'react-icons/fa';
 
 const formatTelefone = (value) => {
 return value
@@ -30,6 +30,8 @@ function Register_Pacientes() {
   const [endereco, setEndereco] = useState('');
   const [aceiteTermo, setAceiteTermo] = useState(false);
   const [erro, setErro] = useState("");
+  const [exibirSenha , setExibir] = useState(false);
+   const [confirmacaoSenha , setConfirmarSenha] = useState("");
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +53,11 @@ function Register_Pacientes() {
     }
     if (!sexo) {
       setErro('Selecione o sexo do paciente.');
+      return;
+    }
+     if (password!== confirmacaoSenha){
+
+      setMessage('As senhas não coincidem');
       return;
     }
 
@@ -136,12 +143,31 @@ function Register_Pacientes() {
             onChange={(event) => setEmail(event.target.value)}
           />
 
+          
           <Input
-            type="password"
+            type={exibirSenha ? "text" : "password"}
             placeholder="Senha"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+          <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
+          
+
+          <Input
+            type={exibirSenha ? "text" : "password"}
+            placeholder="Confirmação de senha"
+            value={confirmacaoSenha}
+            onChange={(event) => setConfirmarSenha(event.target.value)}
+          />
+
         
 
          <Input
@@ -225,9 +251,10 @@ function Register_Pacientes() {
 
         </C.Form>
 
-        <Link to="/login_pacientes">{' '}
+       {/* <Link to="/login_pacientes">{' '}
                 <Button  type="submit"> Você ja tem conta ?</Button>
-                 </Link> 
+                 </Link>
+                 */} 
        
 
       </C.Content>
