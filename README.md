@@ -15,8 +15,8 @@ O projeto está sendo desenvolvido utilizando as seguintes tecnologias:
     Bibliotecas: React (JavaScript), Styled Components (React)
     Build tool: Vite
     Linter: ESlint
-    API: REST
-    Banco de dados: MySQL e MongoDB
+    Integração: API REST
+    Banco de dados: MySQL
 
 ## Requisitos
 
@@ -72,16 +72,16 @@ Após iniciar o servidor MySQL, é necessário configurar o banco de dados utili
 
 A aplicação está organizada principalemnte entre o cliente e o servidor:
 
-  Continuum/
-      - Client/
-          - src/
-          - public/
-          - package.json
-          - ...
-      - Server/
-          - api/
-          - ...
-      - README.md
+Continuum/
+ ├── Client/
+ │   ├── src/
+ │   ├── public/
+ │   ├── package.json
+ │   └── ...
+ ├── Server/
+ │   ├── api/
+ │   └── ...
+ └── README.md
 
 A estrutura acima deve ser ajustada caso a organização real do projeto seja diferente.
 
