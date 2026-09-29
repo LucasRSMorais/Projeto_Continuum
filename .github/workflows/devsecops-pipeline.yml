@@ -45,7 +45,7 @@ jobs:
           severity: 'HIGH,CRITICAL' # Restrito a severidades Alta e Crítica
  
   # 3. Análise Estática (SAST) com Semgrep (Suporta PHP + JS + HTML e Bloqueia o Build)
-    semgrep-sast:
+  semgrep-sast:
     name: Semgrep SAST Scan
     runs-on: ubuntu-latest
     permissions:
@@ -72,11 +72,3 @@ jobs:
         with:
           sarif_file: semgrep_results.sarif
           category: "semgrep-php-js"
- 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
- 
-      - name: Executar Análise CodeQL
-        uses: github/codeql-action/analyze@v3
-        with:
-          category: "/language:${{matrix.language}}"
