@@ -2,9 +2,9 @@ name: DevSecOps Pipeline
  
 on:
   push:
-    branches:
-     - main
+    branches: [ "main", "master" ]
   pull_request:
+    branches: [ "main", "master" ]
  
 jobs:
   # 1. Varredura de Segredos com TruffleHog (Impede vazamento de chaves e senhas)
@@ -20,8 +20,9 @@ jobs:
       - name: Scan por Segredos Vazados
         uses: trufflesecurity/trufflehog@main
         with:
-          base: main
-          head: development
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
           extra_args: --only-verified
  
   # 2. Análise de Dependências (SCA) com Trivy (Checa bibliotecas de terceiros)
@@ -56,7 +57,7 @@ jobs:
       fail-fast: false
       matrix:
         # Linguagens analisadas (ajuste conforme as tecnologias do seu repositório)
-        language: [ 'javascript', 'php', 'html' ]
+        language: [ 'javascript', 'php', 'python' ]
  
     steps:
       - name: Checkout do repositório
