@@ -2,7 +2,8 @@ name: DevSecOps Pipeline
  
 on:
   push:
-    branches: [ "main", "master" ]
+    branches:
+     - main
   pull_request:
  
 jobs:
@@ -19,6 +20,8 @@ jobs:
       - name: Scan por Segredos Vazados
         uses: trufflesecurity/trufflehog@main
         with:
+          base: main
+          head: development
           extra_args: --only-verified
  
   # 2. Análise de Dependências (SCA) com Trivy (Checa bibliotecas de terceiros)
