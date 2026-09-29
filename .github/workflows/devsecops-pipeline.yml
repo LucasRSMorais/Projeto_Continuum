@@ -21,8 +21,8 @@ jobs:
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
+          base: main
+          head: development
           extra_args: --only-verified
  
   # 2. Análise de Dependências (SCA) com Trivy (Checa bibliotecas de terceiros)
@@ -56,8 +56,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Linguagens analisadas (ajuste conforme as tecnologias do seu repositório)
-        language: [ 'javascript', 'php', 'python' ]
+        # Linguagens analisadas 
+        language: [ 'javascript', 'php', 'html' ]
  
     steps:
       - name: Checkout do repositório
