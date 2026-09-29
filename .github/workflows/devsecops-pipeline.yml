@@ -1,0 +1,79 @@
+name: DevSecOps Pipeline
+ 
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+ 
+jobs:
+  # 1. Varredura de Segredos com TruffleHog (Impede vazamento de chaves e senhas)
+  secret-scanning:
+    name: TruffleHog Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Necessário para analisar todo o histórico de commits
+ 
+      - name: Scan por Segredos Vazados
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+ 
+  # 2. Análise de Dependências (SCA) com Trivy (Checa bibliotecas de terceiros)
+  sca-scanning:
+    name: Trivy SCA Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+ 
+      - name: Scan de Vulnerabilidades em Bibliotecas
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1' # Falha o pipeline se encontrar vulnerabilidades
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'HIGH,CRITICAL' # Restrito a severidades Alta e Crítica
+ 
+  # 3. Análise Estática (SAST) com GitHub CodeQL (Opção Bônus para Repositórios Públicos)
+  codeql-sast:
+    name: CodeQL SAST Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write # Permite que o CodeQL publique os alertas na aba Security
+ 
+    strategy:
+      fail-fast: false
+      matrix:
+        # Linguagens analisadas (ajuste conforme as tecnologias do seu repositório)
+        language: [ 'javascript', 'php', 'html' ]
+ 
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+ 
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Utiliza regras estendidas com foco forte em segurança
+          queries: security-extended,security-and-quality
+ 
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+ 
+      - name: Executar Análise CodeQL
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{matrix.language}}"
