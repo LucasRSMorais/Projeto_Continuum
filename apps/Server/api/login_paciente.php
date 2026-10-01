@@ -11,7 +11,9 @@ require_once __DIR__ . "/registrarLog.php";
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+    'samesite' => 'None'
+    
 ]);
 
 session_start();

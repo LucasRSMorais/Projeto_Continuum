@@ -5,7 +5,9 @@
 //Corrigido
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+     'secure' => true,
+    'samesite' => 'None'
+    
 ]);
 
 session_start();

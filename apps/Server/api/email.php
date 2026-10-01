@@ -11,7 +11,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'samesite' => 'None',
+    'secure' => true
 ]);
 
 session_start();
