@@ -5,9 +5,7 @@
 // gera um código temporário de verificação em duas etapas (2FA).
 // Um teste
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . "/registrarLog.php";
 
@@ -185,80 +183,102 @@ try {
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-    $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-    $smtpUsername = getenv('SMTP_USERNAME');
-    $smtpPassword = getenv('SMTP_PASSWORD');
-    $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
+  
+    $resendAPI = getenv('RESEND_API_KEY');
 
-    if (!$smtpUsername || !$smtpPassword) {
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Configuração de e-mail do 2FA não encontrada."
-        ]);
-        exit;
-    }
 
-    $verificacao_email = new PHPMailer(true);
-    $verificacao_email->CharSet = 'UTF-8';
-    $verificacao_email->isSMTP();
-    $verificacao_email->Host = $smtpHost;
-    $verificacao_email->SMTPAuth = true;
-    $verificacao_email->Username = $smtpUsername;
-    $verificacao_email->Password = $smtpPassword;
-    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $verificacao_email->Port = $smtpPort;
-    $verificacao_email->setFrom($smtpUsername, 'Continuum');
-    $verificacao_email->addAddress($email);
-    $verificacao_email->isHTML(true);
-    $verificacao_email->Subject = 'Codigo de verificacao';
 
-    $verificacao_email->Body = "
-<h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação da tela de login é   :  </p>
-<h1>  $codigo  </h1>
-<p> Esse código é valido por 5 minutos  </p>
-";
+if (!$resendAPI){
 
-    try {
-        $verificacao_email->send();
-    } catch (Exception $emailError) {
-        error_log('Falha ao enviar o código 2FA do paciente: ' . $emailError->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Não foi possível enviar o código de verificação."
-        ]);
-        exit;
-    }
 
-    echo json_encode([
-        "success" => true,
-        "requires_2fa" => true,
-        "message" => "Código de verificação gerado.",
-        "codigo_teste" => $codigo
-    ]);
-    exit;
+http_response_code(500);
 
-    // Código antigo que não será executado porque o script sai antes.
-    // Ele seria usado para login direto sem verificação de duas etapas.
-    echo json_encode([
-        "success" => true,
-        "message" => "Login realizado com sucesso.",
-        "usuario" => [
-            "id" => $usuario["id"],
-            "nome" => $usuario["nome"],
-            "email" => $usuario["email"],
-            "perfil" => $usuario["perfil"]
-        ]
-    ]);
- 
-    // aqui termina o bloco try, e o catch abaixo captura qualquer exceção de banco de dados.
-} catch (PDOException $e) {
-    // Caso ocorra algum erro de banco de dados.
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => $e->getMessage()
-    ]);
+echo json_encode([
+    "success" => false,
+    "message" => "Configurando do resend não encontrada"
+]);
+
+
+exit;
+
+}
+
+
+try {
+
+$resend = Resend::client($resendAPI);
+
+
+$resultado = $resend->emails->send([
+
+'from'=> 'Continuum <onboarding@resend.dev>',
+'to'=> [$email],
+"subject"=> 'Codigo de verificação',
+'html' => "
+<h1> Verificação de segurança  </h1>
+<p>  Seu codigo de verificação de login para os pacientes é   </p>
+
+<h2> Verificação de segurança  </h2>
+
+<h2>  $codigo   </h2>
+
+<p>  Codigo expirar em cinco minutos   </p>
+
+
+"
+
+
+]);
+
+
+}catch (Exception $emailError){
+
+error_log(
+
+'falha ao enviar o codigo 2FA'
+. $emailError->getMessage()
+
+);
+
+http_response_code(500);
+
+echo json_encode([
+    "success"=>false,
+    "message"=> "Não foi possivel de enviar o codigo de verificação"
+]);
+
+
+exit ;
+}
+
+
+echo json_encode([
+
+"success" => true,
+"requires_2fa" => true ,
+"message" => "Código de verificação enviado para seu e-mail.",
+"codigo_teste" => $codigo
+
+
+]);
+
+
+exit;
+
+
+}catch (PDOException $e){
+
+
+http_response_code(500);
+
+echo json_encode([
+
+
+"success" => false,
+"message" => $e->getMessage()
+
+]);
+exit;
+
+
 }
