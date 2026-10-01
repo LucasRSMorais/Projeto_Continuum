@@ -18,6 +18,7 @@ require_once __DIR__ . "/../config/cors.php";
 require_once __DIR__ . "/registrarLog.php";
 require_once __DIR__ . "/../config/database.php";
 
+applyCorsHeaders();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
