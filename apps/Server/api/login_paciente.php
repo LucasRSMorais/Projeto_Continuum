@@ -5,27 +5,47 @@
 // gera um código temporário de verificação em duas etapas (2FA).
 // Um teste
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-use PHPMailer\PHPMailer\SMTP;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . "/registrarLog.php";
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+     'samesite' => 'None'
+    
 ]);
-
 session_start();
 
-// Define contadores de tentativas e bloqueio para evitar brute force.
-if (!isset($_SESSION['tentativas_login'])) {
-    $_SESSION['tentativas_login'] = 0;
+// Mantém as falhas recentes na sessão para limitar tentativas de força bruta.
+if (!isset($_SESSION['tentativas_login_timestamps']) || !is_array($_SESSION['tentativas_login_timestamps'])) {
+    $_SESSION['tentativas_login_timestamps'] = [];
 }
 
 if (!isset($_SESSION['bloqueio_login'])) {
     $_SESSION['bloqueio_login'] = 0;
 }
+
+$agora = time();
+$_SESSION['tentativas_login_timestamps'] = array_values(array_filter(
+    $_SESSION['tentativas_login_timestamps'],
+    static fn ($timestamp) => is_int($timestamp) && $timestamp > $agora - 60 && $timestamp <= $agora
+));
+
+$registrarFalhaLogin = static function (): bool {
+    $agora = time();
+    $tentativas = $_SESSION['tentativas_login_timestamps'];
+    $tentativas[] = $agora;
+    $_SESSION['tentativas_login_timestamps'] = $tentativas;
+
+    if (count($tentativas) >= 5) {
+        $_SESSION['bloqueio_login'] = $agora + 60;
+        $_SESSION['tentativas_login_timestamps'] = [];
+        return true;
+    }
+
+    return false;
+};
 
 $_SESSION['ultima_atividade'] = time();
 
@@ -68,21 +88,8 @@ try {
         exit;
     }
 
-    // Conta cada tentativa para proteger contra ataques de força bruta.
-    $_SESSION['tentativas_login']++;
-
-    // Depois de 5 tentativas, bloqueia por 60 segundos.
-    if ($_SESSION['tentativas_login'] >= 5) {
-        $_SESSION['bloqueio_login'] = time() + 60;
-        $_SESSION['tentativas_login'] = 0;
-
-        http_response_code(429);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde 60 segundos."
-        ]);
-        exit;
+    if ($_SESSION['bloqueio_login'] > 0) {
+        $_SESSION['bloqueio_login'] = 0;
     }
 
     // Extrai os dados do formulário enviado pelo cliente.
@@ -123,10 +130,17 @@ try {
         "Tentativa de login com paciente não encontrado.",
         'pacientes',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
         'SECURITY'
     );
+
+    if ($registrarFalhaLogin()) {
+        http_response_code(429);
+        echo json_encode([
+            "success" => false,
+            "message" => "Muitas tentativas. Aguarde 60 segundos."
+        ]);
+        exit;
+    }
 
     http_response_code(401);
     echo json_encode([
@@ -136,8 +150,9 @@ try {
     exit;
 }
 
+$resendAPI = getenv('RESEND_API_KEY');
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha"])) {
+    if (!password_verify($senha, $usuario["senha_hash"])) {
          registrarLog(
         $pdo,
         $usuario['id'],
@@ -145,10 +160,19 @@ try {
         "O paciente chamado " . $usuario['nome_completo'] . " informou uma senha inválida.",
         'pacientes',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+      
         'SECURITY'
     );
+
+        if ($registrarFalhaLogin()) {
+            http_response_code(429);
+            echo json_encode([
+                "success" => false,
+                "message" => "Muitas tentativas. Aguarde 60 segundos."
+            ]);
+            exit;
+        }
+
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -156,6 +180,9 @@ try {
         ]);
         exit;
     }
+
+    $_SESSION['tentativas_login_timestamps'] = [];
+    $_SESSION['bloqueio_login'] = 0;
     
     registrarLog(
     $pdo,
@@ -164,8 +191,7 @@ try {
     "O usuário " . $usuario['nome_completo'] . " iniciou o login e recebeu o código 2FA.",
     'pacientes',
     $_SERVER['REMOTE_ADDR'] ?? null,
-    $_SERVER['HTTP_USER_AGENT'] ?? null,
-    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+
     'INFO'
 );
 
@@ -185,80 +211,102 @@ try {
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-    $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-    $smtpUsername = getenv('SMTP_USERNAME');
-    $smtpPassword = getenv('SMTP_PASSWORD');
-    $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
+  
+    $resendAPI = getenv('RESEND_API_KEY');
 
-    if (!$smtpUsername || !$smtpPassword) {
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Configuração de e-mail do 2FA não encontrada."
-        ]);
-        exit;
-    }
 
-    $verificacao_email = new PHPMailer(true);
-    $verificacao_email->CharSet = 'UTF-8';
-    $verificacao_email->isSMTP();
-    $verificacao_email->Host = $smtpHost;
-    $verificacao_email->SMTPAuth = true;
-    $verificacao_email->Username = $smtpUsername;
-    $verificacao_email->Password = $smtpPassword;
-    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $verificacao_email->Port = $smtpPort;
-    $verificacao_email->setFrom($smtpUsername, 'Continuum');
-    $verificacao_email->addAddress($email);
-    $verificacao_email->isHTML(true);
-    $verificacao_email->Subject = 'Codigo de verificacao';
 
-    $verificacao_email->Body = "
-<h2>  Verificação de segurança   </h2>
-<p> Seu codigo de verificação da tela de login é   :  </p>
-<h1>  $codigo  </h1>
-<p> Esse código é valido por 5 minutos  </p>
-";
+if (!$resendAPI){
 
-    try {
-        $verificacao_email->send();
-    } catch (Exception $emailError) {
-        error_log('Falha ao enviar o código 2FA do paciente: ' . $emailError->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Não foi possível enviar o código de verificação."
-        ]);
-        exit;
-    }
 
-    echo json_encode([
-        "success" => true,
-        "requires_2fa" => true,
-        "message" => "Código de verificação gerado.",
-        "codigo_teste" => $codigo
-    ]);
-    exit;
+http_response_code(500);
 
-    // Código antigo que não será executado porque o script sai antes.
-    // Ele seria usado para login direto sem verificação de duas etapas.
-    echo json_encode([
-        "success" => true,
-        "message" => "Login realizado com sucesso.",
-        "usuario" => [
-            "id" => $usuario["id"],
-            "nome" => $usuario["nome"],
-            "email" => $usuario["email"],
-            "perfil" => $usuario["perfil"]
-        ]
-    ]);
- 
-    // aqui termina o bloco try, e o catch abaixo captura qualquer exceção de banco de dados.
-} catch (PDOException $e) {
-    // Caso ocorra algum erro de banco de dados.
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => $e->getMessage()
-    ]);
+echo json_encode([
+    "success" => false,
+    "message" => "Configurando do resend não encontrada"
+]);
+
+
+exit;
+
+}
+
+
+try {
+
+$resend = Resend::client($resendAPI);
+
+
+$resultado = $resend->emails->send([
+
+'from'=> 'Continuum <onboarding@resend.dev>',
+'to'=> [$email],
+"subject"=> 'Codigo de verificação',
+'html' => "
+<h1> Verificação de segurança  </h1>
+<p>  Seu codigo de verificação de login para os pacientes é   </p>
+
+<h2> Verificação de segurança  </h2>
+
+<h2>  $codigo   </h2>
+
+<p>  Codigo expirar em cinco minutos   </p>
+
+
+"
+
+
+]);
+
+
+}catch (Exception $emailError){
+
+error_log(
+
+'falha ao enviar o codigo 2FA'
+. $emailError->getMessage()
+
+);
+
+http_response_code(500);
+
+echo json_encode([
+    "success"=>false,
+    "message"=> "Não foi possivel de enviar o codigo de verificação"
+]);
+
+
+exit ;
+}
+
+
+echo json_encode([
+
+"success" => true,
+"requires_2fa" => true ,
+"message" => "Código de verificação enviado para seu e-mail.",
+"codigo_teste" => $codigo
+
+
+]);
+
+
+exit;
+
+
+}catch (PDOException $e){
+
+
+http_response_code(500);
+
+echo json_encode([
+
+
+"success" => false,
+"message" => $e->getMessage()
+
+]);
+exit;
+
+
 }

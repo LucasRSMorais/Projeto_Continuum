@@ -108,7 +108,7 @@ try {
         PASSWORD_ARGON2ID,
         [
             "memory_cost" => 65536,
-            "time_cost" => 4,
+            "time_cost" => 3,
             "threads" => 2
         ]
     );
@@ -145,18 +145,17 @@ try {
         $pdo,
         $usuarioId ?: null,
         "CADASTRO_SUCESSO",
-        "Usuário " . $nome . " foi cadastrado com sucesso.",
-        'usuarios',
+        "O médico " . $nome . " foi cadastrado com sucesso.",
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+      
         'INFO'
     );
 
     http_response_code(201);
     echo json_encode([
         "success" => true,
-        "message" => "Usuário cadastrado com sucesso."
+        "message" => "Médico cadastrado com sucesso."
     ]);
 
 } catch (PDOException $e) {

@@ -5,6 +5,8 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
+import { buildApiUrl } from '../../config/api';
+
 import { FaTrash } from 'react-icons/fa';
 
 function ConsultarConta() {
@@ -16,19 +18,21 @@ function ConsultarConta() {
   const [email, setEmail] = useState('');
   const [usuario, setUsuario] = useState(null);
   const [error, setError] = useState('');
-
+const {user} = useAuth();
 
 const consultarUsuario = async (event) => {
     event.preventDefault();
     setError('');
     setUsuario(null);
-    if (!email) {
+    {/*if (!email) {
       setError('Digite o email.');
       return;
     }
+    */}
     try {
       const response = await fetch(
-        'http://localhost:8000/api/consultar.php',
+         buildApiUrl('consultar.php'),
+        
         {
           method: 'POST',
           credentials: 'include',
@@ -36,7 +40,7 @@ const consultarUsuario = async (event) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: email,
+            email: user?.email,
           }),
         }
       );
@@ -58,8 +62,10 @@ const exportarUsuario = async (event) => {
       setError('Nenhum usuário para exportar.');
       return;
     }
-window.location.href = `http://localhost:8000/api/exportar.php?email=${encodeURIComponent(email)}`;
+{/*window.location.href = `http://localhost:8000/api/exportar.php?email=${encodeURIComponent(email)}`;
+*/}
 
+window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponent(user?.email)} `;
 
 };
     
@@ -72,11 +78,9 @@ return(
 
       <C.Content>
         <C.Form onSubmit={consultarUsuario}>
-          <Input type="email" placeholder="Email" value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
+          <Input type="email" placeholder="Email" value={user?.email|| ""}
+          readOnly
+            
           />
          
           {error && (<C.labelError>{error}</C.labelError>)}
@@ -95,24 +99,16 @@ return(
 
       {usuario &&  (<C.DadoUsuario>
         <h2>Informações do Usuário</h2>
-        <p><strong>Nome:</strong> {usuario.nome}</p>
+        <p><strong>Nome:</strong> {usuario.nome_completo}</p>
           <p><strong>Email:</strong> {usuario.email}</p>
-           <p><strong>CPF:</strong> {usuario.cpf}</p>
-          <p><strong>Endereço:</strong> {usuario.endereço}</p>
+           <p><strong>Telefone</strong> {usuario.telefone}</p>
+          <p><strong>Endereço:</strong> {usuario.endereco}</p>
+          <p><strong>Sexo:</strong> {usuario.sexo}</p>
+          <p><strong>Data de Nascimento:</strong> {usuario.data_nascimento}</p>
           <Button type="submit" onClick={exportarUsuario}>
             Exportar Dados
           </Button>
-          <br />
-          <br />
-            <Link to="/deleta_conta">{' '}
-                          <Button  type="submit"> Deleta conta</Button>
-                
-                           </Link>
-                           <br /> 
-                           <br />
-                           <Link to="/revogar">{' '}
-                          <Button  type="submit">  Revogar</Button>
-                           </Link> 
+          
         
       </C.DadoUsuario>)}
 

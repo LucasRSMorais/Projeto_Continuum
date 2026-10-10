@@ -4,7 +4,7 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+   'samesite' => 'None'
 ]);
 
 session_start();
@@ -87,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-    $sql = "SELECT * FROM dados_pessoais WHERE email = :email LIMIT 1";
+    $sql = "SELECT * FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -105,7 +105,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha"])) {
+    if (!password_verify($senha, $usuario["senha_hash"])) {
          
         http_response_code(401);
         echo json_encode([
@@ -116,7 +116,7 @@ try {
     }
 
 
-$sql = "DELETE FROM dados_pessoais WHERE email = :email";
+$sql = "DELETE FROM pacientes WHERE email = :email";
 
 
 

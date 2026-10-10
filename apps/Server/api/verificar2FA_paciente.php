@@ -3,9 +3,12 @@
 // Página de validação do código de autenticação em duas etapas (2FA).
 
 //Corrigido
+
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+     'secure' => true,
+     'samesite' => 'None'
+    
 ]);
 
 session_start();
@@ -74,6 +77,8 @@ if (time() > $_SESSION['2fa_expira']) {
     exit;
 }
 
+
+
 // Compara o código informado com o hash salvo na sessão.
 // Quando a validação falha, a ação é registrada para rastrear tentativas indevidas.
 if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
@@ -82,10 +87,9 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
         "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação inválido.",
-        'dados_pessoais',
+        'pacientes',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+     
         'SECURITY'
     );
 
@@ -103,10 +107,9 @@ registrarLog(
     $_SESSION['2fa_usuario_id'],
     "2FA_SUCESSO",
     "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
-    'dados_pessoais',
+    'pacientes',
     $_SERVER['REMOTE_ADDR'] ?? null,
-    $_SERVER['HTTP_USER_AGENT'] ?? null,
-    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+  
     'INFO'
 );
 
@@ -115,10 +118,9 @@ registrarLog(
     $_SESSION['2fa_usuario_id'],
     "LOGIN_SUCESSO",
     "O usuário " . $_SESSION['2fa_nome'] . " realizou login com sucesso.",
-    'dados_pessoais',
+    'pacientes',
     $_SERVER['REMOTE_ADDR'] ?? null,
-    $_SERVER['HTTP_USER_AGENT'] ?? null,
-    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+ 
     'INFO'
 );
 

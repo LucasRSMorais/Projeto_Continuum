@@ -2,9 +2,7 @@
 
 // É uma parte do backend que vai ser dedicada que caso o usuario esquecer a senha dele  , o usuario vai precisar digitar o email dele para recuperar , e o codigo vai vir pelo email dele
 
-use PHPMailer\PHPMailer\PHPMailer ;
-use PHPMailer\PHPMailer\SMTP ;
-use PHPMailer\PHPMailer\Exception ;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // O código gerado será vinculado à sessão até a confirmação do 2FA.
@@ -13,7 +11,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'samesite' => 'None',
+    'secure' => true
 ]);
 
 session_start();
@@ -141,84 +140,101 @@ try {
 // Configura o envio SMTP do código de recuperação por e-mail usando apenas variáveis de ambiente.
 // Esses logs ajudam a rastrear que a recuperação foi iniciada e que o código estava sendo enviado.
 
- $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-    $smtpUsername = getenv('SMTP_USERNAME');
-    $smtpPassword = getenv('SMTP_PASSWORD');
-    $smtpPort = (int) (getenv('SMTP_PORT') ?: 587);
-
-    // Se o e-mail não estiver configurado, não continua o login para evitar falha silenciosa.
-    if (!$smtpUsername || !$smtpPassword) {
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "Configuração de e-mail do 2FA não encontrada."
-        ]);
-        exit;
-    }
+$resendAPI = getenv('RESEND_API_KEY');
 
 
-    $verificacao_email = new PHPMailer(true);
-    $verificacao_email->CharSet = 'UTF-8';
-    $verificacao_email->isSMTP();
-    $verificacao_email->Host = $smtpHost;
-    $verificacao_email->SMTPAuth = true;
-    $verificacao_email->Username = $smtpUsername;
-    $verificacao_email->Password = $smtpPassword;
-    $verificacao_email->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $verificacao_email->Timeout = 10;
-    $verificacao_email->Port = $smtpPort;
-    $verificacao_email->setFrom($smtpUsername, 'Continuum');
-    $verificacao_email->addAddress($email);
-    $verificacao_email->isHTML(true);
-    $verificacao_email->Subject = 'Codigo de verificacao';
 
-    // Corpo do e-mail com o código de verificação.
-    $verificacao_email->Body = "
-    <h2>  Verificação de segurança   </h2>
-    <p> Seu codigo de verificação de login é   :  </p>
-    <h1>  $codigo  </h1>
-    <p> Esse código é valido por 5 minutos  </p>
-    ";
+if (!$resendAPI){
 
-    // Tenta enviar o e-mail e, se falhar, responde com erro explícito para o frontend.
-    try {
-        $verificacao_email->send();
-    } catch (Exception $emailError) {
-        error_log('Falha ao enviar o código 2FA: ' . $emailError->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => $emailError->getMessage()
-        ]);
-        exit;
-    }
 
-    // Se o e-mail foi enviado com sucesso, retorna o status e informa que o usuário precisa confirmar o 2FA.
-    echo json_encode([
-        "success" => true,
-        "requires_2fa" => true,
-        "message" => "Código de verificação gerado.",
-        "codigo_teste" => ""
-    ]);
-    exit;
-    // Código antigo que não será executado porque o script sai antes.
-    // Ele seria usado para login direto sem verificação de duas etapas.
-    echo json_encode([
-        "success" => true,
-        "message" => "Login realizado com sucesso.",
-        "usuario" => [
-            "id" => $usuario["id"],
-            "nome" => $usuario["nome"],
-            "email" => $usuario["email"],
-            "perfil" => $usuario["perfil"]
-        ]
-    ]);
+http_response_code(500);
 
-} catch (PDOException $e) {
-    // Caso ocorra algum erro de banco de dados.
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Erro interno do servidor."
-    ]);
+echo json_encode([
+    "success" => false,
+    "message" => "Configurando do resend não encontrada"
+]);
+
+
+exit;
+
+}
+
+
+try {
+
+$resend = Resend::client($resendAPI);
+
+
+$resultado = $resend->emails->send([
+
+'from'=> 'Continuum <onboarding@resend.dev>',
+'to'=> [$email],
+"subject"=> 'Codigo de verificação',
+'html' => "
+<h1> Verificação de segurança  </h1>
+<p>  Seu codigo de verificação de recuperação de senha é   </p>
+
+<h2> Verificação de segurança  </h2>
+
+<h2>  $codigo   </h2>
+
+<p>  Codigo expirar em cinco minutos   </p>
+
+
+"
+
+
+]);
+
+
+}catch (Exception $emailError){
+
+error_log(
+
+'falha ao enviar o codigo 2FA'
+. $emailError->getMessage()
+
+);
+
+http_response_code(500);
+
+echo json_encode([
+    "success"=>false,
+    "message"=> "Não foi possivel de enviar o codigo de verificação"
+]);
+
+
+exit ;
+}
+
+
+echo json_encode([
+
+"success" => true,
+"requires_2fa" => true ,
+"message" => "Código de verificação enviado para seu e-mail.",
+"codigo_teste" => $codigo
+
+
+]);
+
+
+exit;
+
+
+}catch (PDOException $e){
+
+
+http_response_code(500);
+
+echo json_encode([
+
+
+"success" => false,
+"message" => $e->getMessage()
+
+]);
+exit;
+
+
 }

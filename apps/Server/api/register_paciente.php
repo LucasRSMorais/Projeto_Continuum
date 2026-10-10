@@ -19,6 +19,7 @@ try {
     $dados = json_decode(file_get_contents("php://input"), true);
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
+    $cpf = trim($dados["cpf"] ?? "");
     $senha = $dados["senha"] ?? "";
     $dataNascimento = trim($dados["data_nascimento"] ?? "");
     $sexo = trim($dados["sexo"] ?? "");
@@ -30,14 +31,16 @@ try {
     $fkMedicoId = isset($dados["fk_medic_id"]) ? (int) $dados["fk_medic_id"] : null;
 
     // Valida os campos obrigatórios do cadastro do paciente conforme o ER.
-    if ($nome === "" || $email === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $endereco === "" || $telefone==="") {
+    if ($nome === "" || $email === "" || $cpf === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $telefone === "") {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Nome completo, e-mail, senha, data de nascimento, sexo e endereço são obrigatórios."
+            "message" => "Nome completo, e-mail, CPF, senha, data de nascimento, sexo, telefone e endereço são obrigatórios."
         ]);
         exit;
     }
+
+  
 
     // Verifica se o e-mail já existe antes de inserir um novo paciente.
     $consulta = $pdo->prepare(
@@ -67,7 +70,7 @@ try {
         PASSWORD_ARGON2ID,
         [
             "memory_cost" => 65536,
-            "time_cost" => 4,
+            "time_cost" => 3,
             "threads" => 2
         ]
     );
@@ -79,15 +82,16 @@ try {
     // Insere os dados do paciente no banco de acordo com o ER definido.
     $sql = "
         INSERT INTO pacientes
-        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco,  status)
+        (nome_completo, email, cpf, data_nascimento, sexo, etnia,  senha_hash, telefone,  aceite_termo_uso, alergias)
         VALUES
-        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco,  :status)
+        (:nome_completo, :email, :cpf, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias)
     ";
 
     $consulta = $pdo->prepare($sql);
     $consulta->execute([
         "nome_completo" => $nome,
         "email" => $email,
+        "cpf" => $cpf,
         "data_nascimento" => $dataNascimento,
         "sexo" => $sexo,
         "etnia" => $etnia !== "" ? $etnia : null,
@@ -95,22 +99,20 @@ try {
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,
         "alergias" => $alergias !== "" ? $alergias : null,
-        "endereco" => $endereco,
+        
         //"fk_medic_id" => $fkMedicoId,
-        "status" => true
+        
     ]);
 
     // Grava no log a criação do cadastro do paciente como evento de auditoria.
     require_once __DIR__ . "/registrarLog.php";
     registrarLog(
         $pdo,
-        $pdo->lastInsertId(),
-        "CADASTRO_PACIENTE_SUCESSO",
-        "Paciente " . $nome . " foi cadastrado com sucesso.",
-        'pacientes',
+        null, // Nenhum usuário logado no momento do cadastro do paciente.
+        "CADASTRO_PACIENTE",
+        "Paciente " . $nome . " foi cadastrado com sucesso." ,
+        "pacientes",
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
         'INFO'
     );
 

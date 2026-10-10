@@ -6,7 +6,7 @@ import Input from '../../components/Input';
 import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
-
+import { FaEye , FaEyeSlash } from 'react-icons/fa';
 // Página de nova senha do sistema.
 // Aqui o usuário informa a nova senha que vai ser registrada ,
 // ele entra após o codigo inserido que foi enviado pelo email do usuario (2FA).
@@ -20,7 +20,7 @@ function nova_() {
 // Estado dos campos do formulário e das mensagens de erro.
  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-
+ const [exibirSenha , setExibir] = useState(false);
  
 
 
@@ -81,12 +81,20 @@ function nova_() {
 
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
-         <Input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+          <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
+              setPassword(event.target.value);
+              setError('');
+            }}
           />
+            <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
           
           {error && (<C.labelError>{error}</C.labelError>)}
           

@@ -1,6 +1,15 @@
 import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
-import './styles.css'
+import {
+HeaderContainer,
+Logo ,
+MenuLink
+,
+Divisao ,
+DivisaoLink,
+DIV ,
+Menu 
+}from "./styles";
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
 import { Link } from 'react-router-dom';
@@ -15,23 +24,41 @@ function HomePaciente() {
   return (
 <>
 
-<header>
-<br /> <br />
-<h2>Continuum</h2>
+<HeaderContainer>
+<Logo  src= "./public/logo_s_fundo.svg" alt = "logo do Continuum" />
 
-<nav>
+<Menu>
 
-<Link className='link' to="/" >
+<MenuLink href="/"> Inicio</MenuLink>
+<MenuLink href="/"> Exame</MenuLink>
 
-Inicio
-</Link>
+<DIV>
+<MenuLink href="/"> Perfil</MenuLink>
+<Divisao>
 
-<Link className='link' to="/" > Exames </Link>
+<DivisaoLink href = "/consultar">
+Verificar os dados
 
-<Link className='link' to="/" > Perfil </Link>
+</DivisaoLink>
 
-</nav>
-</header>
+
+<DivisaoLink href = "/revogar">
+Revogar consetimento 
+
+</DivisaoLink>
+<DivisaoLink href = "/deleta_conta">
+Apagar  Conta  
+
+</DivisaoLink>
+
+
+</Divisao>
+
+
+</DIV>
+</Menu>
+
+</HeaderContainer>
 
 
     <C.Conteiner>

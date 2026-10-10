@@ -5,22 +5,21 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+    'secure' => true,
+     'samesite' => 'None'
 ]);
 
 session_start();
 
 header("Content-Type: application/json; charset=UTF-8");
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Credentials: true");
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+
 
 require_once __DIR__ . "/../config/cors.php";
 require_once __DIR__ . "/registrarLog.php";
 require_once __DIR__ . "/../config/database.php";
 
+applyCorsHeaders();
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -89,10 +88,9 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
         "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação incorretamente.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+     
         'SECURITY'
     );
 
@@ -111,10 +109,9 @@ registrarLog(
         $_SESSION['2fa_usuario_id'],
         "2FA_SUCESSO",
         "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+     
         'INFO'
     );
 

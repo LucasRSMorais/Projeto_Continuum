@@ -6,6 +6,7 @@ import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 import { FaTrash } from 'react-icons/fa';
+import { buildApiUrl } from '../../config/api';
 
 function revogacao() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ function revogacao() {
   const [usuario, setUsuario] = useState(null);
   const [error, setError] = useState('');
    const [message, setMessage] = useState('');
+   const {user} = useAuth();
 
 
 const revogarConta = async(event)=>{
@@ -26,18 +28,18 @@ const revogarConta = async(event)=>{
 
 
 
-if (!email){
+{/*if (!email){
 
   setError("Informe o Email");
   return ;
 }
-
+*/}
 
 
 try{
 
 const response = await fetch(
-  'http://localhost:8000/api/revoga_conta.php',
+    buildApiUrl('revoga_conta.php'),
   {
     method : 'POST',
     credentials : 'include',
@@ -45,7 +47,7 @@ const response = await fetch(
         'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-            email : email
+             email: user?.email,
             
           
           }),
@@ -81,11 +83,9 @@ return(
 
       <C.Content>
         <C.Form onSubmit={revogarConta}>
-          <Input type="email" placeholder="Email" value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
+           <Input type="email" placeholder="Email" value={user?.email|| ""}
+          readOnly
+            
           />
          
           {error && (<C.labelError>{error}</C.labelError>)}
@@ -95,9 +95,6 @@ return(
         {message && <p>{message}</p>}
 
       
-        <Link to="/consultar">{' '}
-                <Button  type="submit"> Voltar para tela de consultar</Button>
-                 </Link> 
        
         
 

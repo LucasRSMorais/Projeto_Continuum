@@ -4,7 +4,7 @@ import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { buildApiUrl } from '../../config/api';
-
+import { FaEye , FaEyeSlash } from 'react-icons/fa';
 const formatCRM = (value) => value.replace(/\D/g, '').slice(0, 6);
 
 
@@ -18,8 +18,12 @@ function Register() {
   const [crmUf, setCrmUf] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmacaoSenha , setConfirmarSenha] = useState("");
+  const [exibirSenha , setExibir] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
+const senhaIgual = password === confirmacaoSenha;
 
   // Recebe o formulário de cadastro, valida as informações e envia para a API.
   // Também verifica se o e-mail é válido e se a senha atende ao mínimo necessário.
@@ -41,10 +45,18 @@ function Register() {
       return;
     }
 
+    if (password!== confirmacaoSenha){
+
+      setMessage('As senhas não coincidem');
+      return;
+    }
+
     if (normalizedPassword.length < 6) {
       setMessage('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
+
+    
 
     try {
       setLoading(true);
@@ -147,11 +159,32 @@ function Register() {
           />
 
           <Input
-            type="password"
+            type={exibirSenha ? "text" : "password"}
             placeholder="Senha"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+          <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
+          
+
+          <Input
+            type={exibirSenha ? "text" : "password"}
+            placeholder="Confirmação de senha"
+            value={confirmacaoSenha}
+            onChange={(event) => setConfirmarSenha(event.target.value)}
+          />
+
+        
+
+
 
           {message && <p>{message}</p>}
 

@@ -4,7 +4,7 @@ import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { buildApiUrl } from '../../config/api';
-
+ import { FaEye , FaEyeSlash } from 'react-icons/fa';
 
 const formatTelefone = (value) => {
 return value
@@ -13,6 +13,23 @@ return value
 .replace(/(\d)(\d{4})$/, '$1-$2');
 
 };
+
+function formatCPF(valor) {
+  valor = valor.replace(/\D/g, ''); // Remove caracteres não numéricos
+
+if (valor.length > 11) {
+    valor = valor.substring(0, 11); // Limita a 11 dígitos
+  }
+
+  valor = valor.replace(/(\d{3})(\d)/, '$1.$2'); // Adiciona o primeiro ponto
+  valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
+  valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2'); // Adiciona o traço
+  return valor;
+
+
+
+}
+
 
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
@@ -25,11 +42,14 @@ function Register_Pacientes() {
   const [dataNascimento, setDataNascimento] = useState('');
   const [sexo, setSexo] = useState('');
   const [etnia, setEtnia] = useState('');
+  const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
   const [alergias, setAlergias] = useState('');
-  const [endereco, setEndereco] = useState('');
+
   const [aceiteTermo, setAceiteTermo] = useState(false);
   const [erro, setErro] = useState("");
+  const [exibirSenha , setExibir] = useState(false);
+   const [confirmacaoSenha , setConfirmarSenha] = useState("");
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -40,8 +60,8 @@ function Register_Pacientes() {
 
     
     const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !endereco.trim() || !telefone || !dataNascimento){
-      setMessage('Preencha nome, e-mail, senha, sexo , endereço , telefone e data nascimento.');
+    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !telefone || !dataNascimento || !cpf){
+      setMessage('Preencha nome, e-mail, senha, cpf , sexo , endereço , telefone e data nascimento.');
       return;
     }
 
@@ -51,6 +71,11 @@ function Register_Pacientes() {
     }
     if (!sexo) {
       setErro('Selecione o sexo do paciente.');
+      return;
+    }
+     if (password!== confirmacaoSenha){
+
+      setMessage('As senhas não coincidem');
       return;
     }
 
@@ -78,12 +103,13 @@ function Register_Pacientes() {
             email: normalizedEmail,
              data_nascimento : dataNascimento ,
             senha: normalizedPassword,
+            cpf: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos do CPF
             sexo: sexo,
             etnia: etnia || null,
             telefone : telefone,
             aceite_termo: aceiteTermo ? 'sim' : 'nao',
             alergias: alergias || null,
-            endereco: endereco.trim(),
+           
             
            
           }),
@@ -136,12 +162,31 @@ function Register_Pacientes() {
             onChange={(event) => setEmail(event.target.value)}
           />
 
+          
           <Input
-            type="password"
+            type={exibirSenha ? "text" : "password"}
             placeholder="Senha"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
+          <button type='button' onClick={() => setExibir(!exibirSenha)}
+            
+           
+            >
+
+            
+
+            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
+          </button>
+          
+
+          <Input
+            type={exibirSenha ? "text" : "password"}
+            placeholder="Confirmação de senha"
+            value={confirmacaoSenha}
+            onChange={(event) => setConfirmarSenha(event.target.value)}
+          />
+
         
 
          <Input
@@ -159,17 +204,14 @@ function Register_Pacientes() {
           />
           
 
-
-
-
-
-
           <Input
             type="text"
-            placeholder="Endereço"
-            value={endereco}
-            onChange={(event) => setEndereco(event.target.value)}
+            placeholder="CPF"
+            value={cpf}
+            onChange={(event) => setCpf(formatCPF(event.target.value))}
+            maxLength={14}
           />
+
           <hr />
           <h3>Dados complementares</h3>
           <select 
@@ -179,16 +221,28 @@ function Register_Pacientes() {
             <option value="">Selecione o sexo</option>
             <option value="masculino">Masculino</option>
             <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-            <option value="nao_informado">Não informado</option>
+           
           </select>
 
-          <Input
-            type="text"
-            placeholder="Etnia"
+<select 
             value={etnia}
             onChange={(event) => setEtnia(event.target.value)}
-          />
+          >
+            <option value="">Selecione a etnia</option>
+            <option value="branca">Branca</option>
+            <option value="negra">Negra</option>
+            <option value="parda">Parda</option>
+            <option value="amarela">Amarela</option>
+            <option value="indigena">Indígena</option>
+            <option value="outra">Outra</option>
+            <option value="nao_informar">Prefiro não informar</option>
+          </select>
+           
+      
+
+
+
+        
 
           <Input
             type="text"
@@ -225,9 +279,10 @@ function Register_Pacientes() {
 
         </C.Form>
 
-        <Link to="/login_pacientes">{' '}
+       {/* <Link to="/login_pacientes">{' '}
                 <Button  type="submit"> Você ja tem conta ?</Button>
-                 </Link> 
+                 </Link>
+                 */} 
        
 
       </C.Content>
