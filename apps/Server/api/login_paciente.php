@@ -238,8 +238,8 @@ $resend = Resend::client($resendAPI);
 
 
 $resultado = $resend->emails->send([
+'from' => 'Continuum <seguranca@projcontinnum.com.br>',
 
-'from'=> 'Continuum <onboarding@resend.dev>',
 'to'=> [$email],
 "subject"=> 'Codigo de verificação',
 'html' => "

@@ -245,8 +245,8 @@ $resend = Resend::client($resendAPI);
 
 
 $resultado = $resend->emails->send([
+'from' => 'Continuum <seguranca@projcontinnum.com.br>',
 
-'from'=> 'Continuum <onboarding@resend.dev>',
 'to'=> [$email],
 "subject"=> 'Codigo de verificação',
 'html' => "
@@ -279,7 +279,7 @@ http_response_code(500);
 
 echo json_encode([
     "success"=>false,
-    "message"=> "Não foi possivel de enviar o codigo de verificação"
+    "message"=>  $emailError->getMessage()
 ]);
 
 
