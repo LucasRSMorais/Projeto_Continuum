@@ -30,7 +30,20 @@ function HomePaciente() {
 <Menu>
 
 <MenuLink href="/"> Inicio</MenuLink>
+
+
+
+<DIV>
 <MenuLink href="/"> Exame</MenuLink>
+
+<DivisaoLink href = "/alergias">
+Alergias
+
+</DivisaoLink>
+
+
+</DIV>
+
 
 <DIV>
 <MenuLink href="/"> Perfil</MenuLink>
@@ -50,6 +63,13 @@ Revogar consetimento
 Apagar  Conta  
 
 </DivisaoLink>
+
+<DivisaoLink href = "/endereco">
+Cadastrar Endereço 
+
+</DivisaoLink>
+
+
 
 
 </Divisao>
