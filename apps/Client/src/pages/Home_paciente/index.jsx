@@ -33,16 +33,6 @@ function HomePaciente() {
 
 
 
-<DIV>
-<MenuLink href="/"> Exame</MenuLink>
-
-<DivisaoLink href = "/alergias">
-Alergias
-
-</DivisaoLink>
-
-
-</DIV>
 
 
 <DIV>
