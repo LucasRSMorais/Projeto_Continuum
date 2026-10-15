@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:9.0
+    container_name: continuum_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: continuum_db
+      MYSQL_USER: continuum_user
+      MYSQL_PASSWORD: continuum_password
+    ports:
+      - "3306:3306"
+    volumes:
+      # Caminho relativo indicando a pasta database que está ao lado
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: 
+      context: ./Server
+      dockerfile: Dockerfile
+    container_name: continuum_backend
+    restart: always
+    ports:
+      - "8000:80" # O Apache roda na porta 80 dentro do contêiner. Acessaremos via localhost:8000
+    environment:
+      # Variáveis para o seu código PHP ler
+      - DB_HOST=db
+      - DB_USER=continuum_user
+      - DB_PASSWORD=continuum_password
+      - DB_NAME=continuum_db
+    depends_on:
+      - db
+
+volumes:
+  mysql_data:
