@@ -43,19 +43,7 @@ const RoutesApp = () => {
         <Route path="/consultar" element={<ConsultarConta />} />
         <Route path="/revogar" element={<Revogacao />} />
         <Route path="/endereco" element={<Endereco />} />
-       
-        
-
-         
-        
-        <Route
-          path="/home"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/home" element={<Home />}/>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
