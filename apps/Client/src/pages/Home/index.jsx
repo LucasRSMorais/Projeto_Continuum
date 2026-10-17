@@ -18,30 +18,13 @@ function Home() {
   // No clique do botão, o sistema desloga o usuário e manda para a tela de login.
 
   return (
-   
     <C.PageShell>
-
-        
       <Header/>
-  
       <C.PageLayout>
         <Sidebar />
         <C.Conteiner>
-
          <Main/>     
-            
-
-              {
-                /*
-             
-          <C.Title>Home</C.Title>
-        
-          <Button type="button" Text="Sair" onClick={() => { logout(); navigate('/'); }}>
-            Sair
-          </Button>
-
-           */}
-
+             {/*<C.Title>Home</C.Title><Button type="button" Text="Sair" onClick={() => { logout(); navigate('/'); }}>Sair</Button>*/}
         </C.Conteiner>
       </C.PageLayout>
       <Footer />

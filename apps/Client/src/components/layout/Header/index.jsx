@@ -90,9 +90,6 @@ function Header() {
                           <img src={logoutIcon} alt="" className="icon" /> 
                           <span>  <a href="/">Logout</a>   </span>
                         </MenuItem>
-
-
-
                       </ul>
                     </MenuSection>
                   </Dropdown>
