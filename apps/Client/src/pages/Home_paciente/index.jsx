@@ -1,15 +1,10 @@
 import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
-import {
-HeaderContainer,
-Logo ,
-MenuLink
-,
-Divisao ,
-DivisaoLink,
-DIV ,
-Menu 
-}from "./styles";
+
+
+import HeaderPaciente from '../../components/layout/HeaderPaciente';
+import SidebarPaciente from '../../components/layout/SidebarPaciente';
+
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
 import { Link } from 'react-router-dom';
@@ -22,63 +17,30 @@ function HomePaciente() {
   // No clique do botão, o sistema desloga o usuário e manda para a tela de login.
 
   return (
-<>
 
-<HeaderContainer>
-<Logo  src= "./public/logo_s_fundo.svg" alt = "logo do Continuum" />
+  <C.PageShell>
 
-<Menu>
+        
+      <HeaderPaciente/>
+  
+      <C.PageLayout>
+        <SidebarPaciente />
+        <C.Conteiner>
 
-<MenuLink href="/"> Inicio</MenuLink>
+              
+            
 
+          
 
-
-
-
-<DIV>
-<MenuLink href="/"> Perfil</MenuLink>
-<Divisao>
-
-<DivisaoLink href = "/consultar">
-Verificar os dados
-
-</DivisaoLink>
-
-
-<DivisaoLink href = "/revogar">
-Revogar consetimento 
-
-</DivisaoLink>
-<DivisaoLink href = "/deleta_conta">
-Apagar  Conta  
-
-</DivisaoLink>
-
-<DivisaoLink href = "/endereco">
-Cadastrar Endereço 
-
-</DivisaoLink>
+        </C.Conteiner>
+      </C.PageLayout>
+      
+    </C.PageShell>
 
 
 
 
-</Divisao>
-
-
-</DIV>
-</Menu>
-
-</HeaderContainer>
-
-
-    <C.Conteiner>
-      <C.Title>Home</C.Title>
-      <p>Seja bem-vindo  {user?.email || 'usuário'}! </p>
-      <Button type="button" Text="Sair" onClick={() => { logout(); navigate('/login_pacientes'); }}>
-        Sair
-      </Button>
-    </C.Conteiner>
-    </>
+    
   );
 }
 

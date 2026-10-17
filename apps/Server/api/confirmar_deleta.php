@@ -153,6 +153,8 @@ $stmt->execute([':email' => $usuario['email']]);
     ]);
 
 } catch (PDOException $e) {
+
+error_log("Erro de banco de dados: " . $e->getMessage());
     // Caso ocorra algum erro de banco de dados.
     http_response_code(500);
     echo json_encode([
