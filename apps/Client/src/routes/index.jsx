@@ -12,7 +12,7 @@ import DeletaConta from '../pages/deleta_conta';
 import ConsultarConta from '../pages/consultar';
 import Revogacao from '../pages/revogar';
 import Endereco from '../pages/endereco';
-
+import Configuracao from '../pages/configuracao';
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
 // Enquanto a sessão está sendo verificada, o usuário vê uma tela de carregamento.
 const PrivateRoute = ({ children }) => {
@@ -39,6 +39,7 @@ const RoutesApp = () => {
         <Route path="/register_pacientes" element={<Register_Pacientes />} />
         <Route path="/login_pacientes" element={<LoginPacientes />} />
         <Route path="/home_paciente" element={<HomePaciente />}/>
+        <Route path="/configuracao" element = {<Configuracao/>}/> 
         <Route path="/deleta_conta" element={<DeletaConta />} />
         <Route path="/consultar" element={<ConsultarConta />} />
         <Route path="/revogar" element={<Revogacao />} />

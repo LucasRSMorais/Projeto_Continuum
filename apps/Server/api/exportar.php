@@ -87,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-      $sql = "SELECT nome_completo , telefone ,email , endereco  , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
+      $sql = "SELECT nome_completo , telefone ,email , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -117,7 +117,7 @@ echo"Dados do TITULAR\n";
 echo "Nome: {$usuario['nome_completo']}\n";
 echo "Email: {$usuario['email']}\n";
 echo "Telefone: {$usuario['telefone']}\n";
-echo "Endereço: {$usuario['endereco']}\n";
+
 echo "Sexo: {$usuario['sexo']}\n";
 echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
 

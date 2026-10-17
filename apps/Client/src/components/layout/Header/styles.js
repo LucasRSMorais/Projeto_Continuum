@@ -108,6 +108,15 @@ export const MenuSection = styled.div`
     ul {
         padding: 8px 0;
     }
+
+
+  a {
+   
+    text-decoration: none;
+    color : black ;
+  }
+
+
 `
 
 export const MenuItem = styled.li`
