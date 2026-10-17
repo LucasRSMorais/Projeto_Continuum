@@ -192,7 +192,16 @@ function LoginPacientes() {
           <Button type="submit"> Login</Button>
         </C.Form>
 
-      
+                 <C.LabelFirstAcess>
+          Esqueceu a Senha?
+          <C.Strong>
+            <Link to="/recuperacao">{' '}Clique aqui</Link>
+            
+          </C.Strong>
+        </C.LabelFirstAcess>
+
+
+
         <C.LabelSignup>
           Criar uma conta
           <C.Strong>
