@@ -34,7 +34,7 @@ export const Nav = styled.nav`
         width: 35px;
         height: 35px;
         border: 2px solid #045959;
-        border-radius: 50%;
+        border-radius: 50%; 
     }
 
     > ul > li {
