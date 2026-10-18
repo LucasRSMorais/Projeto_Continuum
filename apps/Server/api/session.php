@@ -2,6 +2,15 @@
 
 // Página responsável por verificar se o usuário está autenticado.
 // Também controla a expiração da sessão após 30 minutos de inatividade.
+require_once __DIR__ . "/../config/database.php";
+
+
+
+
+
+
+
+
 
 session_set_cookie_params([
     'httponly' => true,
@@ -63,7 +72,8 @@ echo json_encode([
     "usuario" => [
         "id" => $_SESSION['usuario_id'],
         "nome" => $_SESSION['nome'],
-        "email" => $_SESSION['email']
+        "email" => $_SESSION['email'],
+       
         
         
     ]

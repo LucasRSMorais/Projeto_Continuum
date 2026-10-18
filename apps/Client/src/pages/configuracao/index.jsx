@@ -104,12 +104,16 @@ try {
 
   return (
     <C.Container>
-      <Title>Configuração</Title>
+      <Title>Configurações da Conta</Title>
       <C.Content>
         <C.Form onSubmit={deletarConta}>
           <label htmlFor="email">E-mail</label>
           <input id="email" type="email" value={user?.email || ''} readOnly />
 
+           <label htmlFor="email">Nome</label>
+          <input id="email" type="text" value={user?.nome || ''} readOnly />
+
+          
           <C.Section>
             <C.SectionTitle><FaShieldAlt /> Consentimento de LGPD</C.SectionTitle>
             <button type="button" onClick={revogarConsetimento} disabled={carregandoRevogacao}>
