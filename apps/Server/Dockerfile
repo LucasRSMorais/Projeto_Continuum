@@ -33,7 +33,7 @@ RUN a2enconf docker-security \
     && chmod +x /usr/local/bin/docker-entrypoint.sh \
     && chown -R www-data:www-data /var/www/html
 
-USER www-data
+
 EXPOSE 8080
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
