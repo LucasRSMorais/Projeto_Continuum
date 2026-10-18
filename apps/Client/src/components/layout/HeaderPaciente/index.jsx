@@ -5,6 +5,7 @@ import humanIcon from "../../../assets/icons/human.svg";
 import downloadIcon from "../../../assets/icons/download.svg";
 import handoffIcon from "../../../assets/icons/handoff.svg";
 import ColormodeIcon from "../../../assets/icons/color-mode.svg";
+import notificationIcon from '../../../assets/icons/notification.svg';
 import questionIcon from "../../../assets/icons/question.svg";
 import settingsIcon from "../../../assets/icons/setting.svg";
 import logoutIcon from "../../../assets/icons/logout.svg";
