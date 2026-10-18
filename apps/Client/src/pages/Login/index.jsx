@@ -174,20 +174,24 @@ function Login() {
               setError('');
             }}
           />
-          <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
-              setPassword(event.target.value);
-              setError('');
-            }}
-          />
-            <button type='button' onClick={() => setExibir(!exibirSenha)}
-            
-           
+          <C.PasswordRow>
+            <Input
+              type={exibirSenha ? "text" : "password"}
+              placeholder="Senha"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError('');
+              }}
+            />
+            <button
+              type="button"
+              aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              onClick={() => setExibir(!exibirSenha)}
             >
-
-            
-
-            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
-          </button>
+              {exibirSenha ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </C.PasswordRow>
           {error && (<C.labelError>{error}</C.labelError>)}
 
           <Button type="submit"> Login</Button>

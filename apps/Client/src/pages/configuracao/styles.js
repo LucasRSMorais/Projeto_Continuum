@@ -1,16 +1,19 @@
-import stlyed from 'styled-components';
+import styled from 'styled-components';
 
-export const Container = stlyed.main`
-min-height: 100vh;
+export const Container = styled.main`
+flex: 1;
+min-width: 0;
+min-height: calc(100vh - 70px);
 display: flex;
 padding: 20px 40px;
 background-color:  $gray ;
 flex-direction: column;
 align-items: center;
+justify-content: center;
 `;
 
 
-export const Title = stlyed.h1`
+export const Title = styled.h1`
 width: 100%;
 font-size: 2rem;
 max-width: 800px;
@@ -20,7 +23,7 @@ text-align: center;
 `;
 
 
-export const Content = stlyed.div`
+export const Content = styled.div`
 
 width: 100%;
 max-width: 800px;
@@ -34,7 +37,7 @@ padding: 20px;
 `;
 
 
-export const Form = stlyed.form`
+export const Form = styled.form`
 display: flex;
 flex-direction: column;
 gap: 20px;
@@ -61,6 +64,7 @@ input[readonly] {
 
 button {
   cursor: pointer;
+  
 }
 
 button:disabled {
@@ -71,7 +75,7 @@ cursor: not-allowed;
 
 `;
 
-export const Section = stlyed.div`
+export const Section = styled.div`
 
 padding: 20px;
 border: 1px solid #ccc;
@@ -116,7 +120,7 @@ button:hover:not(:disabled) {
 `;
 
 
-export const SectionTitle = stlyed.h2`
+export const SectionTitle = styled.h2`
 display: flex;
 align-items: center;
 gap: 10px;
@@ -130,7 +134,7 @@ svg {
 `;
 
 
-export const PasswordRow = stlyed.div`
+export const PasswordRow = styled.div`
 display: flex;
 align-items: center;
 gap: 10px;
@@ -144,21 +148,22 @@ input {
 
 button {
 display: flex;
+flex: 0 0 30px;
+width: 30px;
+height: 30px;
 align-items: center;
 justify-content: center;
-padding: 10px;
+padding: 0;
 border : 1px solid #ccc;
 border-radius: 4px;
 background-color: #f5f5f5;
 color: #333;
-font-size: 1rem;
-
-
+font-size: 0.8rem;
 }
 `;
 
 
-export const Success = stlyed.p`
+export const Success = styled.p`
 
 
 
@@ -172,14 +177,14 @@ font-weight: bold;
 
 
 
-export const Error = stlyed.p`
+export const Error = styled.p`
 color: red !important;
 font-size : 14px;
 font-weight: bold;
 `;
 
 
-export const Confirmacao = stlyed.div`
+export const Confirmacao = styled.div`
 
 margin-top: 20px;
 padding: 15px;
@@ -195,3 +200,11 @@ text-align: center;
 
 
 
+export const PageShell = styled.div`
+  display: block;
+`;
+
+export const PageLayout = styled.div`
+  display: flex;
+  min-height: calc(100vh - 70px);
+`;

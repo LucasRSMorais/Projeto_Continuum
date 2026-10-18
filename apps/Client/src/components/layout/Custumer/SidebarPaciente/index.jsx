@@ -13,6 +13,7 @@ function SidebarPaciente() {
           <li><a href="/home_paciente"> Aréa do Paciente </a></li>
           <li><a href = "">Inicio</a></li>
           <li><a href="">Exames</a></li>
+          <li><a href="/consetimentos">Consetimentos</a></li>
         </ul>
       </Menu>
     </Container>

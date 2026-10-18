@@ -100,7 +100,7 @@ window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponen
                         </MenuItem>
                         <MenuItem>
                           <img src={settingsIcon} alt="" className="icon" /> 
-                          <span><a href="/configuracao">Configuraçoes de perfil</a></span>
+                          <span><a href="/configuracao">Privacidade</a></span>
                         </MenuItem>
 
                         <MenuItem >

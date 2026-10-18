@@ -15,6 +15,7 @@ import Endereco from '../pages/endereco';
 import Configuracao from '../pages/configuracao';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
+import Consetimento from '../pages/consentimentos';
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
 // Enquanto a sessão está sendo verificada, o usuário vê uma tela de carregamento.
 const PrivateRoute = ({ children }) => {
@@ -46,6 +47,9 @@ const RoutesApp = () => {
         <Route path="/configuracao" element = {<Configuracao/>}/> 
         <Route path="/deleta_conta" element={<DeletaConta />} />
         <Route path="/consultar" element={<ConsultarConta />} />
+
+        <Route path='/consetimentos' element = {<Consetimento/>} />
+
         <Route path="/revogar" element={<Revogacao />} />
         <Route path="/endereco" element={<Endereco />} />
         <Route path="/home" element={<Home />}/>
