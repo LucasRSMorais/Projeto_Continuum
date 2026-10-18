@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+a2dismod -f mpm_prefork mpm_worker || true
+a2enmod mpm_event || true
 
 PORT="${PORT:-8080}"
 
