@@ -2,8 +2,8 @@ import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
 
 
-import HeaderPaciente from '../../components/layout/Custumer/HeaderPaciente';
-import SidebarPaciente from '../../components/layout/Custumer/SidebarPaciente';
+import HeaderPaciente from '../../components/layout/HeaderPaciente';
+import SidebarPaciente from '../../components/layout/SidebarPaciente';
 
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
