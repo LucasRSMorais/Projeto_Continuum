@@ -101,6 +101,7 @@ if ($stmt->rowCount() > 0){
         $pdo,
         null,
         "REVOGACAO_CONSENTIMENTO",
+        "pacientes",
         "Consentimento revogado para o e-mail " . $email . "."
     );
 

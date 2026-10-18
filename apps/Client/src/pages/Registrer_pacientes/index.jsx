@@ -38,7 +38,7 @@ function Register_Pacientes() {
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+
   const [dataNascimento, setDataNascimento] = useState('');
   const [sexo, setSexo] = useState('');
   const [etnia, setEtnia] = useState('');
@@ -48,10 +48,13 @@ function Register_Pacientes() {
 
   const [aceiteTermo, setAceiteTermo] = useState(false);
   const [erro, setErro] = useState("");
-  const [exibirSenha , setExibir] = useState(false);
+ 
    const [confirmacaoSenha , setConfirmarSenha] = useState("");
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+    const [requires2FA, setRequires2FA] = useState(false);
+  const [codigo, setCodigo] = useState('');
+  const [codigoTeste, setCodigoTeste] = useState('');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -59,9 +62,9 @@ function Register_Pacientes() {
     const normalizedEmail = email.trim().toLowerCase();
 
     
-    const normalizedPassword = password;
-    if (!nome.trim() || !normalizedEmail || !normalizedPassword || !sexo || !telefone || !dataNascimento || !cpf){
-      setMessage('Preencha nome, e-mail, senha, cpf , sexo , endereço , telefone e data nascimento.');
+   
+    if (!nome.trim() || !normalizedEmail ||   !sexo || !telefone || !dataNascimento || !cpf){
+      setMessage('Preencha nome, e-mail,  cpf , sexo ,  telefone e data nascimento.');
       return;
     }
 
@@ -73,16 +76,8 @@ function Register_Pacientes() {
       setErro('Selecione o sexo do paciente.');
       return;
     }
-     if (password!== confirmacaoSenha){
-
-      setMessage('As senhas não coincidem');
-      return;
-    }
-
-    if (normalizedPassword.length < 6) {
-      setMessage('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
+  
+   
 
     if (!aceiteTermo) {
       setMessage('Você deve aceitar a política de privacidade.');
@@ -102,13 +97,13 @@ function Register_Pacientes() {
             nome_completo: nome.trim(),
             email: normalizedEmail,
              data_nascimento : dataNascimento ,
-            senha: normalizedPassword,
+          
             cpf: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos do CPF
             sexo: sexo,
             etnia: etnia || null,
             telefone : telefone,
             aceite_termo: aceiteTermo ? 'sim' : 'nao',
-            alergias: alergias || null,
+          
            
             
            
@@ -132,13 +127,17 @@ function Register_Pacientes() {
     } catch (error) {
       console.error(error);
       setMessage(
-          'Não foi possível conectar ao servidor.'
+          error.message
       
       );
     } finally {
       setLoading(false);
     }
   };
+
+
+
+
 
   return (
     <C.Container>
@@ -162,31 +161,7 @@ function Register_Pacientes() {
             onChange={(event) => setEmail(event.target.value)}
           />
 
-          
-          <Input
-            type={exibirSenha ? "text" : "password"}
-            placeholder="Senha"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button type='button' onClick={() => setExibir(!exibirSenha)}
-            
-           
-            >
-
-            
-
-            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
-          </button>
-          
-
-          <Input
-            type={exibirSenha ? "text" : "password"}
-            placeholder="Confirmação de senha"
-            value={confirmacaoSenha}
-            onChange={(event) => setConfirmarSenha(event.target.value)}
-          />
-
+         
         
 
          <Input
@@ -242,14 +217,7 @@ function Register_Pacientes() {
 
 
 
-        
-
-          <Input
-            type="text"
-            placeholder="Alergias"
-            value={alergias}
-            onChange={(event) => setAlergias(event.target.value)}
-          />
+  
           <hr />
             <h3>Política de Privacidade</h3>
             <a href="/politica_privacidade.pdf" target="_blank" rel="noopener noreferrer">
@@ -279,10 +247,10 @@ function Register_Pacientes() {
 
         </C.Form>
 
-       {/* <Link to="/login_pacientes">{' '}
+        <Link to="/login_pacientes">{' '}
                 <Button  type="submit"> Você ja tem conta ?</Button>
                  </Link>
-                 */} 
+                 
        
 
       </C.Content>

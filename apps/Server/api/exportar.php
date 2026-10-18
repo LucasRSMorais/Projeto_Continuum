@@ -20,7 +20,7 @@ if (!isset($_SESSION['bloqueio_login'])) {
 
 $_SESSION['ultima_atividade'] = time();
 
-header("Content-Type: application/json; charset=UTF-8");
+
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
 
@@ -75,7 +75,7 @@ try {
 
     // Valida se email e senha não vieram vazios.
     if ($email === "" ) {
-        
+        header("Content-Type: application/json; charset=UTF-8");
 
         http_response_code(400);
         echo json_encode([
@@ -96,7 +96,7 @@ try {
 
     // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
-          
+          header("Content-Type: application/json; charset=UTF-8");
         http_response_code(401);
         echo json_encode([
             "success" => false,

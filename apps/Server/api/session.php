@@ -65,6 +65,53 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+
+
+
+$stmt = $pdo -> prepare(
+"SELECT cpf , telefone  , aceite_termo_uso FROM pacientes WHERE id = :id"
+
+);
+
+
+$stmt->execute(
+
+
+[
+
+
+':id' => $_SESSION ['usuario_id']
+
+]
+
+);
+
+
+$paciente = $stmt -> fetch(PDO::FETCH_ASSOC);
+
+
+
+
+$stmtConsetimento = $pdo->prepare(
+
+
+"SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1
+"
+);
+
+
+
+$stmtConsetimento-> execute([
+
+':id' => $_SESSION ['usuario_id']
+
+
+]);
+
+$data_cadastro = $stmtConsetimento-> fetchColumn();
+
+
+
 // Se estiver autenticado, retorna os dados públicos do usuário.
 echo json_encode([
     "success" => true,
@@ -73,7 +120,10 @@ echo json_encode([
         "id" => $_SESSION['usuario_id'],
         "nome" => $_SESSION['nome'],
         "email" => $_SESSION['email'],
-       
+        "cpf" => $paciente ['cpf'] ?? null,
+        "telefone" => $paciente ['telefone']?? null ,
+          "data" => $data_cadastro ?: null ,
+          "aceite_termo_uso" => $paciente ['aceite_termo_uso'] ?? null
         
         
     ]

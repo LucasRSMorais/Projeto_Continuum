@@ -1,5 +1,6 @@
 import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem } from './styles';
 
+<<<<<<< HEAD:apps/Client/src/components/layout/Custumer/HeaderPaciente/index.jsx
 import { useAuth } from '../../../../services/utils/auth';
 import humanIcon from '../../../../assets/icons/human.svg';
 import downloadIcon from '../../../../assets/icons/download.svg';
@@ -10,6 +11,22 @@ import logoutIcon from '../../../../assets/icons/logout.svg';
 import { useOutsideClick } from '../../../../hooks/useOutsideClick';
 import handIcon from '../../../../assets/icons/hand.svg';
 import { buildApiUrl } from '../../../../config/api';
+=======
+import { useAuth } from "../../../services/utils/auth";
+import humanIcon from "../../../assets/icons/human.svg";
+import downloadIcon from "../../../assets/icons/download.svg";
+import handoffIcon from "../../../assets/icons/handoff.svg";
+import ColormodeIcon from "../../../assets/icons/color-mode.svg";
+import notificationIcon from '../../../assets/icons/notification.svg';
+import questionIcon from "../../../assets/icons/question.svg";
+import settingsIcon from "../../../assets/icons/setting.svg";
+import logoutIcon from "../../../assets/icons/logout.svg";
+import { useOutsideClick } from "../../../hooks/useOutsideClick";
+import handIcon from "../../../assets/icons/hand.svg";
+
+import { buildApiUrl } from "../../../config/api";
+
+>>>>>>> ce31b84a94ea9e3cf1ea9558c92b9d96184d82bc:apps/Client/src/components/layout/HeaderPaciente/index.jsx
 function HeaderPaciente() {
   const { isOpen, setIsOpen, ref } = useOutsideClick(false);
   const  {user} = useAuth();
@@ -86,7 +103,11 @@ window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponen
                         </MenuItem>
                         <MenuItem>
                           <img src={settingsIcon} alt="" className="icon" /> 
+<<<<<<< HEAD:apps/Client/src/components/layout/Custumer/HeaderPaciente/index.jsx
                           <span><a href="/configuracao">Preferências</a></span>
+=======
+                          <span><a href="/configuracao">Privacidade</a></span>
+>>>>>>> ce31b84a94ea9e3cf1ea9558c92b9d96184d82bc:apps/Client/src/components/layout/HeaderPaciente/index.jsx
                         </MenuItem>
 
                         <MenuItem >
