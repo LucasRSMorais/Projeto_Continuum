@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: continuum_db
+      MYSQL_DATABASE: railway
       MYSQL_USER: continuum_user
       MYSQL_PASSWORD: continuum_password
     ports:
@@ -24,13 +24,14 @@ services:
     container_name: continuum_backend
     restart: always
     ports:
-      - "8000:80" # O Apache roda na porta 80 dentro do contêiner. Acessaremos via localhost:8000
+      - "127.0.0.1:8000:80" # API de desenvolvimento acessível somente neste computador
     environment:
       # Variáveis para o seu código PHP ler
       - DB_HOST=db
       - DB_USER=continuum_user
       - DB_PASSWORD=continuum_password
-      - DB_NAME=continuum_db
+      - DB_NAME=railway
+      - DASHBOARD_AUTH_DISABLED=true
     depends_on:
       - db
 

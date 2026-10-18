@@ -2,7 +2,7 @@ import { FaClipboardList } from 'react-icons/fa';
 import { CardContainer, CardHeader, List, ListItem, ItemHeader, ItemSubtext} from './styles';
 
 
-const WaitingLine_Card = ({ patients = [] }) => {
+const WaitingLine_Card = ({ patients = [], loading = false, error = null }) => {
   return (
     <CardContainer>
       <CardHeader>
@@ -10,7 +10,11 @@ const WaitingLine_Card = ({ patients = [] }) => {
         <h2>Fila de Aguardando (Admissões)</h2>
       </CardHeader>
       <List>
-        {patients.length > 0 ? (
+        {loading ? (
+          <ItemSubtext>Carregando fila...</ItemSubtext>
+        ) : error ? (
+          <ItemSubtext role="alert">Não foi possível carregar a fila.</ItemSubtext>
+        ) : patients.length > 0 ? (
           // Se houver pacientes, iteramos sobre o array usando o .map()
           patients.map((patient, index) => (
             // O React exige uma 'key' única para cada elemento de uma lista. 
@@ -20,12 +24,11 @@ const WaitingLine_Card = ({ patients = [] }) => {
                 {/* Numeração do paciente na fila (1., 2., 3...) */}
                 <span>{index + 1}.</span>
                 <span>
-                  {patient.paciente_nome} 
-                  {patient.setor_nome && ` - ${patient.setor_nome}`}
+                  {patient.paciente_nome}
                 </span>
               </ItemHeader>
               <ItemSubtext>
-                Gravidade: {patient.gravidade} | Origem: {patient.origem}
+                Gravidade: {patient.gravidade} | Origem: {patient.origem} | Espera: {patient.tempo_espera_minutos} min
               </ItemSubtext>
               
             </ListItem>
@@ -34,7 +37,7 @@ const WaitingLine_Card = ({ patients = [] }) => {
           // Fallback Visual: Caso a lista (patients) esteja vazia, exibe esta mensagem.
           // É uma boa prática de UX para mostrar ao médico que o sistema carregou, mas a fila realmente está vazia.
           <ItemSubtext style={{ marginTop: '1rem', textAlign: 'center' }}>
-            Não há utentes a aguardar admissão neste setor.
+            Não há pacientes aguardando admissão neste setor.
           </ItemSubtext>
         )}
       </List>

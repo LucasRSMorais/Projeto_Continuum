@@ -61,7 +61,7 @@ if ($isProduction) {
     $port = getenv('DB_PORT');
     $db   = getenv('DB_NAME');
     $user = getenv('DB_USER');
-    $pass = getenv('DB_PASS');
+    $pass = getenv('DB_PASS') ?: getenv('DB_PASSWORD');
     $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 
     if (!$host || !$port || !$db || !$user || !$pass) {
@@ -76,9 +76,9 @@ if ($isProduction) {
     // Ambiente local: usa valores seguros para desenvolvimento local.
     $host = getenv('DB_HOST') ?: 'localhost';
     $port = getenv('DB_PORT') ?: '3306';
-    $db   = getenv('DB_NAME') ?: 'continuum';
+    $db   = getenv('DB_NAME') ?: 'railway';
     $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASS') ?: '';
+    $pass = getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '';
     $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 }
 
