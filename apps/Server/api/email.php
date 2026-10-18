@@ -212,8 +212,7 @@ echo json_encode([
 
 "success" => true,
 "requires_2fa" => true ,
-"message" => "Código de verificação enviado para seu e-mail.",
-"codigo_teste" => $codigo
+"message" => "Código de verificação enviado para seu e-mail."
 
 
 ]);
@@ -224,6 +223,7 @@ exit;
 
 }catch (PDOException $e){
 
+error_log('Password recovery database error: ' . $e->getMessage());
 
 http_response_code(500);
 
@@ -231,7 +231,7 @@ echo json_encode([
 
 
 "success" => false,
-"message" => $e->getMessage()
+"message" => "Não foi possível iniciar a recuperação da senha."
 
 ]);
 exit;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -11,7 +11,6 @@ const formatCRM = (value) => value.replace(/\D/g, '').slice(0, 6);
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
 function Register() {
-  const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
   const [crm, setCrm] = useState('');
@@ -86,8 +85,7 @@ const senhaIgual = password === confirmacaoSenha;
         return;
       }
 
-      setMessage('Cadastro realizado com sucesso!');
-      navigate('/', { replace: true });
+      setMessage(data.message || 'Cadastro concluído. Sua conta está ativa.');
 
     } catch (error) {
       console.error(error);

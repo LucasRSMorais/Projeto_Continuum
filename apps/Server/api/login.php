@@ -178,6 +178,15 @@ try {
             exit;
         }
 
+        if (($usuario['status'] ?? null) !== 'ativo') {
+            http_response_code(403);
+            echo json_encode([
+                "success" => false,
+                "message" => "Sua conta ainda não foi aprovada."
+            ]);
+            exit;
+        }
+
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -291,7 +300,7 @@ http_response_code(500);
 // Informa ao frontend que a senha foi aceita, mas que ainda falta concluir o 2FA.
 echo json_encode([
     "success"=>false,
-    "message"=>  $emailError->getMessage()
+    "message"=> "Não foi possível enviar o código de verificação."
 ]);
 
 
@@ -303,8 +312,7 @@ echo json_encode([
 
 "success" => true,
 "requires_2fa" => true ,
-"message" => "Código de verificação enviado para seu e-mail.",
-"codigo_teste" => $codigo
+"message" => "Código de verificação enviado para seu e-mail."
 
 
 ]);
@@ -315,6 +323,7 @@ exit;
 
 }catch (PDOException $e){
 
+error_log('Doctor login database error: ' . $e->getMessage());
 
 http_response_code(500);
 
@@ -322,7 +331,7 @@ echo json_encode([
 
 
 "success" => false,
-"message" => $e->getMessage()
+"message" => "Não foi possível concluir o login."
 
 ]);
 exit;

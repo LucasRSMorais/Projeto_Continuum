@@ -284,8 +284,7 @@ echo json_encode([
 
 "success" => true,
 "requires_2fa" => true ,
-"message" => "Código de verificação enviado para seu e-mail.",
-"codigo_teste" => $codigo
+"message" => "Código de verificação enviado para seu e-mail."
 
 
 ]);
@@ -296,6 +295,7 @@ exit;
 
 }catch (PDOException $e){
 
+error_log('Patient login database error: ' . $e->getMessage());
 
 http_response_code(500);
 
@@ -303,7 +303,7 @@ echo json_encode([
 
 
 "success" => false,
-"message" => $e->getMessage()
+"message" => "Não foi possível concluir o login."
 
 ]);
 exit;

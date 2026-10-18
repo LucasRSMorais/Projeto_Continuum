@@ -1,39 +1,59 @@
-version: '3.8'
-
 services:
+  # Local development only: passwords come from the ignored apps/.env file.
+  # Do not commit real credentials or reuse these credentials in hosted environments.
   db:
     image: mysql:9.0
-    container_name: continuum_mysql
     restart: always
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Configure DB_ROOT_PASSWORD in apps/.env}
       MYSQL_DATABASE: railway
-      MYSQL_USER: continuum_user
-      MYSQL_PASSWORD: continuum_password
+      MYSQL_USER: ${DB_APP_USER:?Configure DB_APP_USER in apps/.env}
+      MYSQL_PASSWORD: ${DB_APP_PASSWORD:?Configure DB_APP_PASSWORD in apps/.env}
     ports:
-      - "3306:3306"
+      # Keep the host-side database port local. Do not expose this port publicly.
+      - "127.0.0.1:${DB_PUBLISHED_PORT:-3306}:3306"
     volumes:
-      # Caminho relativo indicando a pasta database que está ao lado
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+      - /var/run/mysqld:rw,noexec,nosuid,size=16m,mode=1777
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   backend:
     build: 
       context: ./Server
       dockerfile: Dockerfile
-    container_name: continuum_backend
     restart: always
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
     ports:
-      - "127.0.0.1:8000:80" # API de desenvolvimento acessível somente neste computador
+      # Development API only; bind to loopback instead of exposing it to the network.
+      - "127.0.0.1:${API_PUBLISHED_PORT:-8000}:8080"
     environment:
-      # Variáveis para o seu código PHP ler
-      - DB_HOST=db
-      - DB_USER=continuum_user
-      - DB_PASSWORD=continuum_password
-      - DB_NAME=railway
-      - DASHBOARD_AUTH_DISABLED=true
+      APP_ENV: ${APP_ENV:-development}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_USER: ${DB_USER:-${DB_APP_USER:?Configure DB_APP_USER in apps/.env}}
+      DB_PASSWORD: ${DB_PASSWORD:-${DB_APP_PASSWORD:?Configure DB_APP_PASSWORD in apps/.env}}
+      DB_NAME: ${DB_NAME:-railway}
+      DB_CHARSET: ${DB_CHARSET:-utf8mb4}
+      DB_SSL_CA: ${DB_SSL_CA:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   mysql_data:

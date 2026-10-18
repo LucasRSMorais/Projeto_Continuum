@@ -25,7 +25,6 @@ function Login() {
   // e guarda o valor do código informado.
   const [requires2FA, setRequires2FA] = useState(false);
   const [codigo, setCodigo] = useState('');
-  const [codigoTeste, setCodigoTeste] = useState('');
 
   // Envia os dados de login para o backend.
   // Se a resposta indicar que o 2FA é obrigatório, a tela muda para a etapa de validação.
@@ -64,7 +63,6 @@ function Login() {
 
       // Login correto, mas ainda precisa do 2FA
       if (data.requires_2fa) {
-        setCodigoTeste(data.codigo_teste);
         setRequires2FA(true);
         return;
       }
@@ -130,10 +128,6 @@ function Login() {
             <p>
               Digite o código de verificação enviado.
             </p>
-            {/* TEMPORÁRIO: apenas para testes */}
-            <p>
-              Código de teste: <strong>{}</strong>
-            </p>
             <Input
               type="text"
               placeholder="Código de 6 dígitos"
@@ -152,7 +146,6 @@ function Login() {
           <p><button type="button" onClick={() => {
                 setRequires2FA(false);
                 setCodigo('');
-                setCodigoTeste('');
                 setError('');
               }}>Voltar
             </button></p>

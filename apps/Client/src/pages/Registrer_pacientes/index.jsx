@@ -52,10 +52,6 @@ function Register_Pacientes() {
    const [confirmacaoSenha , setConfirmarSenha] = useState("");
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
-    const [requires2FA, setRequires2FA] = useState(false);
-  const [codigo, setCodigo] = useState('');
-  const [codigoTeste, setCodigoTeste] = useState('');
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage('');
@@ -118,7 +114,7 @@ function Register_Pacientes() {
         return;
       }
 
-      setMessage('Cadastro realizado com sucesso!');
+      setMessage(data.message || 'Cadastro realizado com sucesso!');
 
       setTimeout(() => {
         navigate('/login_pacientes');

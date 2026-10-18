@@ -25,13 +25,7 @@ session_set_cookie_params([
 ]);
 session_start();
 
-$isProduction = getenv('RAILWAY_ENVIRONMENT') !== false
-    || getenv('RAILWAY_PUBLIC_DOMAIN') !== false
-    || getenv('PORT') !== false;
-$localDashboardAuthDisabled = !$isProduction
-    && getenv('DASHBOARD_AUTH_DISABLED') === 'true';
-
-if (!$localDashboardAuthDisabled && !isset($_SESSION['usuario_id'])) {
+if (!isset($_SESSION['usuario_id'])) {
     http_response_code(401);
     echo json_encode([
         'success' => false,
@@ -40,7 +34,7 @@ if (!$localDashboardAuthDisabled && !isset($_SESSION['usuario_id'])) {
     exit;
 }
 
-if (!$localDashboardAuthDisabled && !isset($_SESSION['perfil'])) {
+if (!isset($_SESSION['perfil'])) {
     http_response_code(403);
     echo json_encode([
         'success' => false,

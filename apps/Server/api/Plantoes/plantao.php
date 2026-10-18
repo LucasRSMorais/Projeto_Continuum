@@ -168,15 +168,11 @@ session_set_cookie_params([
 ]);
 session_start();
 
-$isProduction = getenv('RAILWAY_ENVIRONMENT') !== false
-    || getenv('RAILWAY_PUBLIC_DOMAIN') !== false
-    || getenv('PORT') !== false;
-$localDashboardAuthDisabled = !$isProduction && getenv('DASHBOARD_AUTH_DISABLED') === 'true';
 $actorId = isset($_SESSION['usuario_id']) ? filter_var($_SESSION['usuario_id'], FILTER_VALIDATE_INT) : null;
 $authenticated = $actorId !== false && $actorId !== null && $actorId > 0
     && !empty($_SESSION['perfil']);
 
-if (!$authenticated && !($method === 'GET' && $localDashboardAuthDisabled)) {
+if (!$authenticated) {
     plantaoRespond(401, ['success' => false, 'message' => 'Entre com uma sessão válida para consultar ou alterar o plantão.']);
 }
 if ($method === 'POST' && $origin === '') {

@@ -17,6 +17,15 @@ require_once __DIR__ . "/../config/database.php";
 try {
     // Lê os dados enviados em JSON pelo frontend.
     $dados = json_decode(file_get_contents("php://input"), true);
+    if (!is_array($dados)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Corpo da requisição inválido."
+        ]);
+        exit;
+    }
+
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $cpf = trim($dados["cpf"] ?? "");
@@ -72,6 +81,7 @@ exit;
 
 try {
 $resend = Resend::client($resendAPI);
+$senhaHtml = htmlspecialchars($senha, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 $resultado = $resend->emails->send([
 'from' => 'Continuum <seguranca@projcontinnum.com.br>',
 
@@ -83,7 +93,7 @@ $resultado = $resend->emails->send([
 
 <h2> Verificação de segurança  </h2>
 
-<h2>  Senha :   ($senha )  </h2>
+<h2>  Senha :   ($senhaHtml )  </h2>
 "
 ]);
 
@@ -101,7 +111,7 @@ http_response_code(500);
 
 echo json_encode([
     "success"=>false,
-    "message"=>  $emailError->getMessage()
+    "message"=> "Não foi possível enviar o e-mail de cadastro."
 ]);
 
 
@@ -192,10 +202,11 @@ exit ;
 
 } catch (PDOException $e) {
     // Erro relacionado ao banco.
+    error_log('Patient registration database error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao realizar cadastro no banco de dados: " . $e->getMessage()
+        "message" => "Erro ao realizar cadastro no banco de dados."
     ]);
 
 } catch (Exception $e) {

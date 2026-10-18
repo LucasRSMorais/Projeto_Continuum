@@ -111,9 +111,10 @@ Antes de iniciar a aplicação, é necessário configurar as credenciais do ambi
 
 > **Segurança:** As configurações de conexão com o banco de dados não devem conter senhas ou outras informações sensíveis diretamente no código.
 
-1. Acesse a pasta `Server` e duplique o arquivo `.env.example`.
-2. Renomeie a cópia para `.env`.
-3. Preencha o arquivo `.env` com as suas credenciais. Se for utilizar o Docker (passo 6.3), pode manter os valores padrão. Este arquivo é ignorado pelo `.gitignore` para garantir a segurança dos dados.
+1. Para executar o PHP diretamente no computador, copie `apps/Server/.env.example` para `apps/Server/.env` e informe as credenciais locais do banco.
+2. Para Docker Compose, copie `apps/.env.example` para `apps/.env` e defina senhas aleatórias e exclusivas em `DB_ROOT_PASSWORD` e `DB_APP_PASSWORD`. O Compose usa o usuário de aplicação `DB_APP_USER` (não root).
+3. Os arquivos `.env` são ignorados pelo Git. Nunca coloque credenciais reais nos arquivos de exemplo, no código-fonte ou em commits. Variáveis de ambiente de contêineres podem ser vistas por usuários com acesso ao Docker; em produção, prefira o gerenciador de segredos da hospedagem.
+4. Atualmente, cadastros de profissionais são criados com a conta ativa, sem aprovação manual. A equipe ainda deve validar o registro profissional; até existir um fluxo administrativo de aprovação, considere essa limitação antes de disponibilizar o cadastro publicamente. O login também depende da configuração do serviço de e-mail usado pela verificação em duas etapas.
 
 ---
 
@@ -138,13 +139,17 @@ Para garantir que o projeto seja executado com as mesmas configurações em qual
 #### Comandos de Execução
 Todos os comandos do Docker devem ser executados no terminal, dentro da pasta raiz da aplicação onde se encontra o arquivo `docker-compose.yml` (pasta `apps`).
 
+Antes de iniciar, crie `apps/.env` a partir do exemplo e configure as duas senhas. O Compose falha de forma explícita se elas não forem definidas. Não use senhas de exemplo em produção. Para priorizar um banco hospedado também no backend Docker, preencha `DB_HOST`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` nesse arquivo; valores não vazios são usados antes do serviço local `db`. Deixe `DB_HOST` vazio para usar o MySQL local do Compose.
+
+Se já existir um volume MySQL, alterar as variáveis do `.env` não troca as senhas gravadas no banco: faça backup e atualize as credenciais no próprio MySQL com uma conta administrativa antes de recriar os serviços. Não use `docker compose down -v`, pois essa opção apaga o volume e os dados.
+
 #### Iniciar o ambiente (Backend e Base de Dados):
 
-Inicia os contêineres em segundo plano. Na primeira execução, o Docker irá baixar as imagens e executar o arquivo `init.sql` para criar e popular o banco de dados `continuum_db`.
+Inicia os contêineres em segundo plano. Na primeira execução, o Docker irá baixar as imagens e executar `database/init.sql` para criar e popular o banco `railway`. O backend acessa o banco pela rede interna Docker no host `db`; o cliente MySQL no próprio computador pode usar `localhost:3306`. A porta do MySQL está vinculada somente a `127.0.0.1` e não deve ser publicada em uma interface de rede pública.
 ```bash
 docker compose up -d
 ```
-Após a execução, a API estará disponível em `http://localhost:8000`.
+Após a execução, a API estará disponível em `http://localhost:8000`. O dashboard exige autenticação também no ambiente local; não existe opção de desativar a autenticação no Compose. As portas publicadas são somente locais e podem ser alteradas por `API_PUBLISHED_PORT` e `DB_PUBLISHED_PORT` no `.env`.
 
 #### Parar o ambiente temporariamente:
 Para os serviços sem destruir os contêineres ou a rede interna.
@@ -171,6 +176,8 @@ Caso não deseje utilizar o Docker, é necessário possuir um servidor PHP e um 
 - MySQL Server diretamente
 
 Neste cenário, você deverá importar os scripts de criação do banco manualmente no seu SGBD e ajustar as credenciais no arquivo `.env` (ex: alterando `DB_HOST` para `localhost`). Além disso, o servidor PHP precisará ser iniciado conforme a ferramenta escolhida.
+
+Use `apps/Server/.env.example` como modelo e configure `DB_HOST=localhost`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` para esse ambiente. Na hospedagem, configure as mesmas variáveis no gerenciador seguro da plataforma e defina `APP_ENV=production`; `DB_PORT` é opcional e assume `3306`. Em produção, a aplicação exige as credenciais hospedadas e não cai para `localhost` ou para o banco Docker. Configure também `CLIENT_URL` com a origem exata do frontend para permitir CORS com credenciais. O arquivo `apps/Server/.env` não é usado pelo backend no Docker Compose: nele os valores `DB_*` definidos em `apps/.env` têm prioridade sobre o host interno `db`; se não forem preenchidos, o backend usa o banco local do Compose.
 
 ---
 

@@ -52,42 +52,50 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
 loadDotenvFromProjectRoot();
 
-$isProduction = getenv('RAILWAY_ENVIRONMENT') !== false || getenv('RAILWAY_PUBLIC_DOMAIN') !== false || getenv('PORT') !== false;
+$isProduction = strtolower((string) getenv('APP_ENV')) === 'production'
+    || getenv('RAILWAY_ENVIRONMENT') !== false
+    || getenv('RAILWAY_PUBLIC_DOMAIN') !== false
+    || getenv('PORT') !== false;
+$host = getenv('DB_HOST') ?: 'localhost';
+$port = getenv('DB_PORT') ?: '3306';
+$db = getenv('DB_NAME') ?: 'railway';
+$user = getenv('DB_USER') ?: 'root';
+$pass = getenv('DB_PASS');
+if ($pass === false || $pass === '') {
+    $pass = getenv('DB_PASSWORD');
+}
+$charset = getenv('DB_CHARSET') ?: 'utf8mb4';
 
 // Em produção, nunca usamos localhost. Se as variáveis do banco não forem configuradas,
 // a aplicação deve falhar de forma explícita para evitar erros silenciosos em runtime.
 if ($isProduction) {
-    $host = getenv('DB_HOST');
-    $port = getenv('DB_PORT');
-    $db   = getenv('DB_NAME');
-    $user = getenv('DB_USER');
-    $pass = getenv('DB_PASS') ?: getenv('DB_PASSWORD');
-    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
-
-    if (!$host || !$port || !$db || !$user || !$pass) {
+    if (!getenv('DB_HOST') || !$db || !$user || $pass === false || $pass === '') {
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "Configuração do banco ausente em produção. Defina DB_HOST, DB_PORT, DB_NAME, DB_USER e DB_PASS no Railway."
+            "message" => "Configuração do banco ausente em produção. Defina DB_HOST, DB_NAME, DB_USER e DB_PASS (ou DB_PASSWORD)."
         ]);
         exit;
     }
-} else {
-    // Ambiente local: usa valores seguros para desenvolvimento local.
-    $host = getenv('DB_HOST') ?: 'localhost';
-    $port = getenv('DB_PORT') ?: '3306';
-    $db   = getenv('DB_NAME') ?: 'railway';
-    $user = getenv('DB_USER') ?: 'root';
-    $pass = getenv('DB_PASSWORD') ?: getenv('DB_PASS') ?: '';
-    $charset = getenv('DB_CHARSET') ?: 'utf8mb4';
+}
+
+if ($pass === false) {
+    $pass = '';
 }
 
 $caCert = null;
 if (getenv('DB_SSL_CA')) {
     $candidate = getenv('DB_SSL_CA');
-    if (file_exists($candidate)) {
-        $caCert = $candidate;
+    if (!is_file($candidate) || !is_readable($candidate)) {
+        error_log('The configured DB_SSL_CA file is missing or unreadable.');
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "O certificado TLS do banco de dados não está disponível."
+        ]);
+        exit;
     }
+    $caCert = $candidate;
 }
 
 // DSN do PDO: define o driver, host, porta, banco e charset.
@@ -110,6 +118,7 @@ try {
 
 } catch (PDOException $e) {
     // Se a conexão falhar, a API retorna erro 500 em JSON.
+    error_log('Database connection failed: ' . $e->getMessage());
     http_response_code(500);
 
     echo json_encode([

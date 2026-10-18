@@ -84,22 +84,17 @@ function applyCorsHeaders(): void
         }
     }
 
-    if ($originToUse === null && $origin !== '') {
-        $originToUse = $origin;
+    if ($origin !== '' && $originToUse === null) {
+        http_response_code(403);
+        exit;
     }
 
-    if ($originToUse === null && $clientUrl) {
-        $originToUse = rtrim($clientUrl, '/');
+    if ($originToUse !== null) {
+        header('Access-Control-Allow-Origin: ' . $originToUse);
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
     }
 
-    if ($originToUse === null) {
-        $originToUse = 'http://localhost:5173';
-    }
-
-    // Cabeçalhos essenciais para permitir HTTP requests com cookies e autenticação.
-    header('Access-Control-Allow-Origin: ' . $originToUse);
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
     header('Vary: Origin');
 }

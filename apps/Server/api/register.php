@@ -20,7 +20,6 @@ try {
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
     $senha = $dados["senha"] ?? "";
-    $cargo = trim($dados["cargo"] ?? "medico");
     $crm   = preg_replace('/\D/', '', $dados["crm"] ?? "");
     $crmUf = strtoupper(trim($dados["crm_uf"] ?? ""));
 
@@ -122,7 +121,7 @@ try {
         INSERT INTO medicos
         (nome_completo, email, senha_hash, crm_numero, crm_uf, cargo, status)
         VALUES
-        (:nome_completo, :email, :senha_hash, :crm_numero, :crm_uf, :cargo, :status)
+        (:nome_completo, :email, :senha_hash, :crm_numero, :crm_uf, 'medico', 'ativo')
     ";
 
     $consulta = $pdo->prepare($sql);
@@ -132,8 +131,6 @@ try {
         "senha_hash" => $senhaHash,
         "crm_numero" => $crm,
         "crm_uf" => $crmUf,
-        "cargo" => $cargo,
-        "status" => true
     ]);
 
     $usuarioId = $pdo->lastInsertId();
@@ -145,7 +142,7 @@ try {
         $pdo,
         $usuarioId ?: null,
         "CADASTRO_SUCESSO",
-        "O médico " . $nome . " foi cadastrado com sucesso.",
+        "Cadastro do médico " . $nome . " concluído com conta ativa.",
         'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
       
@@ -155,7 +152,7 @@ try {
     http_response_code(201);
     echo json_encode([
         "success" => true,
-        "message" => "Médico cadastrado com sucesso."
+        "message" => "Cadastro concluído. Sua conta está ativa."
     ]);
 
 } catch (PDOException $e) {
@@ -177,7 +174,7 @@ try {
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" =>  $e->getMessage()
+        "message" => "Não foi possível concluir o cadastro."
     ]);
 
 } catch (Exception $e) {
