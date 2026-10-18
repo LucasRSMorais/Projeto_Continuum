@@ -1,18 +1,17 @@
 import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem, Badge } from './styles';
 
-import { useAuth } from '../../../services/utils/auth';
-import humanIcon from '../../../assets/icons/human.svg';
-import downloadIcon from '../../../assets/icons/download.svg';
-import handoffIcon from '../../../assets/icons/handoff.svg';
-import ColormodeIcon from '../../../assets/icons/color-mode.svg';
-import notificationIcon from '../../../assets/icons/notification.svg';
-import questionIcon from '../../../assets/icons/question.svg';
-import settingsIcon from '../../../assets/icons/setting.svg';
-import logoutIcon from '../../../assets/icons/logout.svg';
-import { useOutsideClick } from '../../../hooks/useOutsideClick';
-import handIcon from '../../../assets/icons/hand.svg';
-import { buildApiUrl } from '../../../config/api';
-import { FaTrash } from 'react-icons/fa';
+import { useAuth } from '../../../../services/utils/auth';
+import humanIcon from '../../../../assets/icons/human.svg';
+import downloadIcon from '../../../../assets/icons/download.svg';
+import handoffIcon from '../../../../assets/icons/handoff.svg';
+import ColormodeIcon from '../../../../assets/icons/color-mode.svg';
+import notificationIcon from '../../../../assets/icons/notification.svg';
+import questionIcon from '../../../../assets/icons/question.svg';
+import settingsIcon from '../../../../assets/icons/setting.svg';
+import logoutIcon from '../../../../assets/icons/logout.svg';
+import { useOutsideClick } from '../../../../hooks/useOutsideClick';
+import handIcon from '../../../../assets/icons/hand.svg';
+import { buildApiUrl } from '../../../../config/api';
 function HeaderPaciente() {
   const { isOpen, setIsOpen, ref } = useOutsideClick(false);
   const  {user} = useAuth();
