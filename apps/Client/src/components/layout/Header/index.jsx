@@ -1,11 +1,10 @@
-import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem, Badge } from './styles';
+import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem } from './styles';
 
 import { useAuth } from '../../../services/utils/auth';
 import humanIcon from '../../../assets/icons/human.svg';
 import downloadIcon from '../../../assets/icons/download.svg';
 import ColormodeIcon from '../../../assets/icons/color-mode.svg';
 import notificationIcon from '../../../assets/icons/notification.svg';
-import questionIcon from '../../../assets/icons/question.svg';
 import settingsIcon from '../../../assets/icons/setting.svg';
 import logoutIcon from '../../../assets/icons/logout.svg';
 import { useOutsideClick } from '../../../hooks/useOutsideClick';
@@ -55,20 +54,11 @@ function Header() {
 
                            <MenuItem>
                          <img src={handIcon} alt="" className="icon" />
-                          <span>Olá  {user?.nome || "Usuario"}  </span>
-                        </MenuItem>
-
+                         <span>Olá  {user?.nome || "Usuario"}  </span>
+                           </MenuItem>
                         <MenuItem>
-                         <img src={questionIcon} alt="" className="icon" />
-                          <span>Loreminpus</span>
-                        </MenuItem>
-                        <MenuItem>
-                          <img src={questionIcon} alt="" className="icon" />
-                          <span>LorenIpsum</span>
-                        </MenuItem>
-                        <MenuItem>
-                          <img src={questionIcon} alt="" className="icon" /> 
-                          <span>LorenIpsum</span>
+                          <img src={humanIcon} alt="" className="icon" />
+                          <span><a href="/configuracao">Perfil</a></span>
                         </MenuItem>
                       </ul>
                     </MenuSection>
@@ -76,10 +66,6 @@ function Header() {
                     <MenuSection>
                       <span className="section-title">Configurações</span>
                       <ul>
-                        <MenuItem>
-                          <img src={humanIcon} alt="" className="icon" /> 
-                          <span>Perfil</span>
-                        </MenuItem>
                         <MenuItem>
                           <img src={settingsIcon} alt="" className="icon" /> 
                           <span>Preferências</span>

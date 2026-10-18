@@ -232,8 +232,9 @@ CREATE TABLE eventos_assinaturas (
 -- EVENTO ADVERSO
 CREATE TABLE eventos_adversos (
     id INT NOT NULL AUTO_INCREMENT,
-    id_paciente INT NOT NULL,
+    id_paciente INT NULL,
     id_medico INT NOT NULL,
+    id_setor INT NULL,
     tipo_evento ENUM(
         'pronto_socorro',
         'ambulatorio',
@@ -262,7 +263,8 @@ CREATE TABLE eventos_adversos (
 		'acidente',
 		'atraso_atendimento',
 		'atraso_tratamento',
-		'outro'
+		'outro',
+        'passagem_plantao'
     ) NOT NULL,
     grau_dano ENUM('baixo', 'medio', 'alto', 'sem_dano') NOT NULL,
     sinais_vitais VARCHAR(1000) NULL,
@@ -284,6 +286,11 @@ CREATE TABLE eventos_adversos (
         FOREIGN KEY (id_medico)
         REFERENCES medicos(id)
         ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_eventos_adversos_setor
+        FOREIGN KEY (id_setor)
+        REFERENCES setores(id)
+        ON UPDATE CASCADE
         ON DELETE RESTRICT
 ) ENGINE=InnoDB;
 
@@ -300,6 +307,45 @@ ALTER TABLE eventos_assinaturas
         REFERENCES eventos_adversos(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL;
+
+-- PLANTÕES
+CREATE TABLE plantoes (
+    id INT NOT NULL AUTO_INCREMENT,
+    id_medico INT NULL,
+    id_setor INT NOT NULL,
+    id_evento_adverso INT NULL,
+    descricao_fato TEXT NULL,
+    data_ocorrido DATETIME NULL,
+    plantao ENUM('diurno', 'noturno') NOT NULL,
+    inicio_em DATETIME NOT NULL,
+    fim_em DATETIME NOT NULL,
+    status ENUM('aberto', 'encerrado') NOT NULL DEFAULT 'aberto',
+    assumido_em DATETIME NULL,
+    encerrado_em DATETIME NULL,
+    ip VARCHAR(45) NULL,
+    criado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_plantoes_setor_inicio (id_setor, inicio_em),
+    KEY idx_plantoes_medico_status (id_medico, status),
+    KEY idx_plantoes_setor_status_inicio (id_setor, status, inicio_em),
+    CONSTRAINT fk_plantoes_medico
+        FOREIGN KEY (id_medico)
+        REFERENCES medicos(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_plantoes_setor
+        FOREIGN KEY (id_setor)
+        REFERENCES setores(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_plantoes_evento_adverso
+        FOREIGN KEY (id_evento_adverso)
+        REFERENCES eventos_adversos(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL,
+    CONSTRAINT ck_plantoes_periodo CHECK (fim_em > inicio_em)
+) ENGINE=InnoDB;
 
 -- MEDICAÇÃO
 CREATE TABLE medicacoes (
@@ -453,6 +499,7 @@ CREATE INDEX idx_leitos_enfermaria ON leitos (id_enfermaria);
 CREATE INDEX idx_enderecos_paciente ON enderecos (id_paciente);
 CREATE INDEX idx_eventos_adversos_paciente ON eventos_adversos (id_paciente);
 CREATE INDEX idx_eventos_adversos_medico ON eventos_adversos (id_medico);
+CREATE INDEX idx_eventos_adversos_setor ON eventos_adversos (id_setor);
 CREATE INDEX idx_medicacoes_eventos_evento ON medicacoes_eventos (id_evento);
 CREATE INDEX idx_medicacoes_eventos_medicamento ON medicacoes_eventos (id_medicamento);
 CREATE INDEX idx_pacientes_enfermarias_paciente ON pacientes_enfermarias (id_paciente);
@@ -533,6 +580,30 @@ JOIN enfermarias e ON l.id_enfermaria = e.id
 WHERE ea.tipo = 'termo_alta' AND ea.status = 'ativo' AND ea.data_revogacao IS NULL
   AND pe.id = (SELECT MAX(id) FROM pacientes_enfermarias WHERE id_paciente = p.id);
 
+CREATE OR REPLACE VIEW vw_dash_passagens_plantao AS
+SELECT
+    p.id AS plantao_id,
+    p.id_setor,
+    s.nome AS setor_nome,
+    p.id_medico,
+    m.nome_completo AS medico_nome,
+    p.plantao,
+    p.inicio_em,
+    p.fim_em,
+    p.assumido_em,
+    p.encerrado_em,
+    p.data_ocorrido,
+    p.descricao_fato,
+    p.ip,
+    ea.id AS evento_adverso_id,
+    ea.tipo_evento,
+    ea.data_evento
+FROM plantoes p
+JOIN setores s ON s.id = p.id_setor
+JOIN medicos m ON m.id = p.id_medico
+JOIN eventos_adversos ea ON ea.id = p.id_evento_adverso
+WHERE p.status = 'encerrado'
+  AND ea.tipo_evento = 'passagem_plantao';
 
 -- ============================================================================
 -- 4. TIGGERS DE VALIDAÇÃO E AUDITORIA
@@ -1232,7 +1303,9 @@ INSERT INTO pacientes_enfermarias (id_enfermaria, id_paciente, id_evento, id_lei
 (4, 40, NULL, 55, 'Admissão Arritmia'),
 (5, 41, NULL, 61, 'Admissão AVC'), (5, 42, NULL, 62, 'Admissão TCE'), 
 (5, 43, NULL, 63, 'Admissão Pós-Op'),
-(6, 44, NULL, 71, 'Admissão Tuberculose'), (6, 45, NULL, 72, 'Admissão KPC');
+(6, 44, NULL, 71, 'Admissão Tuberculose'), (6, 45, NULL, 72, 'Admissão KPC'),
+(7, 26, NULL, 76, 'Admissão de demonstração'), (7, 28, NULL, 77, 'Admissão de demonstração'),
+(7, 30, NULL, 78, 'Admissão de demonstração'), (7, 32, NULL, 79, 'Admissão de demonstração');
 
 UPDATE leitos SET status = 'ocupado' WHERE id IN (
   1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 
@@ -1240,8 +1313,15 @@ UPDATE leitos SET status = 'ocupado' WHERE id IN (
   41,42,43,44,45,
   51,52,53,54,55,
   61,62,63,
-  71,72
+  71,72,76,77,78,79
 );
+
+UPDATE enfermarias
+SET leitos_disponiveis = (
+  SELECT COUNT(*) FROM leitos
+  WHERE leitos.id_enfermaria = enfermarias.id AND leitos.status = 'disponivel'
+)
+WHERE id = 7;
 
 INSERT INTO eventos_adversos (id_paciente, id_medico, tipo_evento, grau_dano, descricao_fato, data_evento, status_investigacao, id_assinatura) VALUES
 (1, 1, 'medicamento', 'medio', 'Administração de dose incorreta de antibiótico. Corrigido a tempo, leve rash.', DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 2 DAY), 'concluido', NULL),

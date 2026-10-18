@@ -1,12 +1,10 @@
-import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem, Badge } from './styles';
+import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem } from './styles';
 
 import { useAuth } from '../../../../services/utils/auth';
 import humanIcon from '../../../../assets/icons/human.svg';
 import downloadIcon from '../../../../assets/icons/download.svg';
-import handoffIcon from '../../../../assets/icons/handoff.svg';
 import ColormodeIcon from '../../../../assets/icons/color-mode.svg';
 import notificationIcon from '../../../../assets/icons/notification.svg';
-import questionIcon from '../../../../assets/icons/question.svg';
 import settingsIcon from '../../../../assets/icons/setting.svg';
 import logoutIcon from '../../../../assets/icons/logout.svg';
 import { useOutsideClick } from '../../../../hooks/useOutsideClick';
@@ -76,18 +74,6 @@ window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponen
                           <span>Olá  {user?.nome || "Usuario"}  </span>
                         </MenuItem>
 
-                        <MenuItem  >
-                         <img src={questionIcon} alt="" className="icon" />
-                          <span> loremIpsum </span>
-                        </MenuItem>
-                        <MenuItem>
-                          <img src={questionIcon} alt="" className="icon" />
-                          <span>LorenIpsum</span>
-                        </MenuItem>
-                        <MenuItem>
-                          <img src={questionIcon} alt="" className="icon" /> 
-                          <span>LorenIpsum</span>
-                        </MenuItem>
                       </ul>
                     </MenuSection>
                     
@@ -96,11 +82,11 @@ window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponen
                       <ul>
                         <MenuItem>
                           <img src={humanIcon} alt="" className="icon" /> 
-                          <span>Perfil</span>
+                          <span><a href="/configuracao">Perfil</a></span>
                         </MenuItem>
                         <MenuItem>
                           <img src={settingsIcon} alt="" className="icon" /> 
-                          <span><a href="/configuracao">Configuraçoes de perfil</a></span>
+                          <span><a href="/configuracao">Preferências</a></span>
                         </MenuItem>
 
                         <MenuItem >

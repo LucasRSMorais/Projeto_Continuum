@@ -4,6 +4,9 @@ const emptyData = {
   patients: [],
   pending: [],
   movements: [],
+  criticalEvents: [],
+  utiBeds: [],
+  enfermariaBeds: [],
 };
 
 export function useDashboardCards(url) {
@@ -33,6 +36,13 @@ export function useDashboardCards(url) {
           patients: Array.isArray(result.data?.patients) ? result.data.patients : [],
           pending: Array.isArray(result.data?.pending) ? result.data.pending : [],
           movements: Array.isArray(result.data?.movements) ? result.data.movements : [],
+          criticalEvents: Array.isArray(result.data?.criticalEvents)
+            ? result.data.criticalEvents
+            : [],
+          utiBeds: Array.isArray(result.data?.utiBeds) ? result.data.utiBeds : [],
+          enfermariaBeds: Array.isArray(result.data?.enfermariaBeds)
+            ? result.data.enfermariaBeds
+            : [],
         });
       } catch (requestError) {
         if (requestError.name !== 'AbortError') {

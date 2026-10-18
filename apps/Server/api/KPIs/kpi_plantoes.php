@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 require_once __DIR__ . "/../../config/database.php";
 
 try {
-    $query = "SELECT COUNT(*) FROM plantoes WHERE status = 'concluido'";
+    $query = "SELECT COUNT(*) FROM plantoes WHERE status = 'encerrado'";
     $stmt = $pdo->query($query);
 
     echo json_encode([
