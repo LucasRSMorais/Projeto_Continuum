@@ -25,6 +25,8 @@ require_once __DIR__ . "/registrarLog.php";
 // Importa a conexão do sistema.log
 
 
+// A troca de senha só pode continuar depois que o endpoint de validação do código
+// marcar explicitamente a sessão como verificada.
 if (
 
 !isset ($_SESSION['2fa_verificado']) || $_SESSION ['2fa_verificado'] !== true
@@ -44,7 +46,8 @@ exit ;
 }
 
 
-// Garante que a sessão contém um usuário identificado para atualizar.
+// Além do 2FA concluído, exige um usuário identificado na sessão para que o ID
+// de destino da atualização nunca seja escolhido pelo corpo da requisição.
 if (!isset($_SESSION['usuario_id'])){
 http_response_code(401);
 
@@ -93,7 +96,7 @@ exit ;
 
 
 
-// Aplica o tamanho mínimo definido pela regra de negócio.
+// Valida a regra mínima antes de calcular o hash ou gravar no banco.
 // Se a senha nova for inválida, o sistema registra a tentativa para manter o histórico de ações.
 if (strlen($SenhaNova) <6){
 
@@ -119,10 +122,10 @@ exit ;
 
 }
 
-// Armazena somente o hash da nova senha, nunca o valor original.
+// Armazena somente o hash da nova senha; o valor em texto puro não é persistido.
 $senhahash = password_hash($SenhaNova , PASSWORD_DEFAULT);
 
-// Atualiza a senha do usuário autenticado por meio de uma consulta parametrizada.
+// Atualiza apenas a conta vinculada à sessão autenticada usando parâmetros PDO.
 $SQL = $pdo-> prepare("UPDATE pacientes SET senha_hash = :senha_hash WHERE id = :id");
 
 $SQL->execute([
@@ -145,6 +148,8 @@ registrarLog(
     );
 
 
+// Consome a autorização de recuperação após uma troca bem-sucedida, evitando
+// que a mesma confirmação de 2FA seja reutilizada para outra alteração.
 unset ($_SESSION['2fa_verificado']);
 
 echo json_encode([

@@ -19,6 +19,8 @@ session_set_cookie_params([
 session_start();
 
 // Mantém as falhas recentes na sessão para limitar tentativas de força bruta.
+// A janela abaixo é móvel: tentativas com mais de 60 segundos são descartadas
+// antes da validação das credenciais, evitando que falhas antigas acumulem indefinidamente.
 if (!isset($_SESSION['tentativas_login_timestamps']) || !is_array($_SESSION['tentativas_login_timestamps'])) {
     $_SESSION['tentativas_login_timestamps'] = [];
 }
@@ -27,12 +29,16 @@ if (!isset($_SESSION['bloqueio_login'])) {
     $_SESSION['bloqueio_login'] = 0;
 }
 
+// Remove dados inválidos e timestamps fora da janela atual; essa contagem está
+// associada à sessão PHP corrente, não a um contador persistente por usuário/IP.
 $agora = time();
 $_SESSION['tentativas_login_timestamps'] = array_values(array_filter(
     $_SESSION['tentativas_login_timestamps'],
     static fn ($timestamp) => is_int($timestamp) && $timestamp > $agora - 60 && $timestamp <= $agora
 ));
 
+// Registra a tentativa malsucedida e ativa um bloqueio temporário ao atingir o limite.
+// O booleano informa ao chamador se deve responder com HTTP 429.
 $registrarFalhaLogin = static function (): bool {
     $agora = time();
     $tentativas = $_SESSION['tentativas_login_timestamps'];
@@ -66,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/registrarLog.php";
 try {
-    // Lê os dados enviados pelo frontend em JSON.
+    // Lê o corpo JSON enviado pelo cliente para obter as credenciais.
     $dados = json_decode(
         file_get_contents("php://input"),
         true
@@ -118,6 +124,7 @@ try {
 
     // Se não encontrar o usuário, recusa o login e registra a falha no histórico de auditoria.
     // Isso ajuda a detectar tentativas de acesso com e-mail inexistente ou brute force.
+    // A resposta é igual à usada para senha incorreta para não revelar se o e-mail existe.
     if (!$usuario) {
         registrarLog(
             $pdo,
@@ -182,12 +189,13 @@ try {
     $_SESSION['tentativas_login_timestamps'] = [];
     $_SESSION['bloqueio_login'] = 0;
 
-    // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
-    // A sessão atual é renovada para reduzir o risco de fixação de sessão.
+    // Usuário e senha corretos: encerra a contagem de falhas e inicia a etapa de 2FA.
+    // A sessão é renovada para reduzir o risco de fixação do identificador de sessão.
     session_regenerate_id(true);
 
-    // Armazena temporariamente as informações do usuário até a validação do código 2FA.
-    // Isso permite manter o contexto do login sem autenticar a sessão final ainda.
+    // Guarda apenas o contexto necessário para concluir a autenticação após o 2FA.
+    // A sessão ainda não recebe usuario_id, portanto a etapa primária sozinha
+    // não deve ser interpretada como uma sessão autenticada.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
 
     // Registra que o usuário passou pela etapa de autenticação inicial e entrou no processo de 2FA.
@@ -206,8 +214,9 @@ try {
     $_SESSION['2fa_email'] = $usuario['email'];
     $_SESSION['2fa_perfil'] = $usuario['cargo'];
 
-    // Gera um código de 6 dígitos para simular a etapa de 2FA.
-    // Esse valor será enviado ao usuário e comparado com o hash armazenado em sessão.
+    // Gera um código numérico de seis dígitos usando o gerador criptograficamente seguro.
+    // O código em texto é enviado por e-mail; a sessão guarda somente seu hash
+    // para que a validação posterior seja feita com password_verify.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
     // Guarda o código em hash e define o prazo de validade por 5 minutos.
@@ -216,7 +225,7 @@ try {
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
 
-        // Configuração do Resend
+        // Obtém a credencial do serviço de e-mail do ambiente, sem embuti-la no código.
   
 
 $resendAPI = getenv('RESEND_API_KEY');
@@ -239,6 +248,8 @@ exit;
 }
 
 
+// O código só pode ser validado enquanto a sessão pendente e o prazo de cinco minutos
+// permanecerem válidos no endpoint verify-2fa.php.
 try {
 
 $resend = Resend::client($resendAPI);
@@ -277,6 +288,7 @@ error_log(
 
 http_response_code(500);
 
+// Informa ao frontend que a senha foi aceita, mas que ainda falta concluir o 2FA.
 echo json_encode([
     "success"=>false,
     "message"=>  $emailError->getMessage()

@@ -24,7 +24,7 @@ session_start();
 // Isso protege contra sessões abertas por muito tempo sem uso real.
 $tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
 
-// Se o tempo de inatividade excedeu o limite, encerra a sessão.
+// Se o tempo de inatividade excedeu o limite, apaga os dados da sessão no servidor.
 // Em seguida, a API responde 401 para indicar que o usuário precisa autenticar novamente.
 if (
     isset($_SESSION['ultima_atividade']) &&
@@ -41,7 +41,7 @@ if (
     exit;
 }
 
-// Atualiza a marca de última atividade para manter a sessão ativa.
+// Atualiza a marca de atividade somente depois de verificar que ela não expirou.
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
@@ -68,6 +68,9 @@ if (!isset($_SESSION['usuario_id'])) {
 
 
 
+// Complementa os dados básicos da sessão com informações do cadastro do paciente.
+// A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
+// aceitar um identificador de usuário fornecido pelo cliente.
 $stmt = $pdo -> prepare(
 "SELECT cpf , telefone  , aceite_termo_uso FROM pacientes WHERE id = :id"
 
@@ -92,6 +95,8 @@ $paciente = $stmt -> fetch(PDO::FETCH_ASSOC);
 
 
 
+// Recupera o primeiro registro de auditoria do cadastro para expor a data
+// associada ao consentimento/cadastro apresentado no perfil do titular.
 $stmtConsetimento = $pdo->prepare(
 
 
@@ -112,7 +117,8 @@ $data_cadastro = $stmtConsetimento-> fetchColumn();
 
 
 
-// Se estiver autenticado, retorna os dados públicos do usuário.
+// Retorna somente os campos usados pelo frontend; dados internos da sessão
+// e credenciais (como hashes de senha) não são incluídos na resposta.
 echo json_encode([
     "success" => true,
     "authenticated" => true,

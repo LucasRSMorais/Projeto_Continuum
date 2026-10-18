@@ -27,7 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Lê o código enviado no corpo da requisição em JSON.
+// Lê o código enviado no corpo JSON; o valor precisa pertencer ao desafio
+// iniciado na sessão pelo fluxo de login, não a uma sessão autenticada existente.
 $data = json_decode(file_get_contents("php://input"), true);
 $codigo = trim($data['codigo'] ?? '');
 
@@ -42,7 +43,8 @@ if (!$codigo) {
     exit;
 }
 
-// Garante que realmente existe um código pendente na sessão.
+// Garante que existe um desafio pendente. Sem ele, a verificação não pode
+// ser associada com segurança a um usuário que já passou pela senha.
 if (!isset($_SESSION['2fa_codigo'])) {
     http_response_code(401);
     echo json_encode([
@@ -52,7 +54,8 @@ if (!isset($_SESSION['2fa_codigo'])) {
     exit;
 }
 
-// Verifica se o código expirou.
+// O prazo é conferido antes do hash para rejeitar desafios vencidos e remover
+// seus dados temporários da sessão.
 if (time() > $_SESSION['2fa_expira']) {
     unset(
         $_SESSION['2fa_codigo'],
@@ -114,16 +117,19 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
 
 
 
-// 2FA aprovado: o usuário passa a ser autenticado de verdade.
+// 2FA aprovado: rotaciona o identificador da sessão para separar a sessão
+// pré-autenticada da sessão autenticada e reduzir risco de fixação de sessão.
 session_regenerate_id(true);
 
-// Recupera os dados temporários antes de criar a sessão autenticada.
+// Copia os dados temporários antes de removê-los, pois serão usados para
+// preencher a identidade, o e-mail e o perfil da sessão autenticada.
 $usuarioId = $_SESSION['2fa_usuario_id'];
 $nome = $_SESSION['2fa_nome'];
 $email = $_SESSION['2fa_email'];
 $perfil = $_SESSION['2fa_perfil'];
 
-// Agora transforma a sessão temporária em sessão autenticada.
+// Rotaciona novamente o identificador antes de concluir a transição do estado
+// e define os campos que os endpoints autenticados usam para reconhecer o médico.
 session_regenerate_id(true);
 
 $_SESSION['usuario_id'] = $usuarioId;
@@ -137,7 +143,8 @@ $atualizaUltimoAcesso = $pdo->prepare(
 );
 $atualizaUltimoAcesso->execute(['id' => $usuarioId]);
 
-// Remove os dados temporários do 2FA após a autenticação bem-sucedida.
+// Apaga o desafio e os dados pré-autenticados para impedir reutilização do código
+// depois que a sessão autenticada já foi estabelecida.
 unset(
     $_SESSION['2fa_usuario_id'],
     $_SESSION['2fa_nome'],

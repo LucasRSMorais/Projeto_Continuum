@@ -17,7 +17,11 @@ session_set_cookie_params([
 
 session_start();
 
-// Define contadores de tentativas e bloqueio para evitar brute force.
+// O endpoint inicia a recuperação enviando um código de verificação por e-mail.
+// O código é temporário e fica associado à sessão até ser validado no fluxo seguinte.
+
+// Define contadores de tentativas e bloqueio para reduzir solicitações repetidas
+// dentro da sessão atual; não representa um limite global por conta ou endereço IP.
 if (!isset($_SESSION['tentativas_login'])) {
     $_SESSION['tentativas_login'] = 0;
 }
@@ -43,7 +47,8 @@ require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../config/logger.php";
 
 try {
-    // Lê os dados enviados pelo frontend em JSON.
+    // Lê o e-mail informado no corpo JSON para localizar a conta que solicitou
+    // a recuperação; nenhuma alteração de senha ocorre neste endpoint.
     $dados = json_decode(
         file_get_contents("php://input"),
         true
@@ -95,7 +100,8 @@ try {
         exit;
     }
 
-    // Busca o usuário pelo email no banco.
+    // Busca a conta pelo e-mail usando parâmetro vinculado, evitando concatenar
+    // a entrada recebida diretamente no comando SQL.
     $consulta = $pdo->prepare(
         "SELECT * FROM medicos WHERE email = :email LIMIT 1"
         
@@ -121,24 +127,27 @@ try {
     }
 
     
+    // Cria um identificador de sessão novo antes de vincular a sessão ao desafio
+    // de recuperação, evitando reaproveitar um identificador previamente conhecido.
     session_regenerate_id(true);
 
-    // Guarda os dados do usuário temporariamente na sessão até o 2FA ser validado.
+    // Guarda somente os dados necessários para identificar a conta na validação
+    // do código; a sessão ainda não deve permitir alteração direta da senha.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
     $_SESSION['2fa_nome'] = $usuario['nome_completo'];
     $_SESSION['2fa_email'] = $usuario['email'];
     
 
-    // Gera um código de 6 dígitos para simular o 2FA.
+    // Gera um código de seis dígitos com fonte aleatória criptograficamente segura.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
-    // Salva o código em hash e a validade por 5 minutos.
-    // A sessão guarda o valor protegido, e não o código em texto puro.
+    // Armazena o hash do código na sessão e limita sua validade a cinco minutos.
+    // O código original é usado somente para compor a mensagem enviada por e-mail.
     $_SESSION['2fa_codigo'] = password_hash($codigo, PASSWORD_DEFAULT);
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
-// Configura o envio SMTP do código de recuperação por e-mail usando apenas variáveis de ambiente.
-// Esses logs ajudam a rastrear que a recuperação foi iniciada e que o código estava sendo enviado.
+// Obtém a chave do serviço de e-mail da configuração do ambiente; ela não deve
+// ser armazenada no repositório nem enviada ao navegador.
 
 $resendAPI = getenv('RESEND_API_KEY');
 
@@ -149,6 +158,8 @@ if (!$resendAPI){
 
 http_response_code(500);
 
+// Informa que a etapa inicial foi concluída e que o frontend deve solicitar
+// a validação do código antes de permitir a troca de senha.
 echo json_encode([
     "success" => false,
     "message" => "Configurando do resend não encontrada"
