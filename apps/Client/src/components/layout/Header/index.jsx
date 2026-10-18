@@ -3,7 +3,6 @@ import { HeaderContainer, Logo, Nav, NavLink, Dropdown, MenuSection, MenuItem, B
 import { useAuth } from '../../../services/utils/auth';
 import humanIcon from '../../../assets/icons/human.svg';
 import downloadIcon from '../../../assets/icons/download.svg';
-import handoffIcon from '../../../assets/icons/handoff.svg';
 import ColormodeIcon from '../../../assets/icons/color-mode.svg';
 import notificationIcon from '../../../assets/icons/notification.svg';
 import questionIcon from '../../../assets/icons/question.svg';

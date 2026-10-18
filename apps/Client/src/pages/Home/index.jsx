@@ -2,8 +2,8 @@ import { useAuth } from '../../services/utils/auth';
 import { Button } from '../../components/Button';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/layout/Header';
-import Sidebar from '../../components/layout/Sidebar';
-import Main from '../../components/layout/Main';
+import Sidebar from '../../components/layout/Doctor/Sidebar';
+import Main from '../../components/layout/Doctor/Main';
 import * as C from './styles';
 import Footer from '../../components/layout/Footer';
 

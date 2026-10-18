@@ -1,10 +1,10 @@
 /* Cria o banco de dados principal do projeto, caso ele ainda não exista. */
-create database IF NOT EXISTS continuum
+create database IF NOT EXISTS railway
 	CHARACTER SET utf8mb4
     COLLATE utf8mb4_0900_ai_ci;
 
 /* Seleciona o banco que receberá as tabelas e os dados abaixo. */
-USE continuum;
+USE railway;
 
 -- MÉDICO
 -- Entidade responsável pelo cadastro e autenticação do profissional médico.
