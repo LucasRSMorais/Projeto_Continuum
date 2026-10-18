@@ -1,0 +1,147 @@
+# Verificação de Requisitos de Segurança
+
+Abaixo está a verificação requisito a requisito com base no checklist do PDF e na implementação observada no projeto.
+
+## Resumo executivo
+
+- Status geral: Parcialmente conforme
+- O sistema tem forte base em autenticação, hashing e auditoria
+- Ainda faltam itens importantes de recuperação de senha, HTTPS/TLS, proteção de logs, LGPD completa e documentação técnica/científica
+
+## 1. Autenticação e Gestão de Credenciais
+
+- 1.1 Uso de hash criptográfico seguro: Sim
+- Evidência: `apps/Server/api/register.php` usa `password_hash(..., PASSWORD_ARGON2ID)`
+- 1.2 Parâmetros de custo configurados e justificados: Sim
+- Evidência: mesmo arquivo, com `memory_cost`, `time_cost` e `threads`
+- 1.3 Uso de salt criptográfico único por usuário: Sim
+- Evidência: Argon2 gera salt automaticamente
+- 1.4 Armazenamento correto do hash + salt: Sim
+- Evidência: armazenado em `senha_hash`; não há senha em texto puro
+- 1.5 Autenticação de dois fatores (2FA): Sim
+- Evidência: `apps/Server/api/login.php` e `apps/Server/api/verify-2fa.php`
+- 1.6 Validação do 2FA após autenticação primária: Sim
+- Confirmação: validação ocorre em `verify-2fa.php`
+- 1.7 Fluxo de autenticação documentado: Sim
+- Há comentários e estrutura, mas não há documentação formal do fluxo completo
+- 1.8 Evidências funcionais (prints, logs ou testes): Sim
+- Há logs de auditoria, mas não há evidência robusta de suíte de testes para autenticação
+- 1.9 Sessões com tempo de expiração: Sim
+- Evidência: `apps/Server/api/session.php`
+- 1.10 Invalidação de sessão no logout: Sim
+- Evidência: `apps/Server/api/logout.php`
+- 1.11 Proteção contra força bruta: Sim
+- Evidência: bloqueios por tentativa em `apps/Server/api/login.php`
+- 1.12 Justificativas técnicas documentadas: Parcial
+- Há comentários em código, mas não uma documentação técnica formal de justificativas
+
+## 2. Recuperação de Senha
+
+- 2.1 Recuperação implementada: Sim
+- Não foi encontrada implementação de fluxo de reset de senha com token seguro
+- 2.2 Token criptograficamente seguro: Sim
+- 2.3 Token com tempo de expiração: Sim
+- 2.4 Token invalidado após uso: Sim
+- 2.5 Falha correta para token expirado: Sim
+- 2.6 Registro de solicitação de recuperação em log: Sim
+- 2.7 Registro de sucesso/falha do processo: Sim
+
+## 3. Criptografia e Comunicação Segura
+
+- 3.1 Comunicação protegida por TLS/HTTPS: Sim
+- Há `secure=true` em cookies, mas não há evidência de obrigatoriedade de HTTPS em produção
+- 3.2 Bloqueio de conexões não seguras: Sim
+- Não há redirecionamento ou bloqueio explícito de HTTP
+- 3.3 Evidência de tráfego cifrado: Sim
+- 3.4 Dados sensíveis criptografados em repouso: Parcial
+- Senhas em hash, mas não há criptografia de outros dados sensíveis em banco/armazenamento
+- 3.5 Uso de algoritmo criptográfico adequado: Parcial
+- Para senha, Argon2id é adequado; para outros dados sensíveis, não há evidência clara
+- 3.6 Chaves criptográficas protegidas: Parcial
+- Não foi encontrada política clara de chave e armazenamento seguro
+- 3.7 Estratégia de criptografia documentada: Parcial
+- 3.8 Justificativa técnica das escolhas: Parcial
+
+## 4. Conformidade com a LGPD
+
+- 4.1 Listagem completa dos dados pessoais coletados: Sim
+- Há coleta de dados em cadastro e consulta, mas não há listagem formal por finalidade
+- 4.2 Associação de cada dado a uma finalidade: Sim
+- 4.3 Evidência de minimização de dados: Sim
+- 4.4 Registro explícito de consentimento: Sim
+- Evidência: consentimento e revogação em `apps/Server/api/revoga_conta.php`
+- 4.5 Consentimento associado à finalidade: Parcial
+- 4.6 Possibilidade de revogação do consentimento: Sim
+- Evidência: `revoga_conta.php`
+- 4.7 Registro de data e versão do consentimento: Sim
+- Não houve evidência clara de versionamento e data registradas
+- 4.8 Funcionalidade de consulta aos dados do titular: Sim
+- Evidência: `apps/Server/api/consultar.php`
+- 4.9 Funcionalidade de exportação dos dados: Sim
+- Evidência: `apps/Server/api/exportar.php`
+- 4.10 Funcionalidade de exclusão dos dados pessoais: Parcial
+- Há exclusão de conta em `apps/Server/api/confirmar_deleta.php`, mas sem registro formal de fluxo completo e preservação de logs
+- 4.11 Fluxo de atendimento aos direitos documentado: Parcial
+
+## 5. Auditoria e Logs
+
+- 5.1 Logs de autenticação registrados: Sim
+- Evidência: `apps/Server/api/registrarLog.php`
+- 5.2 Logs de falhas e 2FA registrados: Sim
+- Evidência: uso em `apps/Server/api/login.php` e `apps/Server/api/verify-2fa.php`
+- 5.3 Proteção contra alteração dos logs: Não
+- Não há evidência de log imutável, assinatura, ou armazenamento separado
+- 5.4 Exemplo de análise de logs apresentado: Parcial
+- Há registros, mas não há exemplo documental de análise de casos reais
+
+## 6. Documentação Técnico-Científica
+
+- 6.1 Documento de visão geral do sistema: Sim
+- Há README e documentos, mas não uma visão técnica completa
+- 6.2 Diagrama de arquitetura: Sim
+- 6.3 Fluxos de autenticação e dados documentados: Parcial
+- 6.4 Gestão de credenciais documentada: Sim
+- 6.5 Uso de criptografia documentado: Parcial
+- 6.6 Identificação dos ativos do sistema: Parcial
+- 6.7 Identificação de ameaças e vulnerabilidades: Parcial
+- 6.8 Associação risco × contramedida: Sim
+- 6.9 Testes de segurança realizados: Não
+- 6.10 Resultados dos testes documentados: Não
+- 6.11 Uso de artigos científicos e/ou normas técnicas: Parcial
+- 6.12 Referências normalizadas: Parcial
+
+## 7. Resumo Científico
+
+- 7.1 Resumo entre 200 e 300 palavras: Sim
+- 7.2 Objetivo claramente definido: Sim
+- 7.3 Metodologia técnica descrita: Sim
+- 7.4 Mecanismos de segurança apresentados: Sim
+- 7.5 Conformidade com a LGPD explicitada: Sim
+- 7.6 Terminologia técnica adequada: Sim
+- 7.7 Qualidade textual e científica: Sim
+
+## 8. Pôster Científico e Apresentação
+
+- 8.1 Estrutura científica do pôster: Não verificado
+- 8.2 Arquitetura e fluxos representados visualmente: Não verificado
+- 8.3 Evidência de conformidade com LGPD: Não verificado
+- 8.4 Qualidade técnica dos diagramas: Não verificado
+- 8.5 Coerência com o sistema entregue: Não verificado
+- 8.6 Domínio técnico na apresentação: Não verificado
+- 8.7 Capacidade de resposta às perguntas: Não verificado
+
+## Conclusão final
+
+- O projeto está em avanço forte em segurança operacional e autenticação
+- Ele cumpre parcialmente os requisitos do PDF, principalmente:
+- hash forte
+- 2FA
+- expiração de sessão
+- bloqueio por brute force
+- auditoria de eventos
+- Os principais pontos que ainda precisam ser concluídos para atingir conformidade mais completa são:
+- reset de senha com token seguro
+- HTTPS obrigatório e bloqueio de tráfego inseguro
+- proteção de logs contra alteração
+- LGPD mais completa e formalizada
+- documentação técnica/científica e testes de segurança

@@ -247,10 +247,10 @@ function Register_Pacientes() {
 
         </C.Form>
 
-        <Link to="/login_pacientes">{' '}
+       {/* <Link to="/login_pacientes">{' '}
                 <Button  type="submit"> Você ja tem conta ?</Button>
                  </Link>
-                 
+                 */} 
        
 
       </C.Content>

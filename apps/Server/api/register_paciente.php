@@ -149,9 +149,15 @@ exit ;
     // Insere os dados do paciente no banco de acordo com o ER definido.
     $sql = "
         INSERT INTO pacientes
+<<<<<<< HEAD
         (nome_completo, email, cpf, data_nascimento, sexo, etnia,  senha_hash, telefone,  aceite_termo_uso)
         VALUES
         (:nome_completo, :email, :cpf, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo)
+=======
+        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco,  status)
+        VALUES
+        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco,  :status)
+>>>>>>> main
     ";
 
     $consulta = $pdo->prepare($sql);
@@ -165,10 +171,17 @@ exit ;
         "senha" => $senhaHash,
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,
+<<<<<<< HEAD
        
         
         //"fk_medic_id" => $fkMedicoId,
         
+=======
+        "alergias" => $alergias !== "" ? $alergias : null,
+        "endereco" => $endereco,
+        //"fk_medic_id" => $fkMedicoId,
+        "status" => true
+>>>>>>> main
     ]);
 
 

@@ -117,7 +117,6 @@ echo"Dados do TITULAR\n";
 echo "Nome: {$usuario['nome_completo']}\n";
 echo "Email: {$usuario['email']}\n";
 echo "Telefone: {$usuario['telefone']}\n";
-
 echo "Sexo: {$usuario['sexo']}\n";
 echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
 

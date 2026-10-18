@@ -16,43 +16,51 @@ import Configuracao from '../pages/configuracao';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
 import Consetimento from '../pages/consentimentos';
+
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
-// Enquanto a sessão está sendo verificada, o usuário vê uma tela de carregamento.
+// Enquanto a sessão está sendo verificada, o usuário recebe uma mensagem de carregamento.
 const PrivateRoute = ({ children }) => {
-  const {isAuthenticated, loading} = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+
   if (loading) {
     return <div>Verificando autenticação...</div>;
   }
-  return isAuthenticated
-    ? children
-    : <Navigate to="/" replace />;
+
+  return isAuthenticated ? children : <Navigate to="/" replace />;
 };
 
-// Define as rotas da aplicação.
-// A página /home é protegida; as demais podem ser acessadas livremente.
-// Essa estrutura centraliza a navegação e facilita a manutenção do fluxo do sistema.
+// Define o conjunto de rotas da aplicação.
+// Centralizar a navegação aqui facilita o controle de acesso,
+// a manutenção e a organização das telas do sistema.
 const RoutesApp = () => {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Fluxo de autenticação e recuperação de senha do profissional de saúde */}
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-         <Route path="/password" element={<Password />} />
-         <Route path='/novaSenha' element= {<NovaSenha2/>} />
-         <Route path="/pass" element={<NovaSenha />} />
-         <Route path="/recuperacao" element = {<LoginSenha/>}/>
+        <Route path="/password" element={<Password />} />
+        <Route path="/novaSenha" element={<NovaSenha2 />} />
+        <Route path="/pass" element={<NovaSenha />} />
+        <Route path="/recuperacao" element={<LoginSenha />} />
+
+        {/* Fluxo específico para pacientes */}
         <Route path="/register_pacientes" element={<Register_Pacientes />} />
         <Route path="/login_pacientes" element={<LoginPacientes />} />
-        <Route path="/home_paciente" element={<HomePaciente />}/>
-        <Route path="/configuracao" element = {<Configuracao/>}/> 
+        <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>} />
+
+        {/* Páginas administrativas e de configuração */}
+        <Route path="/configuracao" element={<Configuracao />} />
         <Route path="/deleta_conta" element={<DeletaConta />} />
         <Route path="/consultar" element={<ConsultarConta />} />
-
-        <Route path='/consetimentos' element = {<Consetimento/>} />
-
+        <Route path="/consetimentos" element={<Consetimento />} />
         <Route path="/revogar" element={<Revogacao />} />
         <Route path="/endereco" element={<Endereco />} />
-        <Route path="/home" element={<Home />}/>
+
+        {/* Página inicial protegida do médico */}
+        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+
+        {/* Qualquer rota desconhecida retorna para o login */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
