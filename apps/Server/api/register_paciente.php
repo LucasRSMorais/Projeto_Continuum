@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . "/../config/database.php";
-require_once __DIR__ . "/../config/patient_data_encryption.php";
+require_once __DIR__ . "/../config/patient_data_hash.php";
 
 try {
     // Lê os dados enviados em JSON pelo frontend.
@@ -51,13 +51,13 @@ try {
     }
 
     try {
-        getPatientDataEncryptionKey();
+        getPatientDataHashKey();
     } catch (RuntimeException $e) {
-        error_log('Patient data encryption is not configured: ' . $e->getMessage());
+        error_log('Patient data hash key is not configured: ' . $e->getMessage());
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "A criptografia dos dados do paciente não está configurada no servidor."
+            "message" => "A chave de proteção dos dados do paciente não está configurada no servidor."
         ]);
         exit;
     }
@@ -73,14 +73,14 @@ try {
     if (
         !isset($tiposColunas['sexo'], $tiposColunas['etnia']) ||
         !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['sexo'], $sexoTamanho) ||
-        (int) $sexoTamanho[1] < 512 ||
+        (int) $sexoTamanho[1] < 72 ||
         !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['etnia'], $etniaTamanho) ||
-        (int) $etniaTamanho[1] < 512
+        (int) $etniaTamanho[1] < 72
     ) {
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "O banco ainda não está preparado para os dados criptografados. Aplique a migração de criptografia."
+            "message" => "O banco ainda não está preparado para os hashes de sexo e etnia. Aplique a migração dos campos."
         ]);
         exit;
     }
@@ -98,8 +98,8 @@ try {
         exit;
     }
 
-    $sexoCriptografado = encryptPatientSensitiveValue($sexo);
-    $etniaCriptografada = encryptPatientSensitiveValue($etnia);
+    $sexoHash = hashPatientSensitiveValue($sexo);
+    $etniaHash = hashPatientSensitiveValue($etnia);
 
         $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
 
@@ -203,8 +203,8 @@ exit ;
         "email" => $email,
         "cpf" => $cpf,
         "data_nascimento" => $dataNascimento,
-        "sexo" => $sexoCriptografado,
-        "etnia" => $etniaCriptografada,
+        "sexo" => $sexoHash,
+        "etnia" => $etniaHash,
         "senha" => $senhaHash,
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,

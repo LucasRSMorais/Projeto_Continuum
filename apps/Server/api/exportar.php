@@ -31,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
-require_once __DIR__ . "/../config/patient_data_encryption.php";
 
 try {
     // Lê os dados enviados pelo frontend em JSON.
@@ -88,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-      $sql = "SELECT nome_completo , telefone ,email , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
+      $sql = "SELECT nome_completo, telefone, email, data_nascimento FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -106,8 +105,6 @@ try {
         exit;
     }
 
-    $usuario['sexo'] = decryptPatientSensitiveValue($usuario['sexo']);
-
 // o arquivo sera baixado em formato txt
 
 header("Content-Type : text/plain; charset=UTF-8");
@@ -118,7 +115,7 @@ echo"Dados do TITULAR\n";
 echo "Nome: {$usuario['nome_completo']}\n";
 echo "Email: {$usuario['email']}\n";
 echo "Telefone: {$usuario['telefone']}\n";
-echo "Sexo: {$usuario['sexo']}\n";
+echo "Sexo: não recuperável (armazenado como hash irreversível)\n";
 echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
 
 } catch (PDOException $e) {
@@ -127,12 +124,5 @@ echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
     echo json_encode([
         "success" => false,
         "message" => "Erro ao acessar o banco de dados."
-    ]);
-} catch (RuntimeException $e) {
-    error_log('Patient sensitive data decryption failed: ' . $e->getMessage());
-    http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Não foi possível acessar os dados protegidos do paciente."
     ]);
 }

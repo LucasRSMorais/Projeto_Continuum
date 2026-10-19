@@ -103,7 +103,7 @@ return(
           <p><strong>Email:</strong> {usuario.email}</p>
            <p><strong>Telefone</strong> {usuario.telefone}</p>
           <p><strong>Endereço:</strong> {usuario.endereco}</p>
-          <p><strong>Sexo:</strong> {usuario.sexo}</p>
+          <p><strong>Sexo:</strong> Não disponível (armazenado como hash irreversível)</p>
           <p><strong>Data de Nascimento:</strong> {usuario.data_nascimento}</p>
           <Button type="submit" onClick={exportarUsuario}>
             Exportar Dados

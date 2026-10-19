@@ -43,7 +43,7 @@ function nova_() {
         return;
       }
 
-      navigate('/register');
+      navigate('/');
 
     } catch (error) {
       console.error(error);
