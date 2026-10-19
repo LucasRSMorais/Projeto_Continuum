@@ -199,12 +199,6 @@ function LoginPacientes() {
 
 
 
-        <C.LabelSignup>
-          Criar uma conta
-          <C.Strong>
-            <Link to="/register_pacientes">{' '}Clique aqui</Link>
-          </C.Strong>
-       </C.LabelSignup> 
         {/*<C.LabelSignup>
           Consultar conta
           <C.Strong>

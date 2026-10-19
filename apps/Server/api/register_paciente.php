@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../config/patient_data_encryption.php";
 
 try {
     // Lê os dados enviados em JSON pelo frontend.
@@ -49,7 +50,9 @@ try {
         exit;
     }
 
-  
+    $sexoCriptografado = encryptPatientSensitiveValue($sexo);
+    $etniaCriptografada = encryptPatientSensitiveValue($etnia);
+
         $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
 
         $senha = '';
@@ -170,8 +173,8 @@ exit ;
         "email" => $email,
         "cpf" => $cpf,
         "data_nascimento" => $dataNascimento,
-        "sexo" => $sexo,
-        "etnia" => $etnia !== "" ? $etnia : null,
+        "sexo" => $sexoCriptografado,
+        "etnia" => $etniaCriptografada,
         "senha" => $senhaHash,
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,
@@ -211,6 +214,7 @@ exit ;
 
 } catch (Exception $e) {
     // Erro geral de execução.
+    error_log('Patient registration failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,

@@ -197,12 +197,7 @@ function Login() {
             
           </C.Strong>
         </C.LabelFirstAcess>
-        <C.LabelSignup>
-          Não tem uma conta?
-          <C.Strong>
-            <Link to="/register">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
+      
 
          
       </C.Content>

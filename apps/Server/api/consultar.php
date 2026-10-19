@@ -31,6 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../config/patient_data_encryption.php";
 
 try {
     // Lê os dados enviados pelo frontend em JSON.
@@ -116,7 +117,7 @@ try {
             "email" => $usuario["email"],
             "endereco" => $usuario["endereco"],
             "telefone" => $usuario["telefone"],
-            "sexo" => $usuario["sexo"],
+            "sexo" => decryptPatientSensitiveValue($usuario["sexo"]),
             "data_nascimento" => $usuario["data_nascimento"],
 
 
@@ -129,5 +130,12 @@ try {
     echo json_encode([
         "success" => false,
         "message" => "Erro ao acessar o banco de dados."
+    ]);
+} catch (RuntimeException $e) {
+    error_log('Patient sensitive data decryption failed: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Não foi possível acessar os dados protegidos do paciente."
     ]);
 }

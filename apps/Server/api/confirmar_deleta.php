@@ -123,7 +123,10 @@ try {
         $pdo,
         null,
         "EXCLUSAO_CONTA_PACIENTE",
-        "O paciente " . $usuario['nome_completo'] . " excluiu a própria conta.",
+        "Conta do paciente excluída. Nome completo: " . ($usuario['nome_completo'] ?? '') .
+        "; e-mail: " . ($usuario['email'] ?? '') .
+        "; data de nascimento: " . ($usuario['data_nascimento'] ?? '') .
+        "; telefone: " . ($usuario['telefone'] ?? '') . ".",
         "pacientes",
         $_SERVER['REMOTE_ADDR'] ?? null,
         "SECURITY"

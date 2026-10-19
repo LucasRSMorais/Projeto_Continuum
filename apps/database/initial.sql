@@ -113,16 +113,8 @@ CREATE TABLE pacientes (
     nome_completo VARCHAR(150) NOT NULL,
     cpf VARCHAR(11) NULL,
     data_nascimento DATE NULL,
-    sexo ENUM('masculino', 'feminino') NOT NULL,
-    etnia ENUM(
-        'branca',
-        'preta',
-        'parda',
-        'amarela',
-        'indigena',
-        'nao_informada',
-        'outra'
-    ) NOT NULL,
+    sexo VARCHAR(512) NOT NULL,
+    etnia VARCHAR(512) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
 	alergias TEXT NULL,
     telefone VARCHAR(20) NULL,
