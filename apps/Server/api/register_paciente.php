@@ -50,6 +50,54 @@ try {
         exit;
     }
 
+    try {
+        getPatientDataEncryptionKey();
+    } catch (RuntimeException $e) {
+        error_log('Patient data encryption is not configured: ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "A criptografia dos dados do paciente não está configurada no servidor."
+        ]);
+        exit;
+    }
+
+    $colunasSensíveis = $pdo->query(
+        "SHOW COLUMNS FROM pacientes WHERE Field IN ('sexo', 'etnia')"
+    )->fetchAll(PDO::FETCH_ASSOC);
+    $tiposColunas = [];
+    foreach ($colunasSensíveis as $coluna) {
+        $tiposColunas[$coluna['Field']] = strtolower($coluna['Type']);
+    }
+
+    if (
+        !isset($tiposColunas['sexo'], $tiposColunas['etnia']) ||
+        !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['sexo'], $sexoTamanho) ||
+        (int) $sexoTamanho[1] < 512 ||
+        !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['etnia'], $etniaTamanho) ||
+        (int) $etniaTamanho[1] < 512
+    ) {
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "O banco ainda não está preparado para os dados criptografados. Aplique a migração de criptografia."
+        ]);
+        exit;
+    }
+
+    // Confere o e-mail antes de enviar a senha temporária.
+    $consulta = $pdo->prepare("SELECT id FROM pacientes WHERE email = :email");
+    $consulta->execute(["email" => $email]);
+
+    if ($consulta->fetch()) {
+        http_response_code(409);
+        echo json_encode([
+            "success" => false,
+            "message" => "Este e-mail já está cadastrado."
+        ]);
+        exit;
+    }
+
     $sexoCriptografado = encryptPatientSensitiveValue($sexo);
     $etniaCriptografada = encryptPatientSensitiveValue($etnia);
 
@@ -121,24 +169,6 @@ echo json_encode([
 exit ;
 }
 
-
-    // Verifica se o e-mail já existe antes de inserir um novo paciente.
-    $consulta = $pdo->prepare(
-        "SELECT id FROM pacientes WHERE email = :email"
-    );
-
-    $consulta->execute([
-        "email" => $email
-    ]);
-
-    if ($consulta->fetch()) {
-        http_response_code(409);
-        echo json_encode([
-            "success" => false,
-            "message" => "Este e-mail já está cadastrado."
-        ]);
-        exit;
-    }
 
     // Valida o valor do consentimento do termo.
     if (!in_array($aceiteTermo, ['sim', 'nao'], true)) {

@@ -1,45 +1,25 @@
 import { useState } from 'react';
-import { useAuth } from '../../services/utils/auth';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../components/Button';
 import Input from '../../components/Input';
 import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
-import { Title } from './styles';
-import { FaEye , FaEyeSlash } from 'react-icons/fa';
-// Página de nova senha do sistema.
-// Aqui o usuário informa a nova senha que vai ser registrada ,
-// ele entra após o codigo inserido que foi enviado pelo email do usuario (2FA).
-
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function nova_() {
   const navigate = useNavigate();
-  const {checkSession} = useAuth();
-
- 
-// Estado dos campos do formulário e das mensagens de erro.
- const [password, setPassword] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
- const [exibirSenha , setExibir] = useState(false);
- 
-
+  const [exibirSenha, setExibir] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
 
-
-    if (!password) {
-      setError('Criar uma nova senha');
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
       return;
     }
-    if (password < 6) {
-      setMessage('A senha deve ter pelo menos 6 caracteres.');
-      return;
-    }
-
-
-
 
     try {
       const response = await fetch(
@@ -59,12 +39,9 @@ function nova_() {
 
       const data = await response.json();
       if (!response.ok) {
-        setError(data.message || 'Não foi possivel atualizar uma nova senha.');
+        setError(data.message || 'Não foi possível atualizar a senha.');
         return;
       }
-
-      
-    
 
       navigate('/register');
 
@@ -74,35 +51,35 @@ function nova_() {
     }
   };
 
-  // Aqui vai ser ação da parte do react enviar a nova senha para API
   return (
     <C.Container>
-      <Title>Redefinir a senha </Title>
+      <C.Title>Redefinir sua senha</C.Title>
 
       <C.Content>
+        <p>Crie uma senha segura para proteger sua conta.</p>
         <C.Form onSubmit={handleSubmit}>
-          <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
-              setPassword(event.target.value);
-              setError('');
-            }}
-          />
-            <button type='button' onClick={() => setExibir(!exibirSenha)}
-            
-           
+          <C.PasswordRow>
+            <Input
+              type={exibirSenha ? 'text' : 'password'}
+              placeholder="Nova senha"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError('');
+              }}
+            />
+            <button
+              type="button"
+              aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              onClick={() => setExibir(!exibirSenha)}
             >
+              {exibirSenha ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </C.PasswordRow>
+          {error && <C.labelError>{error}</C.labelError>}
 
-            
-
-            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
-          </button>
-          
-          {error && (<C.labelError>{error}</C.labelError>)}
-          
-          <Button    type="submit"> Enviar</Button>
+          <Button type="submit">Salvar nova senha</Button>
         </C.Form>
-
-       
-        
       </C.Content>
     </C.Container>
   );
