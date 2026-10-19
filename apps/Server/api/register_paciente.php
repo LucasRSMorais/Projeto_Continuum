@@ -96,10 +96,12 @@ try {
             !preg_match('/^varchar\((\d+)\)$/i', $columnTypes[$field], $matches) ||
             (int) $matches[1] < 512
         ) {
+            $sexoType = $columnTypes['sexo'] ?? 'coluna ausente';
+            $etniaType = $columnTypes['etnia'] ?? 'coluna ausente';
             http_response_code(500);
             echo json_encode([
                 "success" => false,
-                "message" => "O banco ainda não está preparado para os dados criptografados. Aplique a migração de criptografia."
+                "message" => "O banco conectado ainda não está preparado para os dados criptografados (sexo: {$sexoType}; etnia: {$etniaType}). Aplique a migração na mesma base configurada em DB_NAME no servidor."
             ]);
             exit;
         }
