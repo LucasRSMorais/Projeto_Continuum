@@ -50,6 +50,27 @@ try {
         exit;
     }
 
+    $sexoPermitido = ['masculino', 'feminino'];
+    $etniasPermitidas = [
+        'branca',
+        'negra',
+        'parda',
+        'amarela',
+        'indigena',
+        'outra',
+        'nao_informar',
+    ];
+    $etnia = $etnia !== '' ? $etnia : 'nao_informar';
+
+    if (!in_array($sexo, $sexoPermitido, true) || !in_array($etnia, $etniasPermitidas, true)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Selecione uma opção válida para sexo e etnia."
+        ]);
+        exit;
+    }
+
     try {
         getPatientDataEncryptionKey();
     } catch (RuntimeException $e) {
@@ -85,9 +106,7 @@ try {
     }
 
     $sexoCriptografado = encryptPatientSensitiveValue($sexo);
-    $etniaCriptografada = encryptPatientSensitiveValue(
-        $etnia !== "" ? $etnia : "nao_informada"
-    );
+    $etniaCriptografada = encryptPatientSensitiveValue($etnia);
 
         $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
 

@@ -113,6 +113,8 @@ CREATE TABLE pacientes (
     nome_completo VARCHAR(150) NOT NULL,
     cpf VARCHAR(11) NULL,
     data_nascimento DATE NULL,
+    -- Ciphertext requires VARCHAR; registration restricts plaintext to the
+    -- allowed sexo/etnia options before encrypting and storing it.
     sexo VARCHAR(512) NOT NULL,
     etnia VARCHAR(512) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
