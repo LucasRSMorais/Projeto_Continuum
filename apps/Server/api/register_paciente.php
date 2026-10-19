@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . "/../config/database.php";
-require_once __DIR__ . "/../config/patient_data_hash.php";
+require_once __DIR__ . "/../config/patient_data_encryption.php";
 
 try {
     // Lê os dados enviados em JSON pelo frontend.
@@ -51,55 +51,43 @@ try {
     }
 
     try {
-        getPatientDataHashKey();
+        getPatientDataEncryptionKey();
     } catch (RuntimeException $e) {
-        error_log('Patient data hash key is not configured: ' . $e->getMessage());
+        error_log('Patient data encryption is not configured: ' . $e->getMessage());
         http_response_code(500);
         echo json_encode([
             "success" => false,
-            "message" => "A chave de proteção dos dados do paciente não está configurada no servidor."
+            "message" => "A criptografia dos dados do paciente não está configurada. Configure PATIENT_DATA_ENCRYPTION_KEY no servidor."
         ]);
         exit;
     }
 
-    $colunasSensíveis = $pdo->query(
+    $columns = $pdo->query(
         "SHOW COLUMNS FROM pacientes WHERE Field IN ('sexo', 'etnia')"
     )->fetchAll(PDO::FETCH_ASSOC);
-    $tiposColunas = [];
-    foreach ($colunasSensíveis as $coluna) {
-        $tiposColunas[$coluna['Field']] = strtolower($coluna['Type']);
+    $columnTypes = [];
+    foreach ($columns as $column) {
+        $columnTypes[$column['Field']] = $column['Type'];
+    }
+    foreach (['sexo', 'etnia'] as $field) {
+        if (
+            !isset($columnTypes[$field]) ||
+            !preg_match('/^varchar\((\d+)\)$/i', $columnTypes[$field], $matches) ||
+            (int) $matches[1] < 512
+        ) {
+            http_response_code(500);
+            echo json_encode([
+                "success" => false,
+                "message" => "O banco ainda não está preparado para os dados criptografados. Aplique a migração de criptografia."
+            ]);
+            exit;
+        }
     }
 
-    if (
-        !isset($tiposColunas['sexo'], $tiposColunas['etnia']) ||
-        !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['sexo'], $sexoTamanho) ||
-        (int) $sexoTamanho[1] < 72 ||
-        !preg_match('/^varchar\((\d+)\)$/', $tiposColunas['etnia'], $etniaTamanho) ||
-        (int) $etniaTamanho[1] < 72
-    ) {
-        http_response_code(500);
-        echo json_encode([
-            "success" => false,
-            "message" => "O banco ainda não está preparado para os hashes de sexo e etnia. Aplique a migração dos campos."
-        ]);
-        exit;
-    }
-
-    // Confere o e-mail antes de enviar a senha temporária.
-    $consulta = $pdo->prepare("SELECT id FROM pacientes WHERE email = :email");
-    $consulta->execute(["email" => $email]);
-
-    if ($consulta->fetch()) {
-        http_response_code(409);
-        echo json_encode([
-            "success" => false,
-            "message" => "Este e-mail já está cadastrado."
-        ]);
-        exit;
-    }
-
-    $sexoHash = hashPatientSensitiveValue($sexo);
-    $etniaHash = hashPatientSensitiveValue($etnia);
+    $sexoCriptografado = encryptPatientSensitiveValue($sexo);
+    $etniaCriptografada = encryptPatientSensitiveValue(
+        $etnia !== "" ? $etnia : "nao_informada"
+    );
 
         $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
 
@@ -169,6 +157,24 @@ echo json_encode([
 exit ;
 }
 
+    // Verifica se o e-mail já existe antes de inserir um novo paciente.
+    $consulta = $pdo->prepare(
+        "SELECT id FROM pacientes WHERE email = :email"
+    );
+
+    $consulta->execute([
+        "email" => $email
+    ]);
+
+    if ($consulta->fetch()) {
+        http_response_code(409);
+        echo json_encode([
+            "success" => false,
+            "message" => "Este e-mail já está cadastrado."
+        ]);
+        exit;
+    }
+
 
     // Valida o valor do consentimento do termo.
     if (!in_array($aceiteTermo, ['sim', 'nao'], true)) {
@@ -203,8 +209,8 @@ exit ;
         "email" => $email,
         "cpf" => $cpf,
         "data_nascimento" => $dataNascimento,
-        "sexo" => $sexoHash,
-        "etnia" => $etniaHash,
+        "sexo" => $sexoCriptografado,
+        "etnia" => $etniaCriptografada,
         "senha" => $senhaHash,
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,
