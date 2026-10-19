@@ -49,6 +49,7 @@ services:
       DB_CHARSET: ${DB_CHARSET:-utf8mb4}
       DB_SSL_CA: ${DB_SSL_CA:-}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
+      PATIENT_DATA_ENCRYPTION_KEY: ${PATIENT_DATA_ENCRYPTION_KEY:-}
     tmpfs:
       - /tmp:rw,noexec,nosuid,size=64m,mode=1777
     depends_on:
