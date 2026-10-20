@@ -73,39 +73,39 @@ Esta matriz transcreve os requisitos apresentados no PDF de avaliação do proje
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 6.1 | Documento de visão geral do sistema |
-| [ ] | 6.2 | Diagrama de arquitetura |
-| [ ] | 6.3 | Fluxos de autenticação e dados documentados |
-| [ ] | 6.4 | Gestão de credenciais documentada |
-| [ ] | 6.5 | Uso de criptografia documentado |
-| [ ] | 6.6 | Identificação dos ativos do sistema |
-| [ ] | 6.7 | Identificação de ameaças e vulnerabilidades |
-| [ ] | 6.8 | Associação risco x contramedida |
-| [ ] | 6.9 | Testes de segurança realizados |
-| [ ] | 6.10 | Resultados dos testes documentados |
-| [ ] | 6.11 | Uso de artigos científicos e/ou normas técnicas |
-| [ ] | 6.12 | Referências normalizadas |
+| [X] | 6.1 | Documento de visão geral do sistema |
+| [X] | 6.2 | Diagrama de arquitetura |
+| [X] | 6.3 | Fluxos de autenticação e dados documentados |
+| [X] | 6.4 | Gestão de credenciais documentada |
+| [X] | 6.5 | Uso de criptografia documentado |
+| [X] | 6.6 | Identificação dos ativos do sistema |
+| [X] | 6.7 | Identificação de ameaças e vulnerabilidades |
+| [X] | 6.8 | Associação risco x contramedida |
+| [X] | 6.9 | Testes de segurança realizados |
+| [X] | 6.10 | Resultados dos testes documentados |
+| [X] | 6.11 | Uso de artigos científicos e/ou normas técnicas |
+| [X] | 6.12 | Referências normalizadas |
 
 ## 7. Resumo Científico
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 7.1 | Resumo entre 200 e 300 palavras |
-| [ ] | 7.2 | Objetivo claramente definido |
-| [ ] | 7.3 | Metodologia técnica descrita |
-| [ ] | 7.4 | Mecanismos de segurança apresentados |
-| [ ] | 7.5 | Conformidade com a LGPD explicitada |
-| [ ] | 7.6 | Terminologia técnica adequada |
-| [ ] | 7.7 | Qualidade textual e científica |
+| [X] | 7.1 | Resumo entre 200 e 300 palavras |
+| [X] | 7.2 | Objetivo claramente definido |
+| [X] | 7.3 | Metodologia técnica descrita |
+| [X] | 7.4 | Mecanismos de segurança apresentados |
+| [X] | 7.5 | Conformidade com a LGPD explicitada |
+| [X] | 7.6 | Terminologia técnica adequada |
+| [X] | 7.7 | Qualidade textual e científica |
 
 ## 8. Pôster Científico e Apresentação
 
 | OK | Nº | Requisito |
 | --- | --- | --- |
-| [ ] | 8.1 | Estrutura científica do pôster |
-| [ ] | 8.2 | Arquitetura e fluxos representados visualmente |
-| [ ] | 8.3 | Evidência de conformidade com LGPD |
-| [ ] | 8.4 | Qualidade técnica dos diagramas |
-| [ ] | 8.5 | Coerência com o sistema entregue |
-| [ ] | 8.6 | Domínio técnico na apresentação |
-| [ ] | 8.7 | Capacidade de resposta às perguntas |
+| [X] | 8.1 | Estrutura científica do pôster |
+| [X] | 8.2 | Arquitetura e fluxos representados visualmente |
+| [X] | 8.3 | Evidência de conformidade com LGPD |
+| [X] | 8.4 | Qualidade técnica dos diagramas |
+| [X] | 8.5 | Coerência com o sistema entregue |
+| [X] | 8.6 | Domínio técnico na apresentação |
+| [X] | 8.7 | Capacidade de resposta às perguntas |
