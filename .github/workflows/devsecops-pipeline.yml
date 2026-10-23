@@ -1,0 +1,81 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # 1. Varredura de Segredos com TruffleHog
+  # Impede vazamento de chaves e senhas
+  secret-scanning:
+    name: TruffleHog Secrets Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0 # Necessário para analisar todo o histórico de commits
+
+      - name: Scan por Segredos Vazados
+        uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85
+        with:
+          path: ./
+          base: main
+          head: development
+          extra_args: --only-verified
+
+  # 2. Análise de Dependências (SCA) com Trivy
+  # Checa bibliotecas de terceiros
+  sca-scanning:
+    name: Trivy SCA Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Scan de Vulnerabilidades em Bibliotecas
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'HIGH,CRITICAL'
+
+  # 3. Análise Estática (SAST) com Semgrep
+  # Suporta PHP + JS + HTML e bloqueia o Build
+  semgrep-sast:
+    name: Semgrep SAST Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Executar Análise Semgrep
+        # Roda as regras de segurança oficiais
+        # O parâmetro --error falha o build se forem encontradas falhas
+        run: semgrep scan --config auto --sarif --output=semgrep_results.sarif --error
+
+      - name: Upload do relatório SARIF para o GitHub
+        # Mesmo se o Semgrep falhar o build anterior,
+        # este passo roda para salvar os resultados na aba Security
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98
+        if: always()
+        with:
+          sarif_file: semgrep_results.sarif
+          category: "semgrep-php-js"
