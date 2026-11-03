@@ -4,7 +4,7 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+     'samesite' => 'None'
 ]);
 
 session_start();
@@ -20,7 +20,7 @@ if (!isset($_SESSION['bloqueio_login'])) {
 
 $_SESSION['ultima_atividade'] = time();
 
-header("Content-Type: application/json; charset=UTF-8");
+
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
 
@@ -75,7 +75,7 @@ try {
 
     // Valida se email e senha não vieram vazios.
     if ($email === "" ) {
-        
+        header("Content-Type: application/json; charset=UTF-8");
 
         http_response_code(400);
         echo json_encode([
@@ -87,7 +87,7 @@ try {
 
     // Busca o usuário pelo email no banco.
    
-      $sql = "SELECT nome_completo , telefone ,email , endereco  , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
+      $sql = "SELECT nome_completo , telefone ,email , sexo , data_nascimento  FROM pacientes WHERE email = :email LIMIT 1";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -96,7 +96,7 @@ try {
 
     // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
-          
+          header("Content-Type: application/json; charset=UTF-8");
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -117,7 +117,6 @@ echo"Dados do TITULAR\n";
 echo "Nome: {$usuario['nome_completo']}\n";
 echo "Email: {$usuario['email']}\n";
 echo "Telefone: {$usuario['telefone']}\n";
-echo "Endereço: {$usuario['endereco']}\n";
 echo "Sexo: {$usuario['sexo']}\n";
 echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
 

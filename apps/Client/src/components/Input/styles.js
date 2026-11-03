@@ -9,4 +9,4 @@ export const MyInput = styled.input`
 
   background-color: #f5f5f5;
   border: none;
-`
+` 

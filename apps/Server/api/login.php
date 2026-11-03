@@ -13,20 +13,46 @@ require_once __DIR__ . '/../vendor/autoload.php';
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
-    'samesite' => 'None'
+      'samesite' => 'None'
 ]);
 
 session_start();
 
-// Mantém o estado do usuário durante o processo de autenticação.
-// Isso ajuda a bloquear tentativas de força bruta e guardar o contexto do 2FA.
-if (!isset($_SESSION['tentativas_login'])) {
-    $_SESSION['tentativas_login'] = 0;
+// Mantém as falhas recentes na sessão para limitar tentativas de força bruta.
+// A janela abaixo é móvel: tentativas com mais de 60 segundos são descartadas
+// antes da validação das credenciais, evitando que falhas antigas acumulem indefinidamente.
+if (!isset($_SESSION['tentativas_login_timestamps']) || !is_array($_SESSION['tentativas_login_timestamps'])) {
+    $_SESSION['tentativas_login_timestamps'] = [];
 }
 
 if (!isset($_SESSION['bloqueio_login'])) {
     $_SESSION['bloqueio_login'] = 0;
 }
+
+// Remove dados inválidos e timestamps fora da janela atual; essa contagem está
+// associada à sessão PHP corrente, não a um contador persistente por usuário/IP.
+$agora = time();
+$_SESSION['tentativas_login_timestamps'] = array_values(array_filter(
+    $_SESSION['tentativas_login_timestamps'],
+    static fn ($timestamp) => is_int($timestamp) && $timestamp > $agora - 60 && $timestamp <= $agora
+));
+
+// Registra a tentativa malsucedida e ativa um bloqueio temporário ao atingir o limite.
+// O booleano informa ao chamador se deve responder com HTTP 429.
+$registrarFalhaLogin = static function (): bool {
+    $agora = time();
+    $tentativas = $_SESSION['tentativas_login_timestamps'];
+    $tentativas[] = $agora;
+    $_SESSION['tentativas_login_timestamps'] = $tentativas;
+
+    if (count($tentativas) >= 5) {
+        $_SESSION['bloqueio_login'] = $agora + 60;
+        $_SESSION['tentativas_login_timestamps'] = [];
+        return true;
+    }
+
+    return false;
+};
 
 // Registra a última atividade para controle de expiração da sessão.
 $_SESSION['ultima_atividade'] = time();
@@ -46,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/registrarLog.php";
 try {
-    // Lê os dados enviados pelo frontend em JSON.
+    // Lê o corpo JSON enviado pelo cliente para obter as credenciais.
     $dados = json_decode(
         file_get_contents("php://input"),
         true
@@ -63,22 +89,8 @@ try {
         exit;
     }
 
-    // Conta cada tentativa para proteger contra ataques de força bruta.
-    // Quando o limite é atingido, o sistema bloqueia temporariamente o acesso.
-    $_SESSION['tentativas_login']++;
-
-    // Depois de 5 tentativas, bloqueia por 60 segundos.
-    if ($_SESSION['tentativas_login'] >= 5) {
-        $_SESSION['bloqueio_login'] = time() + 60;
-        $_SESSION['tentativas_login'] = 0;
-
-        http_response_code(429);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde 60 segundos."
-        ]);
-        exit;
+    if ($_SESSION['bloqueio_login'] > 0) {
+        $_SESSION['bloqueio_login'] = 0;
     }
 
     // Extrai os dados enviados pelo frontend no corpo da requisição.
@@ -112,19 +124,28 @@ try {
 
     // Se não encontrar o usuário, recusa o login e registra a falha no histórico de auditoria.
     // Isso ajuda a detectar tentativas de acesso com e-mail inexistente ou brute force.
+    // A resposta é igual à usada para senha incorreta para não revelar se o e-mail existe.
     if (!$usuario) {
         registrarLog(
             $pdo,
             null,
             "LOGIN_FALHA",
             "Tentativa de login com usuário não encontrado.",
-            'usuarios',
+            'Medicos',
             $_SERVER['REMOTE_ADDR'] ?? null,
-            $_SERVER['HTTP_USER_AGENT'] ?? null,
-            $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+          
             'SECURITY'
         );
-          
+
+        if ($registrarFalhaLogin()) {
+            http_response_code(429);
+            echo json_encode([
+                "success" => false,
+                "message" => "Muitas tentativas. Aguarde 60 segundos."
+            ]);
+            exit;
+        }
+
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -142,12 +163,30 @@ try {
             $usuario['id'],
             "LOGIN_FALHA",
             "O usuário " . $usuario['nome'] . " informou uma senha inválida.",
-            'usuarios',
+            'Medicos',
             $_SERVER['REMOTE_ADDR'] ?? null,
-            $_SERVER['HTTP_USER_AGENT'] ?? null,
-            $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+           
             'SECURITY'
         );
+
+        if ($registrarFalhaLogin()) {
+            http_response_code(429);
+            echo json_encode([
+                "success" => false,
+                "message" => "Muitas tentativas. Aguarde 60 segundos."
+            ]);
+            exit;
+        }
+
+        if (($usuario['status'] ?? null) !== 'ativo') {
+            http_response_code(403);
+            echo json_encode([
+                "success" => false,
+                "message" => "Sua conta ainda não foi aprovada."
+            ]);
+            exit;
+        }
+
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -156,13 +195,16 @@ try {
         exit;
     }
 
+    $_SESSION['tentativas_login_timestamps'] = [];
+    $_SESSION['bloqueio_login'] = 0;
 
-    // Usuário e senha corretos: inicia a etapa de verificação em duas etapas.
-    // A sessão atual é renovada para reduzir o risco de fixação de sessão.
+    // Usuário e senha corretos: encerra a contagem de falhas e inicia a etapa de 2FA.
+    // A sessão é renovada para reduzir o risco de fixação do identificador de sessão.
     session_regenerate_id(true);
 
-    // Armazena temporariamente as informações do usuário até a validação do código 2FA.
-    // Isso permite manter o contexto do login sem autenticar a sessão final ainda.
+    // Guarda apenas o contexto necessário para concluir a autenticação após o 2FA.
+    // A sessão ainda não recebe usuario_id, portanto a etapa primária sozinha
+    // não deve ser interpretada como uma sessão autenticada.
     $_SESSION['2fa_usuario_id'] = $usuario['id'];
 
     // Registra que o usuário passou pela etapa de autenticação inicial e entrou no processo de 2FA.
@@ -172,18 +214,18 @@ try {
         $usuario['id'],
         "LOGIN_2FA",
         "O usuário " . $usuario['nome_completo'] . " iniciou o login e recebeu o código 2FA.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+       
         'INFO'
     );
     $_SESSION['2fa_nome'] = $usuario['nome_completo'];
     $_SESSION['2fa_email'] = $usuario['email'];
     $_SESSION['2fa_perfil'] = $usuario['cargo'];
 
-    // Gera um código de 6 dígitos para simular a etapa de 2FA.
-    // Esse valor será enviado ao usuário e comparado com o hash armazenado em sessão.
+    // Gera um código numérico de seis dígitos usando o gerador criptograficamente seguro.
+    // O código em texto é enviado por e-mail; a sessão guarda somente seu hash
+    // para que a validação posterior seja feita com password_verify.
     $codigo = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
     // Guarda o código em hash e define o prazo de validade por 5 minutos.
@@ -192,7 +234,7 @@ try {
     $_SESSION['2fa_expira'] = time() + (5 * 60);
 
 
-        // Configuração do Resend
+        // Obtém a credencial do serviço de e-mail do ambiente, sem embuti-la no código.
   
 
 $resendAPI = getenv('RESEND_API_KEY');
@@ -215,14 +257,16 @@ exit;
 }
 
 
+// O código só pode ser validado enquanto a sessão pendente e o prazo de cinco minutos
+// permanecerem válidos no endpoint verify-2fa.php.
 try {
 
 $resend = Resend::client($resendAPI);
 
 
 $resultado = $resend->emails->send([
+'from' => 'Continuum <seguranca@projcontinnum.com.br>',
 
-'from'=> 'Continuum <onboarding@resend.dev>',
 'to'=> [$email],
 "subject"=> 'Codigo de verificação',
 'html' => "
@@ -253,9 +297,10 @@ error_log(
 
 http_response_code(500);
 
+// Informa ao frontend que a senha foi aceita, mas que ainda falta concluir o 2FA.
 echo json_encode([
     "success"=>false,
-    "message"=> "Não foi possivel de enviar o codigo de verificação"
+    "message"=> "Não foi possível enviar o código de verificação."
 ]);
 
 
@@ -267,8 +312,7 @@ echo json_encode([
 
 "success" => true,
 "requires_2fa" => true ,
-"message" => "Código de verificação enviado para seu e-mail.",
-"codigo_teste" => $codigo
+"message" => "Código de verificação enviado para seu e-mail."
 
 
 ]);
@@ -279,6 +323,7 @@ exit;
 
 }catch (PDOException $e){
 
+error_log('Doctor login database error: ' . $e->getMessage());
 
 http_response_code(500);
 
@@ -286,7 +331,7 @@ echo json_encode([
 
 
 "success" => false,
-"message" => $e->getMessage()
+"message" => "Não foi possível concluir o login."
 
 ]);
 exit;

@@ -1,5 +1,8 @@
 <?php
-// esta pagina é crucial para funcionar....
+// Este arquivo centraliza a configuração de CORS da API.
+// Sem isso, o frontend em React não conseguirá fazer requisições
+// para o backend quando a aplicação estiver rodando em outra origem.
+
 if (!function_exists('loadDotenvFromProjectRoot')) {
     function loadDotenvFromProjectRoot(): void
     {
@@ -46,8 +49,13 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 
 loadDotenvFromProjectRoot();
 
+/**
+ * Aplica os cabeçalhos CORS necessários para permitir que o frontend
+ * utilize a API no mesmo navegador, mesmo quando as origens forem diferentes.
+ */
 function applyCorsHeaders(): void
 {
+    // Origens permitidas para ambiente local e produção.
     $allowedOrigins = [
         'http://localhost:5173',
         'https://localhost:5173',
@@ -76,21 +84,17 @@ function applyCorsHeaders(): void
         }
     }
 
-    if ($originToUse === null && $origin !== '') {
-        $originToUse = $origin;
+    if ($origin !== '' && $originToUse === null) {
+        http_response_code(403);
+        exit;
     }
 
-    if ($originToUse === null && $clientUrl) {
-        $originToUse = rtrim($clientUrl, '/');
+    if ($originToUse !== null) {
+        header('Access-Control-Allow-Origin: ' . $originToUse);
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
     }
 
-    if ($originToUse === null) {
-        $originToUse = 'http://localhost:5173';
-    }
-
-    header('Access-Control-Allow-Origin: ' . $originToUse);
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
     header('Vary: Origin');
 }

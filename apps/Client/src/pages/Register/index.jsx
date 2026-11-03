@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import * as C from './styles';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
@@ -11,7 +11,6 @@ const formatCRM = (value) => value.replace(/\D/g, '').slice(0, 6);
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
 function Register() {
-  const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
   const [crm, setCrm] = useState('');
@@ -20,6 +19,7 @@ function Register() {
   const [password, setPassword] = useState('');
   const [confirmacaoSenha , setConfirmarSenha] = useState("");
   const [exibirSenha , setExibir] = useState(false);
+  const [exibirConfirmacaoSenha, setExibirConfirmacaoSenha] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -85,8 +85,7 @@ const senhaIgual = password === confirmacaoSenha;
         return;
       }
 
-      setMessage('Cadastro realizado com sucesso!');
-      navigate('/', { replace: true });
+      setMessage(data.message || 'Cadastro concluído. Sua conta está ativa.');
 
     } catch (error) {
       console.error(error);
@@ -158,29 +157,37 @@ const senhaIgual = password === confirmacaoSenha;
             onChange={(event) => setEmail(event.target.value)}
           />
 
-          <Input
-            type={exibirSenha ? "text" : "password"}
-            placeholder="Senha"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-          <button type='button' onClick={() => setExibir(!exibirSenha)}
-            
-           
+          <C.PasswordRow>
+            <Input
+              type={exibirSenha ? "text" : "password"}
+              placeholder="Senha"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              type="button"
+              aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              onClick={() => setExibir(!exibirSenha)}
             >
+              {exibirSenha ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </C.PasswordRow>
 
-            
-
-            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
-          </button>
-          
-
-          <Input
-            type={exibirSenha ? "text" : "password"}
-            placeholder="Confirmação de senha"
-            value={confirmacaoSenha}
-            onChange={(event) => setConfirmarSenha(event.target.value)}
-          />
+          <C.PasswordRow>
+            <Input
+              type={exibirConfirmacaoSenha ? "text" : "password"}
+              placeholder="Confirmação de senha"
+              value={confirmacaoSenha}
+              onChange={(event) => setConfirmarSenha(event.target.value)}
+            />
+            <button
+              type="button"
+              aria-label={exibirConfirmacaoSenha ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'}
+              onClick={() => setExibirConfirmacaoSenha(!exibirConfirmacaoSenha)}
+            >
+              {exibirConfirmacaoSenha ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </C.PasswordRow>
 
         
 

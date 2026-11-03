@@ -12,20 +12,40 @@ require_once __DIR__ . "/registrarLog.php";
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
-    'samesite' => 'None'
+     'samesite' => 'None'
     
 ]);
-
 session_start();
 
-// Define contadores de tentativas e bloqueio para evitar brute force.
-if (!isset($_SESSION['tentativas_login'])) {
-    $_SESSION['tentativas_login'] = 0;
+// Mantém as falhas recentes na sessão para limitar tentativas de força bruta.
+if (!isset($_SESSION['tentativas_login_timestamps']) || !is_array($_SESSION['tentativas_login_timestamps'])) {
+    $_SESSION['tentativas_login_timestamps'] = [];
 }
 
 if (!isset($_SESSION['bloqueio_login'])) {
     $_SESSION['bloqueio_login'] = 0;
 }
+
+$agora = time();
+$_SESSION['tentativas_login_timestamps'] = array_values(array_filter(
+    $_SESSION['tentativas_login_timestamps'],
+    static fn ($timestamp) => is_int($timestamp) && $timestamp > $agora - 60 && $timestamp <= $agora
+));
+
+$registrarFalhaLogin = static function (): bool {
+    $agora = time();
+    $tentativas = $_SESSION['tentativas_login_timestamps'];
+    $tentativas[] = $agora;
+    $_SESSION['tentativas_login_timestamps'] = $tentativas;
+
+    if (count($tentativas) >= 5) {
+        $_SESSION['bloqueio_login'] = $agora + 60;
+        $_SESSION['tentativas_login_timestamps'] = [];
+        return true;
+    }
+
+    return false;
+};
 
 $_SESSION['ultima_atividade'] = time();
 
@@ -68,21 +88,8 @@ try {
         exit;
     }
 
-    // Conta cada tentativa para proteger contra ataques de força bruta.
-    $_SESSION['tentativas_login']++;
-
-    // Depois de 5 tentativas, bloqueia por 60 segundos.
-    if ($_SESSION['tentativas_login'] >= 5) {
-        $_SESSION['bloqueio_login'] = time() + 60;
-        $_SESSION['tentativas_login'] = 0;
-
-        http_response_code(429);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde 60 segundos."
-        ]);
-        exit;
+    if ($_SESSION['bloqueio_login'] > 0) {
+        $_SESSION['bloqueio_login'] = 0;
     }
 
     // Extrai os dados do formulário enviado pelo cliente.
@@ -123,10 +130,17 @@ try {
         "Tentativa de login com paciente não encontrado.",
         'pacientes',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
         'SECURITY'
     );
+
+    if ($registrarFalhaLogin()) {
+        http_response_code(429);
+        echo json_encode([
+            "success" => false,
+            "message" => "Muitas tentativas. Aguarde 60 segundos."
+        ]);
+        exit;
+    }
 
     http_response_code(401);
     echo json_encode([
@@ -136,8 +150,9 @@ try {
     exit;
 }
 
+$resendAPI = getenv('RESEND_API_KEY');
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha"])) {
+    if (!password_verify($senha, $usuario["senha_hash"])) {
          registrarLog(
         $pdo,
         $usuario['id'],
@@ -145,10 +160,19 @@ try {
         "O paciente chamado " . $usuario['nome_completo'] . " informou uma senha inválida.",
         'pacientes',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+      
         'SECURITY'
     );
+
+        if ($registrarFalhaLogin()) {
+            http_response_code(429);
+            echo json_encode([
+                "success" => false,
+                "message" => "Muitas tentativas. Aguarde 60 segundos."
+            ]);
+            exit;
+        }
+
         http_response_code(401);
         echo json_encode([
             "success" => false,
@@ -156,6 +180,9 @@ try {
         ]);
         exit;
     }
+
+    $_SESSION['tentativas_login_timestamps'] = [];
+    $_SESSION['bloqueio_login'] = 0;
     
     registrarLog(
     $pdo,
@@ -164,8 +191,7 @@ try {
     "O usuário " . $usuario['nome_completo'] . " iniciou o login e recebeu o código 2FA.",
     'pacientes',
     $_SERVER['REMOTE_ADDR'] ?? null,
-    $_SERVER['HTTP_USER_AGENT'] ?? null,
-    $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+
     'INFO'
 );
 
@@ -212,8 +238,8 @@ $resend = Resend::client($resendAPI);
 
 
 $resultado = $resend->emails->send([
+'from' => 'Continuum <seguranca@projcontinnum.com.br>',
 
-'from'=> 'Continuum <onboarding@resend.dev>',
 'to'=> [$email],
 "subject"=> 'Codigo de verificação',
 'html' => "
@@ -258,8 +284,7 @@ echo json_encode([
 
 "success" => true,
 "requires_2fa" => true ,
-"message" => "Código de verificação enviado para seu e-mail.",
-"codigo_teste" => $codigo
+"message" => "Código de verificação enviado para seu e-mail."
 
 
 ]);
@@ -270,6 +295,7 @@ exit;
 
 }catch (PDOException $e){
 
+error_log('Patient login database error: ' . $e->getMessage());
 
 http_response_code(500);
 
@@ -277,7 +303,7 @@ echo json_encode([
 
 
 "success" => false,
-"message" => $e->getMessage()
+"message" => "Não foi possível concluir o login."
 
 ]);
 exit;

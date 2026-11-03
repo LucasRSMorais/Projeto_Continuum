@@ -4,7 +4,7 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+     'samesite' => 'None'
 ]);
 
 session_start();
@@ -88,7 +88,7 @@ try {
     // Busca o usuário pelo email no banco e revoga o consentimento informado.
     // A ação é registrada para manter um histórico de eventos sensíveis.
    
-    $sql = "UPDATE pacientes SET  aceite_termo = 'nao'  WHERE email = :email";
+    $sql = "UPDATE pacientes SET  aceite_termo_uso= 'nao'  WHERE email = :email";
    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
@@ -101,6 +101,7 @@ if ($stmt->rowCount() > 0){
         $pdo,
         null,
         "REVOGACAO_CONSENTIMENTO",
+        "pacientes",
         "Consentimento revogado para o e-mail " . $email . "."
     );
 

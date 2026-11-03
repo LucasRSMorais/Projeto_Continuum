@@ -1,0 +1,12 @@
+.env
+.env.*
+.git
+.gitignore
+.gitattributes
+Dockerfile
+README*
+composer.json
+composer.lock
+test-db.php
+instruções
+var/log/*

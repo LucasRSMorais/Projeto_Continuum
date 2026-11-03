@@ -1,5 +1,10 @@
 <?php
 
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 // Script de diagnóstico para verificar rapidamente a conexão com o MySQL.
 require_once __DIR__ . "/config/database.php";
 

@@ -1,10 +1,8 @@
 <?php
 
-
-
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+   'samesite' => 'None'
 ]);
 
 session_start();
@@ -31,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/registrarLog.php";
 
 try {
     // Lê os dados enviados pelo frontend em JSON.
@@ -86,9 +85,8 @@ try {
     }
 
     // Busca o usuário pelo email no banco.
-   
     $sql = "SELECT * FROM pacientes WHERE email = :email LIMIT 1";
-   $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare($sql);
     $stmt->execute([':email' => $email]);
 
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -105,7 +103,7 @@ try {
     }
 
     // Verifica se a senha digitada corresponde ao hash salvo no banco.
-    if (!password_verify($senha, $usuario["senha"])) {
+    if (!password_verify($senha, $usuario["senha_hash"])) {
          
         http_response_code(401);
         echo json_encode([
@@ -116,26 +114,26 @@ try {
     }
 
 
-$sql = "DELETE FROM pacientes WHERE email = :email";
+    $pdo->beginTransaction();
 
+    $stmt = $pdo->prepare("DELETE FROM pacientes WHERE id = :id");
+    $stmt->execute([':id' => $usuario['id']]);
 
+    registrarLog(
+        $pdo,
+        null,
+        "EXCLUSAO_CONTA_PACIENTE",
+        "O paciente " . $usuario['nome_completo'] . " excluiu a própria conta.",
+        "pacientes",
+        $_SERVER['REMOTE_ADDR'] ?? null,
+        "SECURITY"
+    );
 
-$stmt = $pdo->prepare($sql);
-$stmt->execute([':email' => $usuario['email']]);
-
-
-
-
-   
-
-
-
-
+    $pdo->commit();
 
     echo json_encode([
         "success" => true,
-        "message" => "Conta deletada com sucesso.",
-        
+        "message" => "Conta deletada com sucesso."
     ]);
     exit;
 
@@ -153,6 +151,11 @@ $stmt->execute([':email' => $usuario['email']]);
     ]);
 
 } catch (PDOException $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+
+    error_log("Erro de banco de dados: " . $e->getMessage());
     // Caso ocorra algum erro de banco de dados.
     http_response_code(500);
     echo json_encode([

@@ -2,7 +2,7 @@
 
 // Página de cadastro de novos usuários.
 // Recebe dados do frontend, valida e salva o usuário no banco com senha criptografada.
-
+require_once __DIR__ . '/../vendor/autoload.php';
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
@@ -17,27 +17,107 @@ require_once __DIR__ . "/../config/database.php";
 try {
     // Lê os dados enviados em JSON pelo frontend.
     $dados = json_decode(file_get_contents("php://input"), true);
+    if (!is_array($dados)) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Corpo da requisição inválido."
+        ]);
+        exit;
+    }
+
     $nome = trim($dados["nome_completo"] ?? $dados["nome"] ?? "");
     $email = trim($dados["email"] ?? "");
-    $senha = $dados["senha"] ?? "";
+    $cpf = trim($dados["cpf"] ?? "");
+ 
     $dataNascimento = trim($dados["data_nascimento"] ?? "");
     $sexo = trim($dados["sexo"] ?? "");
     $etnia = trim($dados["etnia"] ?? "");
     $telefone = trim($dados["telefone"] ?? "");
     $aceiteTermo = strtolower(trim((string) ($dados["aceite_termo"] ?? "nao")));
-    $alergias = trim($dados["alergias"] ?? "");
+  
     $endereco = trim($dados["endereco"] ?? "");
     $fkMedicoId = isset($dados["fk_medic_id"]) ? (int) $dados["fk_medic_id"] : null;
 
     // Valida os campos obrigatórios do cadastro do paciente conforme o ER.
-    if ($nome === "" || $email === "" || $senha === "" || $dataNascimento === "" || $sexo === "" || $endereco === "" || $telefone==="") {
+    if ($nome === "" || $email === "" || $cpf === "" || $dataNascimento === "" || $sexo === "" || $telefone === "") {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Nome completo, e-mail, senha, data de nascimento, sexo e endereço são obrigatórios."
+            "message" => "Nome completo, e-mail, CPF, data de nascimento, sexo, telefone e endereço são obrigatórios."
         ]);
         exit;
     }
+
+  
+        $caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=';
+
+        $senha = '';
+        for ($i = 0; $i < 20; $i++) {
+            $senha .= $caracteres[random_int(0, strlen($caracteres) - 1)];
+        }
+
+
+
+
+            $resendAPI = getenv('RESEND_API_KEY');
+
+
+
+if (!$resendAPI){
+
+
+http_response_code(500);
+
+echo json_encode([
+    "success" => false,
+    "message" => "Configurando do resend não encontrada"
+]);
+
+
+exit;
+
+}
+
+try {
+$resend = Resend::client($resendAPI);
+$senhaHtml = htmlspecialchars($senha, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$resultado = $resend->emails->send([
+'from' => 'Continuum <seguranca@projcontinnum.com.br>',
+
+'to'=> [$email],
+"subject"=> 'Senha temporária',
+'html' => "
+<h1> Senha temporaria  </h1>
+<p>  Sua senha temporaria de login é   </p>
+
+<h2> Verificação de segurança  </h2>
+
+<h2>  Senha :   ($senhaHtml )  </h2>
+"
+]);
+
+
+}catch (Exception $emailError){
+
+error_log(
+
+'falha ao enviar o codigo 2FA'
+. $emailError->getMessage()
+
+);
+
+http_response_code(500);
+
+echo json_encode([
+    "success"=>false,
+    "message"=> "Não foi possível enviar o e-mail de cadastro."
+]);
+
+
+exit ;
+}
+
 
     // Verifica se o e-mail já existe antes de inserir um novo paciente.
     $consulta = $pdo->prepare(
@@ -79,53 +159,54 @@ try {
     // Insere os dados do paciente no banco de acordo com o ER definido.
     $sql = "
         INSERT INTO pacientes
-        (nome_completo, email, data_nascimento, sexo, etnia, senha, telefone, aceite_termo, alergias, endereco,  status)
+        (nome_completo, email, cpf, data_nascimento, sexo, etnia,  senha_hash, telefone,  aceite_termo_uso)
         VALUES
-        (:nome_completo, :email, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo, :alergias, :endereco,  :status)
+        (:nome_completo, :email, :cpf, :data_nascimento, :sexo, :etnia, :senha, :telefone, :aceite_termo)
     ";
 
     $consulta = $pdo->prepare($sql);
     $consulta->execute([
         "nome_completo" => $nome,
         "email" => $email,
+        "cpf" => $cpf,
         "data_nascimento" => $dataNascimento,
         "sexo" => $sexo,
         "etnia" => $etnia !== "" ? $etnia : null,
         "senha" => $senhaHash,
         "telefone" => $telefone !== "" ? $telefone : null,
         "aceite_termo" => $aceiteTermo,
-        "alergias" => $alergias !== "" ? $alergias : null,
-        "endereco" => $endereco,
+       
+        
         //"fk_medic_id" => $fkMedicoId,
-        "status" => true
+        
     ]);
+
 
     // Grava no log a criação do cadastro do paciente como evento de auditoria.
     require_once __DIR__ . "/registrarLog.php";
     registrarLog(
         $pdo,
-        $pdo->lastInsertId(),
-        "CADASTRO_PACIENTE_SUCESSO",
-        "Paciente " . $nome . " foi cadastrado com sucesso.",
-        'pacientes',
+        NULL , // Nenhum usuário logado no momento do cadastro do paciente.
+        "CADASTRO_PACIENTE",
+        "Paciente " . $nome . " foi cadastrado com sucesso." ,
+        "pacientes",
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
         'INFO'
     );
 
     http_response_code(201);
     echo json_encode([
         "success" => true,
-        "message" => "Dados  do paciente cadastrado com sucesso."
+        "message" => "Cadastro concluído. Senha temporária enviada para seu e-mail."
     ]);
 
 } catch (PDOException $e) {
     // Erro relacionado ao banco.
+    error_log('Patient registration database error: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => $e->getMessage()
+        "message" => "Erro ao realizar cadastro no banco de dados."
     ]);
 
 } catch (Exception $e) {

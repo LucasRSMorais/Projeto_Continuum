@@ -10,8 +10,8 @@ const MyGlobalStyle = createGlobalStyle`
   }
 
   body {
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    min-height: 100vh;
     background-color: #f5f5f5;
     font-family: 'Roboto', sans-serif;
   }

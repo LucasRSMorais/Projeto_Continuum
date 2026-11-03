@@ -4,7 +4,7 @@
 
 session_set_cookie_params([
     'httponly' => true,
-    'samesite' => 'Lax'
+     'samesite' => 'None'
 ]);
 
 session_start();
@@ -102,10 +102,9 @@ registrarLog(
         $_SESSION['usuario_id'],
         "SENHA_VALIDACAO_FALHA",
         "O usuário " . $nomeUsuario['nome_completo'] . " informou uma senha com menos de 6 caracteres.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+       
         'WARNING'
     );
 
@@ -139,10 +138,9 @@ registrarLog(
         $_SESSION['usuario_id'],
         "SENHA_ALTERADA",
         "O usuário " . $nomeUsuario['nome_completo'] . " realizou recuperação de senha com sucesso.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+        
         'INFO'
     );
 

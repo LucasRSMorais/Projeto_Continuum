@@ -6,7 +6,7 @@
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
-    'samesite' => 'None'
+     'samesite' => 'None'
 ]);
 
 session_start();
@@ -88,10 +88,9 @@ if (!password_verify($codigo, $_SESSION['2fa_codigo'])) {
         $_SESSION['2fa_usuario_id'],
         "2FA_FALHA",
         "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação incorretamente.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+     
         'SECURITY'
     );
 
@@ -110,10 +109,9 @@ registrarLog(
         $_SESSION['2fa_usuario_id'],
         "2FA_SUCESSO",
         "O usuário " . $_SESSION['2fa_nome'] . " informou um código de verificação corretamente.",
-        'usuarios',
+        'Medicos',
         $_SERVER['REMOTE_ADDR'] ?? null,
-        $_SERVER['HTTP_USER_AGENT'] ?? null,
-        $_SERVER['HTTP_X_REQUEST_ID'] ?? null,
+     
         'INFO'
     );
 

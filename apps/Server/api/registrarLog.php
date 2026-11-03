@@ -13,30 +13,27 @@ function registrarLog(
     $descricao,
     $tabelaAfetada = 'geral',
     $ipAddress = null,
-    $userAgent = null,
-    $requestId = null,
+    
     $severity = 'INFO'
 ) {
     $dataHora = date('Y-m-d H:i:s');
 
     $sql = "
         INSERT INTO logs_auditoria
-        (usuario_id, acao_realizada, tabela_afetada, data_hora, descricao, ip_address, user_agent, request_id, severity)
+        (id_usuario, acao_realizada, tabela_afetada, data_hora, descricao, ip_address, severidade)
         VALUES
-        (:usuario_id, :acao_realizada, :tabela_afetada, :data_hora, :descricao, :ip_address, :user_agent, :request_id, :severity)
+        (:id_usuario, :acao_realizada, :tabela_afetada, :data_hora, :descricao, :ip_address, :severidade)
     ";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
-        ':usuario_id' => $usuario_id,
+        ':id_usuario' => $usuario_id,
         ':acao_realizada' => $acao,
         ':tabela_afetada' => $tabelaAfetada,
         ':data_hora' => $dataHora,
         ':descricao' => $descricao,
         ':ip_address' => $ipAddress,
-        ':user_agent' => $userAgent,
-        ':request_id' => $requestId,
-        ':severity' => $severity,
+        ':severidade' => strtoupper($severity),
     ]);
 }
 

@@ -23,7 +23,6 @@ function LoginPacientes() {
   // e guarda o valor do código informado.
   const [requires2FA, setRequires2FA] = useState(false);
   const [codigo, setCodigo] = useState('');
-  const [codigoTeste, setCodigoTeste] = useState('');
 
   // Envia os dados de login para o backend.
   // Se a resposta indicar que o 2FA é obrigatório, a tela muda para a etapa de validação.
@@ -62,7 +61,6 @@ function LoginPacientes() {
 
       // Login correto, mas ainda precisa do 2FA
       if (data.requires_2fa) {
-        setCodigoTeste(data.codigo_teste);
         setRequires2FA(true);
         return;
       }
@@ -130,7 +128,7 @@ function LoginPacientes() {
             </p>
             {/* TEMPORÁRIO: apenas para testes */}
             <p>
-              Verifique na caixa de Email: <strong>{}</strong>
+              Verifique na caixa de Email: 
             </p>
             <Input
               type="text"
@@ -150,7 +148,6 @@ function LoginPacientes() {
           <p><button type="button" onClick={() => {
                 setRequires2FA(false);
                 setCodigo('');
-                setCodigoTeste('');
                 setError('');
               }}>Voltar
             </button></p>
@@ -192,7 +189,16 @@ function LoginPacientes() {
           <Button type="submit"> Login</Button>
         </C.Form>
 
-      
+                 <C.LabelFirstAcess>
+          Esqueceu a Senha?
+          <C.Strong>
+            <Link to="/recuperacao">{' '}Clique aqui</Link>
+            
+          </C.Strong>
+        </C.LabelFirstAcess>
+
+
+
         <C.LabelSignup>
           Criar uma conta
           <C.Strong>
