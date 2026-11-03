@@ -1,0 +1,43 @@
+
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  bearer-scan:
+    name: Bearer - Análise de Privacidade
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: Executar análise Bearer
+        uses: bearer/bearer-action@v2
+        with:
+          format: json
+          output: bearer-report.json
+          severity: critical,high
+
+      - name: Gerar relatório de privacidade LGPD
+        run: |
+          docker run --rm \
+            -v "$PWD:/tmp/scan:ro" \
+            bearer/bearer:latest-amd64 \
+            scan /tmp/scan \
+            --report privacy \
+            --format json > bearer-privacy-report.json
+
+      - name: Salvar relatório de privacidade
+        uses: actions/upload-artifact@v4
+        with:
+          name: bearer-privacy-report
+          path: bearer-privacy-report.json
+          if-no-files-found: error
