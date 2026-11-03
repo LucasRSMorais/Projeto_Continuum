@@ -118,16 +118,10 @@ CREATE TABLE pacientes (
     email VARCHAR(254) NULL, -- Inserido com base nos dados do seed
     cpf VARCHAR(11) NULL,
     data_nascimento DATE NULL,
-    sexo ENUM('masculino', 'feminino', 'nao_informado') NOT NULL DEFAULT 'nao_informado',
-    etnia ENUM(
-        'branca',
-        'preta',
-        'parda',
-        'amarela',
-        'indigena',
-        'nao_informada',
-        'outra'
-    ) NOT NULL,
+    -- Ciphertext requires VARCHAR; registration restricts plaintext to the
+    -- allowed sexo/etnia options before encrypting and storing it.
+    sexo VARCHAR(512) NOT NULL,
+    etnia VARCHAR(512) NOT NULL,
     senha_hash VARCHAR(255) NOT NULL,
 	alergias TEXT NULL,
     telefone VARCHAR(20) NULL,
