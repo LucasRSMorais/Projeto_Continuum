@@ -25,3 +25,18 @@ jobs:
           format: json
           output: bearer-report.json
           severity: critical,high
+
+      - name: Instalar Bearer CLI
+        run: |
+          curl -sfL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Gerar relatório de privacidade LGPD
+        run: |
+          bearer scan . --report privacy --format json --output bearer-privacy-report.json
+
+      - name: Salvar relatório de privacidade
+        uses: actions/upload-artifact@v4
+        with:
+          name: bearer-privacy-report
+          path: bearer-privacy-report.json
+          if-no-files-found: error
