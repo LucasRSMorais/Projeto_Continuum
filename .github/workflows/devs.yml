@@ -29,12 +29,11 @@ jobs:
       - name: Gerar relatório de privacidade LGPD
         run: |
           docker run --rm \
-            -v "$PWD:/tmp/scan" \
+            -v "$PWD:/tmp/scan:ro" \
             bearer/bearer:latest-amd64 \
             scan /tmp/scan \
             --report privacy \
-            --format json \
-            --output /tmp/scan/bearer-privacy-report.json
+            --format json > bearer-privacy-report.json
 
       - name: Salvar relatório de privacidade
         uses: actions/upload-artifact@v4
