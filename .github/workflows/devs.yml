@@ -1,0 +1,27 @@
+
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  bearer-scan:
+    name: Bearer - Análise de Privacidade
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: Executar análise Bearer
+        uses: bearer/bearer-action@v2
+        with:
+          format: json
+          output: bearer-report.json
+          severity: critical,high
