@@ -20,7 +20,7 @@ jobs:
               echo "Construindo  imagem docker da aplicação"
               docker build -t continuum:latest .
               echo "Subindo container em background na porta 8080"
-              docker run -d -p 8080:8080 continuum:latest
+              docker run -d --name app_container -p 8080:8080 continuum:latest
               echo "Aguardando a aplicação iniciar..."
               sleep 15
           - name: OWASP ZAP Scan
@@ -53,7 +53,7 @@ jobs:
               name: sbom-cyclonedx
               path: sbom.json
               retention-days: 30
-              
+
               
 
          
