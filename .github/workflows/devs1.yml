@@ -13,6 +13,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   devsecops-pipeline:
     name: DevSecOps Pipeline
@@ -57,7 +61,7 @@ jobs:
           docker compose --project-directory apps -f apps/docker-compose.yml logs
           exit 1
 
-    
+      # 2. OWASP ZAP - DAST
       - name: OWASP ZAP Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
@@ -73,13 +77,13 @@ jobs:
             -f apps/docker-compose.yml \
             down -v
 
-     
+      # 4. Bearer - análise de privacidade
       - name: Run Bearer Security Scanner
         uses: bearer/bearer-action@v2
         with:
           fail-on-severity: critical
 
- 
+      # 5. Trivy - geração do SBOM
       - name: Run Trivy SBOM Generator
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -88,7 +92,7 @@ jobs:
           format: cyclonedx
           output: sbom.json
 
-      
+      # 6. Upload do SBOM
       - name: Upload SBOM Artifact
         uses: actions/upload-artifact@v4
         with:
