@@ -1,3 +1,4 @@
+
 FROM php:8.2-apache
 
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
@@ -5,9 +6,8 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
     APACHE_LOG_DIR=/tmp/apache2/log
 
-
 RUN a2dismod mpm_event mpm_worker \
-    && && a2enmod mpm_prefork rewrite headers  \
+    && a2enmod mpm_prefork rewrite headers \
     && docker-php-ext-install pdo pdo_mysql mysqli \
     && sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' /etc/apache2/sites-available/000-default.conf \
