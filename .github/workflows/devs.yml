@@ -1,43 +1,60 @@
-
 name: DevSecOps Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
-
-permissions:
-  contents: read
+    branches: [ "main" ]
 
 jobs:
-  bearer-scan:
-    name: Bearer - Análise de Privacidade
-    runs-on: ubuntu-latest
+      devsecops-pipeline:
+        name: DevSecOps Pipeline
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Baixar o código do repositório
-        uses: actions/checkout@v4
+        steps:
+          - name: Checkout do repositório
+            uses: actions/checkout@v4
+            #1 . OWASP ZAP 
+          - name : Build and Run Application
+            run: |
+              echo "Construindo  imagem docker da aplicação"
+              docker build -t continuum:latest .
+              echo "Subindo container em background na porta 8080"
+              docker run -d -p 8080:8080 continuum:latest
+              echo "Aguardando a aplicação iniciar..."
+              sleep 15
+          - name: OWASP ZAP Scan
+            uses: zaproxy/action-baseline@v0.14.0
+            with:
+              target: 'http://localhost:8080'
+              failAction: 'true'
+          - name : Stop and clean up container
+            if: always()
+            run: |
+                docker stop app_container || true
+                docker rm app_container || true
+          # LGPD com Bearer 
+          - name : Run Bearer Security Scanner
+            uses: bearer/bearer-action@v2
+            with:
+              
+              fail-on-severity: 'critical'
+          #Trivy SCA Scan
+          - name: Run Trivy SBOM Generator
+            uses: aquasecurity/trivy-action@v0.28.0
+            with:
+              scan-type: 'fs'
+              format: 'cyclonedx'
+              output: 'sbom.json'
+              severity: 'HIGH,CRITICAL'
+          - name: Upload SBOM Artifact
+            uses: actions/upload-artifact@v4
+            with:
+              name: sbom-cyclonedx
+              path: sbom.json
+              retention-days: 30
+              
+              
 
-      - name: Executar análise Bearer
-        uses: bearer/bearer-action@v2
-        with:
-          format: json
-          output: bearer-report.json
-          severity: critical,high
-
-      - name: Gerar relatório de privacidade LGPD
-        run: |
-          docker run --rm \
-            -v "$PWD:/tmp/scan:ro" \
-            bearer/bearer:latest-amd64 \
-            scan /tmp/scan \
-            --report privacy \
-            --format json > bearer-privacy-report.json
-
-      - name: Salvar relatório de privacidade
-        uses: actions/upload-artifact@v4
-        with:
-          name: bearer-privacy-report
-          path: bearer-privacy-report.json
-          if-no-files-found: error
+         
+ 
