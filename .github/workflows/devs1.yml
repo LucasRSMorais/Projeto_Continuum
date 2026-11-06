@@ -1,0 +1,102 @@
+name: DevSecOps Pipeline
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+      - 'feature/**'
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  devsecops-pipeline:
+    name: DevSecOps Pipeline
+    runs-on: ubuntu-latest
+
+    env:
+      DB_ROOT_PASSWORD: ci-root-password
+      DB_APP_USER: continuum_user
+      DB_APP_PASSWORD: ci-app-password
+      DB_USER: continuum_user
+      DB_PASSWORD: ci-app-password
+      DB_NAME: railway
+      DB_HOST: db
+      APP_ENV: development
+      API_PUBLISHED_PORT: 8000
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      # 1. Build e inicialização da aplicação
+      - name: Build and Run Application
+        run: |
+          docker compose \
+            --project-directory apps \
+            -f apps/docker-compose.yml \
+            up -d --build
+
+          echo "Aguardando o backend iniciar..."
+
+          for i in {1..30}; do
+            if curl --silent --fail http://localhost:8000/; then
+              echo "Backend iniciado com sucesso!"
+              exit 0
+            fi
+
+            echo "Aguardando... tentativa $i"
+            sleep 5
+          done
+
+          echo "O backend não iniciou corretamente."
+          docker compose --project-directory apps -f apps/docker-compose.yml logs
+          exit 1
+
+      # 2. OWASP ZAP - DAST
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: 'http://localhost:8000'
+          rules_file_name: '.zap/rules.tsv'
+          fail_action: true
+
+      # 3. Limpeza dos containers
+      - name: Stop and clean up container
+        if: always()
+        run: |
+          docker compose \
+            --project-directory apps \
+            -f apps/docker-compose.yml \
+            down -v
+
+      # 4. Bearer - análise de privacidade
+      - name: Run Bearer Security Scanner
+        uses: bearer/bearer-action@v2
+        with:
+          severity: critical
+          exit-code: 1
+
+      # 5. Trivy - geração do SBOM
+      - name: Run Trivy SBOM Generator
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: cyclonedx
+          output: sbom.json
+
+      # 6. Upload do SBOM
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.json
+          retention-days: 30
