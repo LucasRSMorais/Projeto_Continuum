@@ -36,12 +36,11 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      # 1. Build e inicialização da aplicação
+      # 1. Build e inicialização da aplicação usando os arquivos na raiz
       - name: Build and Run Application
         run: |
           docker compose \
-            --project-directory apps \
-            -f apps/docker-compose.yml \
+            -f docker-compose.yml \
             up -d --build
 
           echo "Aguardando o backend iniciar..."
@@ -57,7 +56,7 @@ jobs:
           done
 
           echo "O backend não iniciou corretamente."
-          docker compose --project-directory apps -f apps/docker-compose.yml logs
+          docker compose logs
           exit 1
 
       # 2. OWASP ZAP - DAST
@@ -73,8 +72,7 @@ jobs:
         if: always()
         run: |
           docker compose \
-            --project-directory apps \
-            -f apps/docker-compose.yml \
+            -f docker-compose.yml \
             down -v
 
       # 4. Bearer - análise de privacidade
