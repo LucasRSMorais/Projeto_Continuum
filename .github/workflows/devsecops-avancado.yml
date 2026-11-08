@@ -1,13 +1,11 @@
-name: DevSecOps Pipeline
+name: DevSecOps Avançado
 
 on:
   workflow_dispatch:
-
   push:
     branches:
       - main
       - 'feature/**'
-
   pull_request:
     branches:
       - main
@@ -17,10 +15,10 @@ permissions:
   issues: write
 
 jobs:
-  devsecops-pipeline:
-    name: DevSecOps Pipeline
+  # 1. Job de Testes Dinâmicos (DAST com OWASP ZAP)
+  dast-scan:
+    name: DAST - OWASP ZAP
     runs-on: ubuntu-latest
-
     env:
       DB_ROOT_PASSWORD: ci-root-password
       DB_APP_USER: continuum_user
@@ -36,30 +34,22 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      # 1. Build e inicialização da aplicação usando os arquivos na raiz
       - name: Build and Run Application
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            up -d --build
-
+          docker compose -f docker-compose.yml up -d --build
           echo "Aguardando o backend iniciar..."
-
           for i in {1..30}; do
             if curl --silent --fail http://localhost:8000/; then
               echo "Backend iniciado com sucesso!"
               exit 0
             fi
-
             echo "Aguardando... tentativa $i"
             sleep 5
           done
-
           echo "O backend não iniciou corretamente."
           docker compose logs
           exit 1
 
-      # 2. OWASP ZAP - DAST
       - name: OWASP ZAP Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
@@ -67,22 +57,33 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           fail_action: true
 
-      # 3. Limpeza dos containers
       - name: Stop and clean up container
         if: always()
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            down -v
+          docker compose -f docker-compose.yml down -v
 
-      # 4. Bearer - análise de privacidade
+  # 2. Job de Privacidade e Dados Sensíveis (Bearer)
+  privacy-scan:
+    name: Privacy - Bearer Scanner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
       - name: Run Bearer Security Scanner
         uses: bearer/bearer-action@v2
         with:
           severity: critical
           exit-code: 1
 
-      # 5. Trivy - geração do SBOM
+  # 3. Job de Cadeia de Suprimentos (Trivy SBOM)
+  supply-chain:
+    name: Supply Chain - Trivy SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
       - name: Run Trivy SBOM Generator
         uses: aquasecurity/trivy-action@v0.36.0
         with:
@@ -91,7 +92,6 @@ jobs:
           format: cyclonedx
           output: sbom.json
 
-      # 6. Upload do SBOM
       - name: Upload SBOM Artifact
         uses: actions/upload-artifact@v4
         with:
