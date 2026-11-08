@@ -1,5 +1,6 @@
 FROM php:8.2-apache
 
+# Define variáveis de diretório do Apache
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_LOCK_DIR=/tmp/apache2/lock \
     APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
@@ -22,6 +23,7 @@ RUN mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
     && chown -R www-data:www-data /var/www/html /tmp/apache2
 
 EXPOSE 8080
+
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
