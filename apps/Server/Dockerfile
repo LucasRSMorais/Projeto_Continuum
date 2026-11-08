@@ -1,4 +1,3 @@
-
 FROM php:8.2-apache
 
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
@@ -23,8 +22,6 @@ RUN a2enconf docker-security \
     && sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh \
     && chown -R www-data:www-data /var/www/html
-
-USER www-data
 
 EXPOSE 8080
 
