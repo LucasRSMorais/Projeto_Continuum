@@ -16,11 +16,15 @@ RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
     && docker-php-ext-install pdo pdo_mysql mysqli
 
 
+
+
 # Configura cabeçalhos HTTP de segurança
 RUN printf '%s\n' \
     'Header always set X-Content-Type-Options "nosniff"' \
     'Header always set X-Frame-Options "SAMEORIGIN"' \
     'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"' \
+    "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https://development-continuum.up.railway.app https://dev-projcontinuum.up.railway.app; object-src 'none'; base-uri 'self'; frame-ancestors 'self'\"" \
+    'Header always set Cross-Origin-Embedder-Policy "require-corp"' \
     > /etc/apache2/conf-available/security-headers.conf \
     && a2enconf security-headers
 
