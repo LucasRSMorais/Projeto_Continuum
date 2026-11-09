@@ -37,7 +37,6 @@ services:
       - no-new-privileges:true
     read_only: true
     ports:
-      # Development API only; bind to loopback instead of exposing it to the network.
       - "127.0.0.1:${API_PUBLISHED_PORT:-8000}:8080"
     environment:
       APP_ENV: ${APP_ENV:-development}
