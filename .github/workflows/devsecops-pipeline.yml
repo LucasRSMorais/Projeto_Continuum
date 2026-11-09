@@ -1,3 +1,4 @@
+
 name: DevSecOps Pipeline
 
 on:
@@ -7,6 +8,7 @@ on:
     branches:
       - main
       - 'feature/**'
+      - teste-devsecops-avancado
 
   pull_request:
     branches:
@@ -28,8 +30,6 @@ jobs:
         uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85
         with:
           path: ./
-          # O TruffleHog identifica automaticamente os commits
-          # de acordo com o evento push ou pull_request.
           extra_args: --results=verified,unknown
 
   # 2. Análise de Dependências (SCA) com Trivy
@@ -76,6 +76,14 @@ jobs:
             --verbose \
             --output=semgrep_results.sarif \
             --error
+
+      - name: Diagnóstico detalhado Semgrep
+        if: always()
+        run: |
+          semgrep scan \
+            --config auto \
+            --severity ERROR \
+            --text
 
       - name: Upload do relatório SARIF para o GitHub
         uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98
