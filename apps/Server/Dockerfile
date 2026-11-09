@@ -15,6 +15,27 @@ RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
     && a2enmod mpm_prefork rewrite headers \
     && docker-php-ext-install pdo pdo_mysql mysqli
 
+
+# Configura cabeçalhos HTTP de segurança
+RUN printf '%s\n' \
+    'Header always set X-Content-Type-Options "nosniff"' \
+    'Header always set X-Frame-Options "SAMEORIGIN"' \
+    'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"' \
+    > /etc/apache2/conf-available/security-headers.conf \
+    && a2enconf security-headers
+
+# Oculta a versão do PHP no cabeçalho HTTP
+RUN printf '%s\n' 'expose_php=Off' \
+    > /usr/local/etc/php/conf.d/security.ini
+
+# Reduz informações divulgadas pelo Apache
+RUN printf '%s\n' \
+    'ServerTokens Prod' \
+    'ServerSignature Off' \
+    > /etc/apache2/conf-available/security-hardening.conf \
+    && a2enconf security-hardening
+
+
 # Ajusta a porta padrão do Apache para 8080 (exigido pelo Railway)
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' /etc/apache2/sites-available/000-default.conf
