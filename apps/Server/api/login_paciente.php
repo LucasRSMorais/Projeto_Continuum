@@ -58,6 +58,141 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+// Mantém separadamente, por IP, o histórico de bloqueios da proteção por sessão.
+$ipCliente = $_SERVER['REMOTE_ADDR'] ?? '';
+if (!filter_var($ipCliente, FILTER_VALIDATE_IP)) {
+    error_log('Patient login IP rate limit error: endereço IP do cliente inválido.');
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Não foi possível concluir o login."
+    ]);
+    exit;
+}
+
+$atualizarEstadoIp = static function (bool $registrarBloqueio = false) use ($ipCliente): array {
+    $diretorio = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR)
+        . DIRECTORY_SEPARATOR . 'continuum_login_ip_limits';
+
+    if (!is_dir($diretorio) && !mkdir($diretorio, 0700, true) && !is_dir($diretorio)) {
+        throw new RuntimeException('Não foi possível criar o diretório do limite de login por IP.');
+    }
+
+    $arquivo = $diretorio . DIRECTORY_SEPARATOR . 'bloqueios.json';
+    $handle = fopen($arquivo, 'c+');
+    if ($handle === false) {
+        throw new RuntimeException('Não foi possível abrir o estado do limite de login por IP.');
+    }
+
+    try {
+        if (!flock($handle, LOCK_EX)) {
+            throw new RuntimeException('Não foi possível bloquear o estado do limite de login por IP.');
+        }
+
+        rewind($handle);
+        $conteudo = stream_get_contents($handle);
+        $estados = $conteudo === '' ? [] : json_decode($conteudo, true);
+        if (!is_array($estados)) {
+            throw new RuntimeException('O estado do limite de login por IP está inválido.');
+        }
+
+        $agora = time();
+        $chaveIp = hash('sha256', $ipCliente);
+        foreach ($estados as $chave => $estado) {
+            $estado = is_array($estado) ? $estado : [];
+            $bloqueiosRecentes = is_array($estado['bloqueios'] ?? null)
+                ? array_values(array_filter(
+                    $estado['bloqueios'],
+                    static fn ($timestamp) => is_int($timestamp) && $timestamp > $agora - 600 && $timestamp <= $agora
+                ))
+                : [];
+            $bloqueadoAte = is_int($estado['bloqueado_ate'] ?? null)
+                && $estado['bloqueado_ate'] > $agora
+                    ? $estado['bloqueado_ate']
+                    : 0;
+
+            if ($bloqueiosRecentes === [] && $bloqueadoAte === 0) {
+                unset($estados[$chave]);
+                continue;
+            }
+
+            $estados[$chave] = [
+                'bloqueios' => $bloqueiosRecentes,
+                'bloqueado_ate' => $bloqueadoAte
+            ];
+        }
+
+        if (!isset($estados[$chaveIp])) {
+            $estados[$chaveIp] = [
+                'bloqueios' => [],
+                'bloqueado_ate' => 0
+            ];
+        }
+
+        $novoBloqueio = false;
+        if ($registrarBloqueio) {
+            $estados[$chaveIp]['bloqueios'][] = $agora;
+            if (count($estados[$chaveIp]['bloqueios']) >= 3) {
+                $estados[$chaveIp]['bloqueado_ate'] = $agora + (15 * 60);
+                $estados[$chaveIp]['bloqueios'] = [];
+                $novoBloqueio = true;
+            }
+        }
+
+        rewind($handle);
+        if (!ftruncate($handle, 0)
+            || fwrite($handle, json_encode($estados)) === false
+            || !fflush($handle)
+        ) {
+            throw new RuntimeException('Não foi possível gravar o estado do limite de login por IP.');
+        }
+
+        return [
+            'bloqueado_ate' => $estados[$chaveIp]['bloqueado_ate'],
+            'novo_bloqueio' => $novoBloqueio
+        ];
+    } finally {
+        flock($handle, LOCK_UN);
+        fclose($handle);
+    }
+};
+
+$registrarBloqueioIp = static function () use ($atualizarEstadoIp): bool {
+    try {
+        $estadoIp = $atualizarEstadoIp(true);
+        return $estadoIp['novo_bloqueio'];
+    } catch (RuntimeException $e) {
+        error_log('Patient login IP rate limit error: ' . $e->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            "success" => false,
+            "message" => "Não foi possível concluir o login."
+        ]);
+        exit;
+    }
+};
+
+try {
+    $estadoIp = $atualizarEstadoIp();
+} catch (RuntimeException $e) {
+    error_log('Patient login IP rate limit error: ' . $e->getMessage());
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Não foi possível concluir o login."
+    ]);
+    exit;
+}
+
+if (time() < $estadoIp['bloqueado_ate']) {
+    http_response_code(429);
+    echo json_encode([
+        "success" => false,
+        "message" => "Houve um problema, tente novamente mais tarde"
+    ]);
+    exit;
+}
+
 // Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/registrarLog.php";
@@ -134,6 +269,15 @@ try {
     );
 
     if ($registrarFalhaLogin()) {
+        if ($registrarBloqueioIp()) {
+            http_response_code(429);
+            echo json_encode([
+                "success" => false,
+                "message" => "Houve um problema, tente novamente mais tarde"
+            ]);
+            exit;
+        }
+
         http_response_code(429);
         echo json_encode([
             "success" => false,
@@ -165,6 +309,15 @@ $resendAPI = getenv('RESEND_API_KEY');
     );
 
         if ($registrarFalhaLogin()) {
+            if ($registrarBloqueioIp()) {
+                http_response_code(429);
+                echo json_encode([
+                    "success" => false,
+                    "message" => "Houve um problema, tente novamente mais tarde"
+                ]);
+                exit;
+            }
+
             http_response_code(429);
             echo json_encode([
                 "success" => false,
