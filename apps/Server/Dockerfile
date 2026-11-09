@@ -19,14 +19,17 @@ RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
 
 
 # Configura cabeçalhos HTTP de segurança
+
+# Configura cabeçalhos HTTP de segurança
 RUN printf '%s\n' \
     'Header always set X-Content-Type-Options "nosniff"' \
     'Header always set X-Frame-Options "SAMEORIGIN"' \
     'Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"' \
-    "Header always set Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data: https:; connect-src 'self' https://development-continuum.up.railway.app https://dev-projcontinuum.up.railway.app; object-src 'none'; base-uri 'self'; frame-ancestors 'self'\"" \
-    'Header always set Cross-Origin-Embedder-Policy "require-corp"' \
+    'Header always set Content-Security-Policy "default-src '\''self'\''; script-src '\''self'\''; style-src '\''self'\'' '\''unsafe-inline'\''; img-src '\''self'\'' data: https:; font-src '\''self'\'' data: https:; connect-src '\''self'\'' https://development-continuum.up.railway.app https://dev-projcontinuum.up.railway.app; object-src '\''none'\''; base-uri '\''self'\''; form-action '\''self'\''; frame-ancestors '\''self'\''"' \
+    'Header always set Cross-Origin-Opener-Policy "same-origin"' \
     > /etc/apache2/conf-available/security-headers.conf \
     && a2enconf security-headers
+
 
 # Oculta a versão do PHP no cabeçalho HTTP
 RUN printf '%s\n' 'expose_php=Off' \
