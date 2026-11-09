@@ -73,6 +73,7 @@ jobs:
             --config auto \
             --severity ERROR \
             --sarif \
+            --verbose \
             --output=semgrep_results.sarif \
             --error
 
