@@ -5,10 +5,13 @@ on:
   push:
     branches:
       - main
+      - development
       - 'feature/**'
+      - 'teste-devsecops/avancado'
   pull_request:
     branches:
       - main
+      - development
 
 permissions:
   contents: read
