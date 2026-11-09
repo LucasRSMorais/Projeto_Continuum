@@ -74,7 +74,7 @@ jobs:
             --severity ERROR \
             --sarif \
             --verbose \
-            --output=semgrep_results.sarif \
+            --output=/tmp/semgrep_results.sarif \
             --error
 
       - name: Diagnóstico detalhado Semgrep
@@ -89,5 +89,5 @@ jobs:
         uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98
         if: always() && hashFiles('semgrep_results.sarif') != ''
         with:
-          sarif_file: semgrep_results.sarif
+          sarif_file: /tmp/semgrep_results.sarif
           category: "semgrep-php-js"
