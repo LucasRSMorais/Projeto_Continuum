@@ -135,6 +135,8 @@ CREATE TABLE pacientes (
 CREATE TABLE enderecos (
     id INT NOT NULL AUTO_INCREMENT,
     id_paciente INT NULL,
+    rua VARCHAR(150) NULL,
+    numero VARCHAR(20) NULL,
     cep VARCHAR(8) NOT NULL,
     cidade VARCHAR(100) NOT NULL,
     estado VARCHAR(100) NOT NULL,

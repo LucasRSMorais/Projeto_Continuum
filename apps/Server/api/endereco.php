@@ -52,11 +52,12 @@ if (!is_array($dados)) {
     $estado = trim($dados["estado"] ?? "");
     $rua = trim($dados["rua"] ?? "");
     $numero = trim($dados["numero"] ?? "");
+    $pais = trim($dados["pais"] ?? "Brasil");
 
 
 
     // Valida os campos obrigatórios do cadastro do paciente conforme o ER.
-    if ($cep === "" || $cidade === "" || $estado === "" || $rua === "" || $numero === "") {
+    if ($cep === "" || $cidade === "" || $estado === "" || $rua === "" || $numero === "" || $pais === "") {
         http_response_code(400);
         echo json_encode([
             "success" => false,
@@ -112,7 +113,7 @@ $consulta->execute([
         exit;
     }
 
-$sql = "INSERT INTO enderecos (id_paciente, cep, cidade, estado, rua, numero) VALUES (:id_paciente, :cep, :cidade, :estado, :rua, :numero)";
+$sql = "INSERT INTO enderecos (id_paciente, cep, cidade, estado, rua, numero, pais) VALUES (:id_paciente, :cep, :cidade, :estado, :rua, :numero, :pais)";
 $consulta = $pdo->prepare($sql);
 
 
@@ -122,7 +123,8 @@ $consulta->execute([
         "cidade" => $cidade,
         "estado" => $estado,
         "rua" => $rua,
-        "numero" => $numero
+        "numero" => $numero,
+        "pais" => $pais
     ]);
 
 
