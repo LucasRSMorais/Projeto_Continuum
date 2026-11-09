@@ -36,7 +36,7 @@ jobs:
 
       - name: Build and Run Application
         run: |
-          docker compose -f docker-compose.yml up -d --build
+          docker compose -f apps/Server/docker-compose.yml up -d --build
           echo "Aguardando o backend iniciar..."
           for i in {1..30}; do
             if curl --silent --fail http://localhost:8000/; then
@@ -47,7 +47,7 @@ jobs:
             sleep 5
           done
           echo "O backend não iniciou corretamente."
-          docker compose logs
+          docker compose -f apps/Server/docker-compose.yml logs
           exit 1
 
       - name: OWASP ZAP Scan
@@ -60,7 +60,7 @@ jobs:
       - name: Stop and clean up container
         if: always()
         run: |
-          docker compose -f docker-compose.yml down -v
+          docker compose -f apps/Server/docker-compose.yml down -v
 
   # 2. Job de Privacidade e Dados Sensíveis (Bearer)
   privacy-scan:
