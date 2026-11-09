@@ -60,7 +60,7 @@ jobs:
       - name: Stop and clean up container
         if: always()
         run: |
-          docker compose -f apps/Server/docker-compose.yml down -v
+          docker compose -f apps/docker-compose.yml down -v
 
   # 2. Job de Privacidade e Dados Sensíveis (Bearer)
   privacy-scan:
