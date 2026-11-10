@@ -29,4 +29,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
+COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
+RUN a2enconf docker-security
+
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
