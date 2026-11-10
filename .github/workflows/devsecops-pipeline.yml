@@ -28,8 +28,6 @@ jobs:
         uses: trufflesecurity/trufflehog@4dd8831c5f12599465d4d45c3c447b4018a34c85
         with:
           path: ./
-          # O TruffleHog identifica automaticamente os commits
-          # de acordo com o evento push ou pull_request.
           extra_args: --results=verified,unknown
 
   # 2. Análise de Dependências (SCA) com Trivy
@@ -66,6 +64,15 @@ jobs:
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Exibir detalhes do finding Semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --severity ERROR \
+            --json \
+            --output=semgrep-findings.json || true
+          cat semgrep-findings.json
 
       - name: Executar Análise Semgrep
         run: |
