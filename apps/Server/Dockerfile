@@ -1,6 +1,7 @@
+
 #FROM php:8.2-apache
 
-FROM php:8.4-apache
+FROM php:8.2-apache
 
 RUN printf '%s\n' 'expose_php=Off' > /usr/local/etc/php/conf.d/zzzz-security.ini
 
@@ -8,7 +9,9 @@ RUN printf '%s\n' 'expose_php=Off' > /usr/local/etc/php/conf.d/zzzz-security.ini
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_LOCK_DIR=/tmp/apache2/lock \
     APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
-    APACHE_LOG_DIR=/tmp/apache2/log
+    APACHE_LOG_DIR=/tmp/apache2/log \
+    APACHE_RUN_USER=www-data \
+    APACHE_RUN_GROUP=www-data
 
 # Remove forçadamente todos os MPMs conflitantes e ativa o prefork com as extensões essenciais
 RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
@@ -26,9 +29,9 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
 # Copia os arquivos da aplicação para o diretório web do Apache
 COPY . /var/www/html/
 
-# Cria usuário não-root e ajusta permissões
-RUN groupadd -r app && useradd -r -g app -d /var/www -s /usr/sbin/nologin app \
-    && chown -R app:app /var/www/html /tmp/apache2
+# Ajusta permissões sem elevar o processo do container
+RUN mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
+    && chown -R www-data:www-data /var/www/html /tmp/apache2
 
 EXPOSE 8080
 
@@ -40,6 +43,6 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security
 
-USER app
+USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
