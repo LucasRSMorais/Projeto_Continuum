@@ -304,15 +304,13 @@ try {
             plantaoFailure($pdo, 400, 'Descreva a passagem do plantão (até 5.000 caracteres).');
         }
 
-        $usuarioSet = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
-        $usuarioSet->execute([
-            'usuario_id' => (int) $actorId,
-        ]);
+        $setUserId = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
+        $setUserId->bindValue(':usuario_id', (int) $actorId, PDO::PARAM_INT);
+        $setUserId->execute();
 
-        $ipStatement = $pdo->prepare('SET @continuum_ip_address = :ip');
-        $ipStatement->execute([
-            'ip' => $ip ?? '',
-        ]);
+        $setIp = $pdo->prepare('SET @continuum_ip_address = :ip');
+        $setIp->bindValue(':ip', (string) ($ip ?? ''), PDO::PARAM_STR);
+        $setIp->execute();
 
         $eventQuery = $pdo->prepare("
             INSERT INTO eventos_adversos
@@ -370,15 +368,10 @@ try {
             $ip
         );
 
-        $usuarioSet = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
-        $usuarioSet->execute([
-            'usuario_id' => (int) $actorId,
-                    ]);
-
-        $ipStatement = $pdo->prepare('SET @continuum_ip_address = :ip');
-        $ipStatement->execute([
-                'ip' => $ip ?? '',
-                ]);
+        $clearAuditContext = $pdo->prepare(
+            'SET @continuum_usuario_id = NULL, @continuum_ip_address = NULL'
+        );
+        $clearAuditContext->execute();
 
         $pdo->commit();
         plantaoRespond(200, [
