@@ -18,6 +18,21 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
+
+
+RUN set -eux; \
+    a2dismod -f mpm_event mpm_worker || true; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf; \
+    a2enmod mpm_prefork rewrite headers; \
+    apache2ctl -M 2>&1 | tee /tmp/apache-modules.txt; \
+    test "$(grep -Ec 'mpm_(event|worker|prefork)_module' /tmp/apache-modules.txt)" -eq 1; \
+    grep -q 'mpm_prefork_module' /tmp/apache-modules.txt; \
+    docker-php-ext-install pdo pdo_mysql mysqli
+
+
 # Remove forçadamente todos os MPMs conflitantes e ativa o prefork com as extensões essenciais
 RUN rm -f /etc/apache2/mods-enabled/mpm_event.load \
     && rm -f /etc/apache2/mods-enabled/mpm_event.conf \
