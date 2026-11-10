@@ -44,6 +44,5 @@ RUN a2enconf docker-security; \
     printf '%s\n' "$modules" | grep -q 'mpm_prefork_module'
 
 EXPOSE 8080
-
-USER root
+USER www-data
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
