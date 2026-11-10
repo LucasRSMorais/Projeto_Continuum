@@ -1,132 +1,152 @@
 <?php
 
-header('Content-Type: application/json; charset=UTF-8');
+// Página responsável por verificar se o usuário está autenticado.
+// Também controla a expiração da sessão após 30 minutos de inatividade.
+require_once __DIR__ . "/../config/database.php";
+require_once __DIR__ . "/../config/patient_data_encryption.php";
 
-require_once __DIR__ . '/../config/cors.php';
-applyCorsHeaders();
 
-if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
+
+
+
+
+
+
 
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
-    'samesite' => 'None',
+    'samesite' => 'None'
 ]);
 
 session_start();
 
-// Expira a sessão após 30 minutos sem atividade.
-$tempoExpiracao = 30 * 60;
-$ultimaAtividade = filter_var(
-    $_SESSION['ultima_atividade'] ?? null,
-    FILTER_VALIDATE_INT
-);
+// Define o tempo máximo permitido sem atividade do usuário.
+// Isso protege contra sessões abertas por muito tempo sem uso real.
+$tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
 
+// Se o tempo de inatividade excedeu o limite, apaga os dados da sessão no servidor.
+// Em seguida, a API responde 401 para indicar que o usuário precisa autenticar novamente.
 if (
-    $ultimaAtividade !== false
-    && $ultimaAtividade !== null
-    && time() - $ultimaAtividade > $tempoExpiracao
+    isset($_SESSION['ultima_atividade']) &&
+    time() - $_SESSION['ultima_atividade'] > $tempoExpiracao
 ) {
     $_SESSION = [];
     session_destroy();
-
     http_response_code(401);
     echo json_encode([
-        'success' => false,
-        'authenticated' => false,
-        'message' => 'Sessão expirada.',
+        "success" => false,
+        "authenticated" => false,
+        "message" => "Sessão expirada."
     ]);
     exit;
 }
 
-// Valida o identificador antes de utilizá-lo em consultas ao banco.
-$usuarioId = filter_var(
-    $_SESSION['usuario_id'] ?? null,
-    FILTER_VALIDATE_INT
-);
-
-if ($usuarioId === false || $usuarioId === null || $usuarioId < 1) {
-    http_response_code(401);
-    echo json_encode([
-        'success' => false,
-        'authenticated' => false,
-        'message' => 'Usuário não autenticado.',
-    ]);
-    exit;
-}
-
+// Atualiza a marca de atividade somente depois de verificar que ela não expirou.
 $_SESSION['ultima_atividade'] = time();
 
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../config/patient_data_encryption.php';
+header("Content-Type: application/json; charset=UTF-8");
+require_once __DIR__ . "/../config/cors.php";
+applyCorsHeaders();
 
-try {
-    $stmtPaciente = $pdo->prepare(
-        'SELECT cpf, telefone, data_nascimento, sexo, aceite_termo_uso
-         FROM pacientes
-         WHERE id = :id
-         LIMIT 1'
-    );
-    $stmtPaciente->bindValue(':id', $usuarioId, PDO::PARAM_INT);
-    $stmtPaciente->execute();
-    $paciente = $stmtPaciente->fetch(PDO::FETCH_ASSOC);
-
-    $stmtEndereco = $pdo->prepare(
-        "SELECT rua, cidade, estado, pais, cep
-         FROM enderecos
-         WHERE id_paciente = :id
-           AND status = 'ativo'
-         ORDER BY id DESC
-         LIMIT 1"
-    );
-    $stmtEndereco->bindValue(':id', $usuarioId, PDO::PARAM_INT);
-    $stmtEndereco->execute();
-    $endereco = $stmtEndereco->fetch(PDO::FETCH_ASSOC);
-
-    $stmtConsentimento = $pdo->prepare(
-        "SELECT data_hora
-         FROM logs_auditoria
-         WHERE id_usuario = :id
-           AND acao_realizada = 'CADASTRO_PACIENTE'
-           AND tabela_afetada = 'pacientes'
-         ORDER BY data_hora ASC
-         LIMIT 1"
-    );
-    $stmtConsentimento->bindValue(':id', $usuarioId, PDO::PARAM_INT);
-    $stmtConsentimento->execute();
-    $dataCadastro = $stmtConsentimento->fetchColumn();
-
-    $sexo = null;
-    if (is_array($paciente) && isset($paciente['sexo'])) {
-        $sexo = decryptPatientSensitiveValue($paciente['sexo']);
-    }
-
-    echo json_encode([
-        'success' => true,
-        'authenticated' => true,
-        'usuario' => [
-            'id' => $usuarioId,
-            'nome' => $_SESSION['nome'] ?? null,
-            'email' => $_SESSION['email'] ?? null,
-            'cpf' => $paciente['cpf'] ?? null,
-            'telefone' => $paciente['telefone'] ?? null,
-            'dataNascimento' => $paciente['data_nascimento'] ?? null,
-            'sexo' => $sexo,
-            'endereco' => $endereco ?: null,
-            'data' => $dataCadastro ?: null,
-            'aceite_termo_uso' => $paciente['aceite_termo_uso'] ?? null,
-        ],
-    ]);
-} catch (Throwable $error) {
-    error_log('Session API failed: ' . $error->getMessage());
-
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'authenticated' => false,
-        'message' => 'Não foi possível verificar a sessão.',
-    ]);
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
 }
+
+// Se o usuário ainda não estiver autenticado, responde 401.
+if (!isset($_SESSION['usuario_id'])) {
+    http_response_code(401);
+    
+    echo json_encode([
+        "success" => false,
+        "authenticated" => false,
+        "message" => "Usuário não autenticado."
+    ]);
+    exit;
+}
+
+
+
+
+// Complementa os dados básicos da sessão com informações do cadastro do paciente.
+// A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
+// aceitar um identificador de usuário fornecido pelo cliente.
+$stmt = $pdo -> prepare(
+"SELECT cpf, telefone, data_nascimento, sexo, aceite_termo_uso FROM pacientes WHERE id = :id"
+
+);
+
+
+$stmt->execute(
+
+
+[
+
+
+':id' => $_SESSION ['usuario_id']
+
+]
+
+);
+
+
+$paciente = $stmt -> fetch(PDO::FETCH_ASSOC);
+
+$stmtEndereco = $pdo->prepare(
+    "SELECT rua, cidade, estado, pais, cep
+     FROM enderecos
+     WHERE id_paciente = :id AND status = 'ativo'
+     ORDER BY id DESC
+     LIMIT 1"
+);
+$stmtEndereco->execute([
+    ':id' => $_SESSION['usuario_id']
+]);
+$endereco = $stmtEndereco->fetch(PDO::FETCH_ASSOC);
+
+
+
+
+// Recupera o primeiro registro de auditoria do cadastro para expor a data
+// associada ao consentimento/cadastro apresentado no perfil do titular.
+$stmtConsetimento = $pdo->prepare(
+
+
+"SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1
+"
+);
+
+
+
+$stmtConsetimento-> execute([
+
+':id' => $_SESSION ['usuario_id']
+
+
+]);
+
+$data_cadastro = $stmtConsetimento-> fetchColumn();
+
+
+
+// Retorna somente os campos usados pelo frontend; dados internos da sessão
+// e credenciais (como hashes de senha) não são incluídos na resposta.
+echo json_encode([
+    "success" => true,
+    "authenticated" => true,
+    "usuario" => [
+        "id" => $_SESSION['usuario_id'],
+        "nome" => $_SESSION['nome'],
+        "email" => $_SESSION['email'],
+        "cpf" => $paciente ['cpf'] ?? null,
+        "telefone" => $paciente ['telefone']?? null ,
+        "dataNascimento" => $paciente ['data_nascimento'] ?? null,
+        "sexo" => isset($paciente['sexo']) ? decryptPatientSensitiveValue($paciente['sexo']) : null,
+        "endereco" => $endereco ?: null,
+          "data" => $data_cadastro ?: null ,
+          "aceite_termo_uso" => $paciente ['aceite_termo_uso'] ?? null
+        
+        
+    ]
+]);
