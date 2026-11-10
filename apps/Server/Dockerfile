@@ -12,28 +12,23 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# Cria os diretórios antes de validar o Apache e habilita somente o MPM prefork.
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     printf '%s\n' 'ServerName localhost' \
         > /etc/apache2/conf-available/servername.conf; \
     a2dismod -f mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf; \
+    rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf; \
     a2enmod mpm_prefork rewrite headers; \
     a2enconf servername; \
     docker-php-ext-install pdo pdo_mysql mysqli
 
-# Configura a porta usada pelo Railway e pelo Docker Compose.
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
        /etc/apache2/sites-available/000-default.conf
 
 COPY . /var/www/html/
 
-# Prepara permissões e diretórios temporários.
 RUN chown -R www-data:www-data /var/www/html /tmp/apache2
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
@@ -41,10 +36,7 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
-
-# Valida a configuração e confirma que somente prefork está carregado.
-RUN set -eux; \
-    a2enconf docker-security; \
+RUN a2enconf docker-security; \
     apache2ctl -t; \
     modules="$(apache2ctl -M 2>&1)"; \
     printf '%s\n' "$modules"; \
@@ -52,7 +44,5 @@ RUN set -eux; \
     printf '%s\n' "$modules" | grep -q 'mpm_prefork_module'
 
 EXPOSE 8080
-
 USER www-data
-
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
