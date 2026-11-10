@@ -4,6 +4,10 @@
 // Quando o frontend chama este endpoint, a sessão é limpa e o cookie é invalidado.
 
 session_set_cookie_params([
+    'lifetime' => 1800,
+    'path' => '/',
+    'domain' => '',
+    'secure' => true,
     'httponly' => true,
     'samesite' => 'Lax'
 ]);
