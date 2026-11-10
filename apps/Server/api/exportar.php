@@ -111,7 +111,7 @@ try {
 
 // o arquivo sera baixado em formato txt
 
-header("Content-Type : text/plain; charset=UTF-8");
+header("Content-Type: text/plain; charset=UTF-8");
 header("Content-Disposition: attachment; filename=exportacao.txt");
 
 echo"Dados do TITULAR\n";
