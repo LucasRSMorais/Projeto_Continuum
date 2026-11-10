@@ -26,6 +26,10 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
 # Copia os arquivos da aplicação para o diretório web do Apache
 COPY . /var/www/html/
 
+# Cria usuário não-root e ajusta permissões
+RUN groupadd -r app && useradd -r -g app -d /var/www -s /usr/sbin/nologin app \
+    && chown -R app:app /var/www/html /tmp/apache2
+
 EXPOSE 8080
 
 # Configura e prepara o script de inicialização (entrypoint)
@@ -35,5 +39,7 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security
+
+USER app
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
