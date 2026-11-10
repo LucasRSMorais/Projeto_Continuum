@@ -1,25 +1,12 @@
 <?php
-
-
+header("Content-Type: text/plain; charset=UTF-8");
 
 session_set_cookie_params([
     'httponly' => true,
-     'samesite' => 'None'
+    'secure' => true,
+    'samesite' => 'None'
 ]);
-
 session_start();
-
-// Define contadores de tentativas e bloqueio para evitar brute force.
-if (!isset($_SESSION['tentativas_login'])) {
-    $_SESSION['tentativas_login'] = 0;
-}
-
-if (!isset($_SESSION['bloqueio_login'])) {
-    $_SESSION['bloqueio_login'] = 0;
-}
-
-$_SESSION['ultima_atividade'] = time();
-
 
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
@@ -29,112 +16,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../config/patient_data_encryption.php";
 
+if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
+    http_response_code(401);
+    echo json_encode([
+        "success" => false,
+        "message" => "Sessão inválida."
+    ]);
+    exit;
+}
+
+$idPaciente = (int) $_SESSION['usuario_id'];
+
 try {
-    // Lê os dados enviados pelo frontend em JSON.
-    $dados = json_decode(
-        file_get_contents("php://input"),
-        true
-    );
+    $sql = "
+        SELECT nome_completo, telefone, email, sexo, etnia, data_nascimento
+        FROM pacientes
+        WHERE id = :id
+        LIMIT 1
+    ";
 
-    // Se o usuário ainda estiver bloqueado, nega o login temporariamente.
-    if (time() < $_SESSION['bloqueio_login']) {
-        $restante = $_SESSION['bloqueio_login'] - time();
-        http_response_code(429);
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde {$restante} segundos."
-        ]);
-        exit;
-    }
-
-    // Conta cada tentativa para proteger contra ataques de força bruta.
-    $_SESSION['tentativas_login']++;
-
-    // Depois de 5 tentativas, bloqueia por 60 segundos.
-    if ($_SESSION['tentativas_login'] >= 5) {
-        $_SESSION['bloqueio_login'] = time() + 60;
-        $_SESSION['tentativas_login'] = 0;
-
-        http_response_code(429);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde 60 segundos."
-        ]);
-        exit;
-    }
-
-    // Extrai os dados do formulário enviado pelo cliente.
-    $email = trim($_GET["email"] ?? "");
-    
-
-   
-
-    // Valida se email e senha não vieram vazios.
-    if ($email === "" ) {
-        header("Content-Type: application/json; charset=UTF-8");
-
-        http_response_code(400);
-        echo json_encode([
-            "success" => false,
-            "message" => "Email é obrigatório."
-        ]);
-        exit;
-    }
-
-    // Busca o usuário pelo email no banco.
-   
-      $sql = "SELECT nome_completo, telefone, email, sexo, etnia, data_nascimento FROM pacientes WHERE email = :email LIMIT 1";
-   $stmt = $pdo->prepare($sql);
-    $stmt->execute([':email' => $email]);
-
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $idPaciente
+    ]);
 
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
-          header("Content-Type: application/json; charset=UTF-8");
-        http_response_code(401);
-        echo json_encode([
-            "success" => false,
-            "message" => "Email ou senha inválidos."
-        ]);
+        http_response_code(404);
+        echo "Paciente não encontrado.\n";
         exit;
     }
 
-    $usuario['sexo'] = decryptPatientSensitiveValue($usuario['sexo']);
-    $usuario['etnia'] = decryptPatientSensitiveValue($usuario['etnia']);
+    $sexo = isset($usuario['sexo']) ? decryptPatientSensitiveValue($usuario['sexo']) : null;
+    $etnia = isset($usuario['etnia']) ? decryptPatientSensitiveValue($usuario['etnia']) : null;
 
-// o arquivo sera baixado em formato txt
-
-header("Content-Type: text/plain; charset=UTF-8");
-header("Content-Disposition: attachment; filename=exportacao.txt");
-
-echo"Dados do TITULAR\n";
-
-echo "Nome: {$usuario['nome_completo']}\n";
-echo "Email: {$usuario['email']}\n";
-echo "Telefone: {$usuario['telefone']}\n";
-echo "Sexo: {$usuario['sexo']}\n";
-echo "Etnia: {$usuario['etnia']}\n";
-echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
+    header("Content-Disposition: attachment; filename=exportacao.txt");
+    echo "Dados do TITULAR\n";
+    echo "Nome: {$usuario['nome_completo']}\n";
+    echo "Email: {$usuario['email']}\n";
+    echo "Telefone: {$usuario['telefone']}\n";
+    echo "Sexo: {$sexo}\n";
+    echo "Etnia: {$etnia}\n";
+    echo "Data de Nascimento: {$usuario['data_nascimento']}\n";
 
 } catch (PDOException $e) {
-    // Caso ocorra algum erro de banco de dados.
+    error_log('Exportar paciente failed: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Erro ao acessar o banco de dados."
-    ]);
-} catch (RuntimeException $e) {
-    error_log('Patient sensitive data decryption failed: ' . $e->getMessage());
+    echo "Erro ao exportar os dados.\n";
+} catch (Throwable $e) {
+    error_log('Exportar paciente exception: ' . $e->getMessage());
     http_response_code(500);
-    echo json_encode([
-        "success" => false,
-        "message" => "Não foi possível acessar os dados protegidos do paciente."
-    ]);
+    echo "Não foi possível exportar os dados.\n";
 }

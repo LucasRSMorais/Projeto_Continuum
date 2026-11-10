@@ -301,7 +301,9 @@ try {
             plantaoFailure($pdo, 400, 'Descreva a passagem do plantão (até 5.000 caracteres).');
         }
 
-        $pdo->exec('SET @continuum_usuario_id = ' . (int) $actorId);
+        $usuarioStatement = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
+        $usuarioStatement->bindValue(':usuario_id', (int) $actorId, PDO::PARAM_INT);
+        $usuarioStatement->execute();
         $ipStatement = $pdo->prepare('SET @continuum_ip_address = :ip');
         $ipStatement->execute(['ip' => $ip]);
 
