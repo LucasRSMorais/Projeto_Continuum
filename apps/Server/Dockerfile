@@ -32,7 +32,7 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
        /etc/apache2/sites-available/000-default.conf
 
-# Copia os arquivos da aplicação e ajusta as permissões
+# Copia todos os arquivos de dentro da pasta Server para a raiz do Apache
 COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html /tmp/apache2
 
@@ -41,7 +41,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Copia e habilita as configurações de segurança
+# Copia e habilita as configurações de segurança (ZAP headers)
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security \
     && apache2ctl -t
