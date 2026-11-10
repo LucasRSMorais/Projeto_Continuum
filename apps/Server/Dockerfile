@@ -14,21 +14,21 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
-    printf '%s\n' 'ServerName localhost' \
-        > /etc/apache2/conf-available/servername.conf; \
+    printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf; \
     a2dismod -f mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.* \
+          /etc/apache2/mods-enabled/mpm_worker.* \
+          /etc/apache2/mods-enabled/mpm_prefork.*; \
     a2enmod mpm_prefork rewrite headers; \
     a2enconf servername; \
-    docker-php-ext-install pdo pdo_mysql mysqli
+    docker-php-ext-install pdo pdo_mysql mysqli; \
+    apache2ctl -t
 
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
        /etc/apache2/sites-available/000-default.conf
 
 COPY . /var/www/html/
-
 RUN chown -R www-data:www-data /var/www/html /tmp/apache2
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
@@ -44,5 +44,5 @@ RUN a2enconf docker-security; \
     printf '%s\n' "$modules" | grep -q 'mpm_prefork_module'
 
 EXPOSE 8080
-USER www-data
+
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
