@@ -370,8 +370,15 @@ try {
             $ip
         );
 
-        $pdo->exec('SET @continuum_usuario_id = NULL');
-        $pdo->exec('SET @continuum_ip_address = NULL');
+        $usuarioSet = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
+        $usuarioSet->execute([
+            'usuario_id' => (int) $actorId,
+                    ]);
+
+        $ipStatement = $pdo->prepare('SET @continuum_ip_address = :ip');
+        $ipStatement->execute([
+                'ip' => $ip ?? '',
+                ]);
 
         $pdo->commit();
         plantaoRespond(200, [
