@@ -1,5 +1,10 @@
-#!/bin/sh
-set -eu
+echo "=== Módulos MPM habilitados ==="
+ls -l /etc/apache2/mods-enabled/mpm* || true
 
-mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+echo "=== Diretivas LoadModule MPM ==="
+grep -R "LoadModule mpm_" /etc/apache2 2>/dev/null || true
+
+echo "=== Configuração Apache ==="
+apache2ctl -M 2>&1 || true
+
 exec apache2-foreground
