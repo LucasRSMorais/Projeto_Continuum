@@ -1,4 +1,8 @@
-FROM php:8.2-apache
+#FROM php:8.2-apache
+
+FROM php:8.4-apache
+
+RUN printf '%s\n' 'expose_php=Off' > /usr/local/etc/php/conf.d/zzzz-security.ini
 
 # Define variáveis de diretório do Apache para evitar erros de permissão e PID
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
