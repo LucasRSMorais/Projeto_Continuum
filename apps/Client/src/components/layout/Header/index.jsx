@@ -9,6 +9,10 @@ import settingsIcon from '../../../assets/icons/setting.svg';
 import logoutIcon from '../../../assets/icons/logout.svg';
 import { useOutsideClick } from '../../../hooks/useOutsideClick';
 import handIcon from '../../../assets/icons/hand.svg';
+import { FcPrivacy } from "react-icons/fc";
+import { FcVoicePresentation } from "react-icons/fc";
+
+
 function Header() {
   const { isOpen, setIsOpen, ref } = useOutsideClick(false);
   const  {user} = useAuth();
@@ -49,20 +53,23 @@ function Header() {
                 {isOpen && (
                   <Dropdown>
                     <MenuSection>
-                      <span className="section-title">Conta</span>
+                      <span className="section-title">Usuário</span>
                       <ul>
-
-                           <MenuItem>
-                         <img src={handIcon} alt="" className="icon" />
-                         <span>Olá  {user?.nome || "Usuario"}  </span>
-                           </MenuItem>
-                        <MenuItem>
-                          <img src={humanIcon} alt="" className="icon" />
-                          <span><a href="/configuracao">Perfil</a></span>
+                          <MenuItem>
+                          <FcVoicePresentation alt="" className="icon" />
+                          <span>Olá, {user?.nome || 'Usuário'}</span>
                         </MenuItem>
                       </ul>
                     </MenuSection>
-                    
+                    <MenuSection>
+                      <span className="section-title">Conta</span>
+                      <ul>
+                        <MenuItem>
+                          <img src={humanIcon} alt="" className="icon" />
+                          <span><a href="/configuracao">Perfil</a></span>
+                        </MenuItem> 
+                      </ul>
+                    </MenuSection>
                     <MenuSection>
                       <span className="section-title">Configurações</span>
                       <ul>

@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
-mkdir -p "$APACHE_RUN_DIR" "$APACHE_LOCK_DIR" "$APACHE_LOG_DIR"
+mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+chown -R www-data:www-data /tmp/apache2
 
+apache2ctl -t
 exec apache2-foreground

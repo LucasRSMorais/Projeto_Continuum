@@ -2,7 +2,7 @@
 // O objetivo é manter a sessão do usuário em um único ponto e permitir
 // que qualquer tela do sistema verifique se o visitante está logado.
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { buildApiUrl } from '../../config/api';
 
 // Cria o contexto compartilhado entre telas e componentes.
@@ -31,6 +31,9 @@ const API_URL = buildApiUrl('');
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const updateUser = useCallback((updatedUser) => {
+        setUser((currentUser) => ({ ...currentUser, ...updatedUser }));
+    }, []);
 
     /**
      * Verifica no backend se o usuário continua autenticado.
@@ -80,8 +83,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const value = useMemo(
-        () => ({ user, logout, isAuthenticated: !!user, loading, checkSession }),
-        [user, loading]
+        () => ({ user, logout, isAuthenticated: !!user, loading, checkSession, updateUser }),
+        [user, loading, updateUser]
     );
 
     return (

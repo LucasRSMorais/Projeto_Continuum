@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../services/utils/auth';
 import { data, Link, useNavigate } from 'react-router-dom';
-import Button from '../../components/Button';
+import Button from '../../components/Buttons/Button';
 import Input from '../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';

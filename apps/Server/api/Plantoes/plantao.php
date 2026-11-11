@@ -100,6 +100,7 @@ function prepareCurrentPlantao(PDO $pdo, int $sectorId, array $window, ?int $act
                 'ip' => $ip,
                 'id' => $expiredShift['id'],
             ]);
+
             registrarLog(
                 $pdo,
                 $actorId,
@@ -278,6 +279,7 @@ try {
         if ($assignQuery->rowCount() !== 1) {
             plantaoFailure($pdo, 409, 'O plantão foi alterado por outra solicitação. Atualize a tela.');
         }
+
         registrarLog(
             $pdo,
             (int) $actorId,
@@ -295,15 +297,20 @@ try {
         if ((int) $shift['id_medico'] !== (int) $actorId) {
             plantaoFailure($pdo, 403, 'Somente o profissional que assumiu o plantão pode encerrá-lo.');
         }
+
         $description = trim((string) ($request['descricao_fato'] ?? ''));
         $descriptionLength = function_exists('mb_strlen') ? mb_strlen($description, 'UTF-8') : strlen($description);
         if ($description === '' || $descriptionLength > 5000) {
             plantaoFailure($pdo, 400, 'Descreva a passagem do plantão (até 5.000 caracteres).');
         }
 
-        $pdo->exec('SET @continuum_usuario_id = ' . (int) $actorId);
-        $ipStatement = $pdo->prepare('SET @continuum_ip_address = :ip');
-        $ipStatement->execute(['ip' => $ip]);
+        $setUserId = $pdo->prepare('SET @continuum_usuario_id = :usuario_id');
+        $setUserId->bindValue(':usuario_id', (int) $actorId, PDO::PARAM_INT);
+        $setUserId->execute();
+
+        $setIp = $pdo->prepare('SET @continuum_ip_address = :ip');
+        $setIp->bindValue(':ip', (string) ($ip ?? ''), PDO::PARAM_STR);
+        $setIp->execute();
 
         $eventQuery = $pdo->prepare("
             INSERT INTO eventos_adversos
@@ -360,8 +367,11 @@ try {
             'plantoes',
             $ip
         );
-        $pdo->exec('SET @continuum_usuario_id = NULL');
-        $pdo->exec('SET @continuum_ip_address = NULL');
+
+        $clearAuditContext = $pdo->prepare(
+            'SET @continuum_usuario_id = NULL, @continuum_ip_address = NULL'
+        );
+        $clearAuditContext->execute();
 
         $pdo->commit();
         plantaoRespond(200, [

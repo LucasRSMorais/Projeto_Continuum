@@ -6,8 +6,8 @@ import * as C from './styles';
 import { Title } from './styles';
 import { FaShieldAlt, FaTrash, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { buildApiUrl } from '../../config/api';
-import HeaderPaciente from '../../components/layout/HeaderPaciente';
-import SidebarPaciente from '../../components/layout/SidebarPaciente';
+import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
+import SidebarPaciente from '../../components/layout/Patient/SidebarPaciente';
 
 const formatTelefone = (value) => {
   const digits = value.replace(/\D/g, '').slice(0, 11);

@@ -1,26 +1,13 @@
 <?php
-
-
+header("Content-Type: application/json; charset=UTF-8");
 
 session_set_cookie_params([
     'httponly' => true,
-     'samesite' => 'None'
+    'secure' => true,
+    'samesite' => 'None'
 ]);
-
 session_start();
 
-// Define contadores de tentativas e bloqueio para evitar brute force.
-if (!isset($_SESSION['tentativas_login'])) {
-    $_SESSION['tentativas_login'] = 0;
-}
-
-if (!isset($_SESSION['bloqueio_login'])) {
-    $_SESSION['bloqueio_login'] = 0;
-}
-
-$_SESSION['ultima_atividade'] = time();
-
-header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/../config/cors.php";
 applyCorsHeaders();
 
@@ -29,114 +16,79 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Importa a conexão com o banco de dados.
 require_once __DIR__ . "/../config/database.php";
 require_once __DIR__ . "/../config/patient_data_encryption.php";
 
+if (!isset($_SESSION['usuario_id']) || !is_numeric($_SESSION['usuario_id'])) {
+    http_response_code(401);
+    echo json_encode([
+        "success" => false,
+        "message" => "Sessão inválida."
+    ]);
+    exit;
+}
+
+$idPaciente = (int) $_SESSION['usuario_id'];
+
 try {
-    // Lê os dados enviados pelo frontend em JSON.
-    $dados = json_decode(
-        file_get_contents("php://input"),
-        true
-    );
-
-    // Se o usuário ainda estiver bloqueado, nega o login temporariamente.
-    if (time() < $_SESSION['bloqueio_login']) {
-        $restante = $_SESSION['bloqueio_login'] - time();
-        http_response_code(429);
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde {$restante} segundos."
-        ]);
-        exit;
-    }
-
-    // Conta cada tentativa para proteger contra ataques de força bruta.
-    $_SESSION['tentativas_login']++;
-
-    // Depois de 5 tentativas, bloqueia por 60 segundos.
-    if ($_SESSION['tentativas_login'] >= 5) {
-        $_SESSION['bloqueio_login'] = time() + 60;
-        $_SESSION['tentativas_login'] = 0;
-
-        http_response_code(429);
-
-        echo json_encode([
-            "success" => false,
-            "message" => "Muitas tentativas. Aguarde 60 segundos."
-        ]);
-        exit;
-    }
-
-    // Extrai os dados do formulário enviado pelo cliente.
-    $email = trim($dados["email"] ?? "");
-    
-
-   
-
-    // Valida se email e senha não vieram vazios.
-    if ($email === "" ) {
-        
-
+    $dados = json_decode(file_get_contents("php://input"), true);
+    if (!is_array($dados)) {
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email é obrigatório."
+            "message" => "Corpo da requisição inválido."
         ]);
         exit;
     }
 
-    // Busca o usuário pelo email no banco.
-   
-    $sql = "SELECT nome_completo, telefone, email, endereco, sexo, etnia, data_nascimento FROM pacientes WHERE email = :email LIMIT 1";
-   $stmt = $pdo->prepare($sql);
-    $stmt->execute([':email' => $email]);
+    $sql = "
+        SELECT nome_completo, email, telefone, sexo, etnia, data_nascimento, endereco
+        FROM pacientes
+        WHERE id = :id
+        LIMIT 1
+    ";
 
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $idPaciente
+    ]);
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Se não encontrar o usuário, recusa o login.
     if (!$usuario) {
-          
-        http_response_code(401);
+        http_response_code(404);
         echo json_encode([
             "success" => false,
-            "message" => "Email inválido."
+            "message" => "Usuário não encontrado."
         ]);
         exit;
     }
 
-   
-
-
-    
     echo json_encode([
         "success" => true,
         "message" => "Dados do usuário consultados com sucesso.",
         "usuario" => [
             "nome_completo" => $usuario["nome_completo"],
             "email" => $usuario["email"],
-            "endereco" => $usuario["endereco"],
             "telefone" => $usuario["telefone"],
-            "sexo" => decryptPatientSensitiveValue($usuario["sexo"]),
-            "etnia" => decryptPatientSensitiveValue($usuario["etnia"]),
+            "sexo" => isset($usuario["sexo"]) ? decryptPatientSensitiveValue($usuario["sexo"]) : null,
+            "etnia" => isset($usuario["etnia"]) ? decryptPatientSensitiveValue($usuario["etnia"]) : null,
             "data_nascimento" => $usuario["data_nascimento"],
-
-
+            "endereco" => $usuario["endereco"] ?? null
         ]
     ]);
 
 } catch (PDOException $e) {
-    // Caso ocorra algum erro de banco de dados.
+    error_log('Consultar paciente failed: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao acessar o banco de dados."
+        "message" => "Erro ao consultar o paciente."
     ]);
-} catch (RuntimeException $e) {
-    error_log('Patient sensitive data decryption failed: ' . $e->getMessage());
+} catch (Throwable $e) {
+    error_log('Consultar paciente exception: ' . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         "success" => false,
-        "message" => "Não foi possível acessar os dados protegidos do paciente."
+        "message" => "Não foi possível consultar os dados."
     ]);
 }

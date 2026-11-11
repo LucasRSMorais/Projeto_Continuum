@@ -1,13 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import Home from '../pages/Home';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
+import Home from '../pages/Doctor/Home';
+import Login from '../pages/Doctor/Login';
+import Register from '../pages/Admin/CRUD/Register';
 import { useAuth } from '../services/utils/auth';
 import Password from '../pages/password';
 import NovaSenha from '../pages/new_senha';
-import Register_Pacientes from '../pages/Registrer_pacientes';
-import LoginPacientes from '../pages/Login_pacientes';
-import HomePaciente from '../pages/Home_paciente';
+import Register_Pacientes from '../pages/Admin/CRUD/Registrer_pacientes';
+import LoginPacientes from '../pages/Patient/Login_pacientes';
+import HomePaciente from '../pages/Patient/Home_paciente';
 import DeletaConta from '../pages/deleta_conta';
 import ConsultarConta from '../pages/consultar';
 import Revogacao from '../pages/revogar';
@@ -16,6 +16,7 @@ import Configuracao from '../pages/configuracao';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
 import Consetimento from '../pages/consentimentos';
+import PerfilPaciente from '../pages/Patient/PerfilPaciente';
 
 // Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
 // Enquanto a sessão está sendo verificada, o usuário recebe uma mensagem de carregamento.
@@ -47,7 +48,8 @@ const RoutesApp = () => {
         {/* Fluxo específico para pacientes */}
         <Route path="/register_pacientes" element={<Register_Pacientes />} />
         <Route path="/login_pacientes" element={<LoginPacientes />} />
-        <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>} />
+        <Route path="/home_paciente" element={<HomePaciente />} />
+        <Route path="/perfilpaciente" element={<PerfilPaciente />} />
 
         {/* Páginas administrativas e de configuração */}
         <Route path="/configuracao" element={<Configuracao />} />
@@ -58,7 +60,7 @@ const RoutesApp = () => {
         <Route path="/endereco" element={<Endereco />} />
 
         {/* Página inicial protegida do médico */}
-        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="/home" element={<Home />} />
 
         {/* Qualquer rota desconhecida retorna para o login */}
         <Route path="*" element={<Navigate to="/" replace />} />
@@ -68,5 +70,3 @@ const RoutesApp = () => {
 };
 
 export default RoutesApp;
-
-

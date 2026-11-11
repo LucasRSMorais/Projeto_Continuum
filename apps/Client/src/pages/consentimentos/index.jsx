@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../services/utils/auth';
 import * as C from './styles';
 import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaEye, FaTimes } from 'react-icons/fa';
-import HeaderPaciente from '../../components/layout/HeaderPaciente';
-import SidebarPaciente from '../../components/layout/SidebarPaciente';
+import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
+import SidebarPaciente from '../../components/layout/Patient/SidebarPaciente';
 
 const formatarDataCadastro = (valor) => {
   if (!valor) return 'Indisponível';
