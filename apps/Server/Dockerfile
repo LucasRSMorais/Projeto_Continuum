@@ -18,15 +18,23 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 
 # Mantém o MPM padrão da imagem oficial PHP Apache
+
+# Configura os módulos MPM do Apache
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf; \
-    a2enmod rewrite headers; \
+    for module in mpm_event mpm_worker mpm_prefork; do \
+        a2dismod "$module" || true; \
+    done; \
+    rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf; \
+    a2enmod mpm_prefork rewrite headers; \
     a2enconf servername; \
     docker-php-ext-install pdo pdo_mysql mysqli; \
-    apache2ctl -t; \
-    apache2ctl -M | grep -q 'mpm_prefork_module'; \
-    ! apache2ctl -M | grep -Eq 'mpm_(event|worker)_module'
+    test "$(find /etc/apache2/mods-enabled -maxdepth 1 -name 'mpm_*.load' | wc -l)" -eq 1; \
+    apache2ctl -M; \
+    apache2ctl -t
+
 
 
 
