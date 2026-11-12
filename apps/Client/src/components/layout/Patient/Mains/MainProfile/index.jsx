@@ -10,6 +10,65 @@ import MeuInput from '../../../../Forms/TextField';
 import { buildApiUrl } from '../../../../../config/api';
 
 function Main() {
+    
+const formatTelefone = (value) => {
+    const numeros = value.replace(/\D/g, '').slice(0, 11);
+
+    if (numeros.length <= 2) {
+        return numeros;
+    }
+
+    if (numeros.length <= 7) {
+        return `(${numeros.slice(0, 2)}) ${numeros.slice(2)}`;
+    }
+
+    return `(${numeros.slice(0, 2)}) ${numeros.slice(2, 7)}-${numeros.slice(7)}`;
+};
+
+
+const mascararTelefone = (telefone) => {
+    if (!telefone) return 'Não informado';
+
+    const numeros = String(telefone).replace(/\D/g, '');
+
+    if (numeros.length < 4) return 'Não informado';
+
+    const ddd = numeros.length >= 10
+        ? numeros.slice(0, 2)
+        : '';
+
+    const finais = numeros.slice(-2);
+
+    return ddd
+        ? `(${ddd}) *****-**${finais}`
+        : `*****${finais}`;
+};
+
+
+const mascararEmail = (email) => {
+    if (!email || !email.includes('@')) {
+        return 'Não informado';
+    }   
+    
+    const [usuario, dominio] = email.split('@');
+    const inicio = usuario.slice(0, 2);
+    const mascara = '*'.repeat(Math.max(0, usuario.length - 2 , 3));
+
+    return `${inicio}${mascara}@${dominio}`;
+};
+
+const mascararCPF = (cpf) => {
+    if (!cpf) return 'Não informado';
+
+    const numeros = String(cpf).replace(/\D/g, '');
+
+    if (numeros.length !== 11) return 'CPF inválido';
+
+    return `${numeros.slice(0, 3)}.***.***-${numeros.slice(-2)}`;
+};
+
+
+
     const { user, loading, updateUser } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
@@ -237,33 +296,57 @@ function Main() {
                                 id="input-email"
                                 label="Email"
                                 type="email"
-                                value={isEditing ? formData.email : loading ? '...' : user?.email || 'Não informado'}
+                                value={
+                                    loading
+                                        ? '...'
+                                        : isEditing
+                                            ? formData.email
+                                            : mascararEmail(user?.email)
+                                }
                                 onChange={handleFieldChange('email')}
                                 required
                                 disabled={!isEditing}
                                 variant="standard"
                             />
+                            
                             <MeuInput
-                                id="input-telefone"
-                                label="Telefone"
-                                type="tel"
-                                value={isEditing ? formData.telefone : loading ? '...' : user?.telefone || 'Não informado'}
-                                onChange={handleFieldChange('telefone')}
-                                required
-                                disabled={!isEditing}
-                                variant="standard"
-                            />
-                            <MeuInput
+                                    id="input-telefone"
+                                    label="Telefone"
+                                    type="tel"
+                                    value={
+                                        loading
+                                            ? '...'
+                                            : isEditing
+                                                ? formatTelefone(formData.telefone)
+                                                : mascararTelefone(user?.telefone)
+                                    }
+                                    onChange={handleFieldChange('telefone')}
+                                    required
+                                    disabled={!isEditing}
+                                    variant="standard"
+                                />
+
+                                     <MeuInput
                                 id="input-cpf"
                                 label="CPF"
-                                value={loading ? '...' : user?.cpf || 'Não informado'}
+                                value={
+
+                                    loading
+                                        ? '...'
+                                        : isEditing
+                                           ?user?.cpf || 'Não informado'
+                                           : mascararCPF(user?.cpf)
+
+
+                                }
                                 disabled
                                 variant="standard"
                             />
+
                             <MeuInput
                                 id="input-data-nascimento"
                                 label="Data de Nascimento"
-                                value={loading ? '...' : user?.dataNascimento || 'Não informado'}
+                                value={loading ? '...' : user?.data_nascimento || 'Não informado'}
                                 disabled
                                 variant="standard"
                             />

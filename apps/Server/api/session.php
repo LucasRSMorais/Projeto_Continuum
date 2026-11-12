@@ -3,7 +3,6 @@
 // Página responsável por verificar se o usuário está autenticado.
 // Também controla a expiração da sessão após 30 minutos de inatividade.
 require_once __DIR__ . "/../config/database.php";
-require_once __DIR__ . "/../config/patient_data_encryption.php";
 
 
 
@@ -73,7 +72,7 @@ if (!isset($_SESSION['usuario_id'])) {
 // A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
 // aceitar um identificador de usuário fornecido pelo cliente.
 $stmt = $pdo -> prepare(
-"SELECT cpf, telefone, data_nascimento, sexo, aceite_termo_uso FROM pacientes WHERE id = :id"
+"SELECT cpf , telefone  , aceite_termo_uso , sexo , data_nascimento FROM pacientes WHERE id = :id"
 
 );
 
@@ -92,18 +91,6 @@ $stmt->execute(
 
 
 $paciente = $stmt -> fetch(PDO::FETCH_ASSOC);
-
-$stmtEndereco = $pdo->prepare(
-    "SELECT rua, cidade, estado, pais, cep
-     FROM enderecos
-     WHERE id_paciente = :id AND status = 'ativo'
-     ORDER BY id DESC
-     LIMIT 1"
-);
-$stmtEndereco->execute([
-    ':id' => $_SESSION['usuario_id']
-]);
-$endereco = $stmtEndereco->fetch(PDO::FETCH_ASSOC);
 
 
 
@@ -141,12 +128,11 @@ echo json_encode([
         "email" => $_SESSION['email'],
         "cpf" => $paciente ['cpf'] ?? null,
         "telefone" => $paciente ['telefone']?? null ,
-        "dataNascimento" => $paciente ['data_nascimento'] ?? null,
-        "sexo" => isset($paciente['sexo']) ? decryptPatientSensitiveValue($paciente['sexo']) : null,
-        "endereco" => $endereco ?: null,
           "data" => $data_cadastro ?: null ,
-          "aceite_termo_uso" => $paciente ['aceite_termo_uso'] ?? null
-        
+          "aceite_termo_uso" => $paciente ['aceite_termo_uso'] ?? null,
+          "sexo" => $paciente ['sexo'] ?? null,
+          "data_nascimento" => $paciente ['data_nascimento'] ?? null
+
         
     ]
 ]);
