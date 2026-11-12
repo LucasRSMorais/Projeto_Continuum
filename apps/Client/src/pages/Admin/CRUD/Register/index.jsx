@@ -89,9 +89,11 @@ const senhaIgual = password === confirmacaoSenha;
       navigate('/');
 
     } catch (error) {
-      console.error(error);
+      console.error( 'Error real' , error);
+      console.error('Error message:', error.message);
+
       setMessage(
-        'Não foi possível conectar ao servidor.'
+        error.message
       );
     } finally {
       setLoading(false);
