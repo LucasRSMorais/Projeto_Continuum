@@ -90,10 +90,10 @@ const senhaIgual = password === confirmacaoSenha;
 
     } catch (error) {
       console.error( 'Error real' , error);
-      console.error('Error message:', error.message);
+     
 
       setMessage(
-        error.message
+        error.message || 'Ocorreu um erro ao tentar realizar o cadastro.'
       );
     } finally {
       setLoading(false);
