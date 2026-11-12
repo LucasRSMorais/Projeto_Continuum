@@ -1,9 +1,12 @@
-
 #!/bin/sh
 set -eu
 
 # Garante que os diretorios temporarios existam
 mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+
+echo "=== MPM NO RUNTIME ==="
+ls -l /etc/apache2/mods-enabled/mpm_*
+apache2ctl -M
 
 # Verifica a configuracao do Apache
 apache2ctl -t
