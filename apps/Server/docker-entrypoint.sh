@@ -2,16 +2,25 @@
 #!/bin/sh
 set -eu
 
-echo "=== DIAGNOSTICO DOS MODULOS MPM ==="
+echo "=== CORRIGINDO MODULOS MPM ==="
 
-ls -la /etc/apache2/mods-enabled/mpm_* || true
+# Desabilita os MPMs conflitantes
+a2dismod mpm_event || true
+a2dismod mpm_worker || true
 
-echo "=== LOADMODULE ENCONTRADOS ==="
+# Remove links residuais dos MPMs
+rm -f /etc/apache2/mods-enabled/mpm_event.load
+rm -f /etc/apache2/mods-enabled/mpm_event.conf
+rm -f /etc/apache2/mods-enabled/mpm_worker.load
+rm -f /etc/apache2/mods-enabled/mpm_worker.conf
 
-grep -Rni "LoadModule mpm_" /etc/apache2/ || true
+# Garante que somente o prefork esteja habilitado
+a2enmod mpm_prefork
 
-echo "=== TESTE DE CONFIGURACAO ==="
+echo "=== MPM ATIVOS ==="
+ls -la /etc/apache2/mods-enabled/mpm_*
 
+echo "=== VALIDANDO APACHE ==="
 apache2ctl -t
 
 exec apache2-foreground
