@@ -1,5 +1,6 @@
 <?php
 // Página responsável por verificar se o usuário está autenticado.
+// Se estiver, retorna os dados do usuário, caso contrário, retorna uma mensagem de erro.
 require_once __DIR__ . "/../config/database.php";
 
 session_set_cookie_params([
