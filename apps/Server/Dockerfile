@@ -19,11 +19,12 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf; \
-    for module in mpm_event mpm_worker mpm_prefork; do \
-        a2dismod "$module" || true; \
-    done; \
-    rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf; \
+    a2dismod mpm_event || true; \
+    a2dismod mpm_worker || true; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf; \
     a2enmod mpm_prefork rewrite headers; \
     echo "=== MODULOS MPM ATIVOS ==="; \
     find /etc/apache2/mods-enabled -maxdepth 1 -name 'mpm_*' -ls; \
@@ -39,7 +40,7 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
        /etc/apache2/sites-available/000-default.conf
 
-# Copia os arquivos do backend para o Apache
+# Copia os arquivos do backend
 COPY . /var/www/html/
 
 # Permissões dos arquivos
@@ -51,7 +52,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configurações de segurança e cabeçalhos HTTP para o ZAP
+# Configurações de segurança e cabeçalhos HTTP
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 
 RUN a2enconf docker-security \
