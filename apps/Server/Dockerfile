@@ -16,16 +16,22 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_GROUP=www-data
 
 # Configuração dos módulos MPM do Apache
+
+# Configuração dos módulos MPM do Apache
 RUN set -eux; \
-    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
-    find /etc/apache2/mods-enabled -maxdepth 1 \
-      \( -name 'mpm_*.load' -o -name 'mpm_*.conf' \) \
-      -delete; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_prefork.load \
+          /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork rewrite headers; \
     echo "=== MODULOS MPM ATIVOS ==="; \
     ls -l /etc/apache2/mods-enabled/mpm_*; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
+
+
 
 # Configuração da porta 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
