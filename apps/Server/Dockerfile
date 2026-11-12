@@ -15,17 +15,21 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_GROUP=www-data
 
 # Executa como ROOT a configuração dos módulos do Apache
+
+
+# Mantém o MPM padrão da imagem oficial PHP Apache
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf; \
-    a2dismod -f mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.* \
-          /etc/apache2/mods-enabled/mpm_worker.* \
-          /etc/apache2/mods-enabled/mpm_prefork.*; \
-    a2enmod mpm_prefork rewrite headers; \
+    a2enmod rewrite headers; \
     a2enconf servername; \
     docker-php-ext-install pdo pdo_mysql mysqli; \
-    apache2ctl -t
+    apache2ctl -t; \
+    apache2ctl -M | grep -q 'mpm_prefork_module'; \
+    ! apache2ctl -M | grep -Eq 'mpm_(event|worker)_module'
+
+
+
 
 # Altera a porta padrão do Apache de 80 para 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
