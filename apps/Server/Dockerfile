@@ -15,12 +15,25 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# Configura os módulos MPM durante a construção
+# Configuração dos módulos MPM do Apache
+
+# Configuração dos módulos MPM do Apache
+# Configuração dos módulos MPM do Apache
 RUN set -eux; \
-    a2dismod mpm_event mpm_worker || true; \
+    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_prefork.load \
+          /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork rewrite headers; \
-    apache2ctl -M | grep mpm_prefork_module; \
+    echo "=== MODULOS MPM ATIVOS ==="; \
+    ls -l /etc/apache2/mods-enabled/mpm_*; \
+    apache2ctl -M | grep mpm; \
     apache2ctl -t
+
+
 
 # Configuração da porta 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
@@ -30,7 +43,7 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
 # Copia os arquivos do backend
 COPY . /var/www/html/
 
-# Permissões dos arquivos e diretórios
+# Permissões dos arquivos e pastas temporárias
 RUN mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
     && chown -R www-data:www-data /var/www/html /tmp/apache2 \
     && chmod -R 755 /tmp/apache2
@@ -41,12 +54,13 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configurações de segurança
+# Configurações de segurança e cabeçalhos HTTP
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 
 RUN a2enconf docker-security \
     && apache2ctl -t
 
+# Porta utilizada pelo Railway
 EXPOSE 8080
 
 # Executa como usuário não-root
