@@ -17,6 +17,7 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 # Configuração dos módulos MPM do Apache
 RUN set -eux; \
+    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     find /etc/apache2/mods-enabled -maxdepth 1 \
       \( -name 'mpm_*.load' -o -name 'mpm_*.conf' \) \
       -delete; \
@@ -34,7 +35,7 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
 # Copia os arquivos do backend
 COPY . /var/www/html/
 
-# Permissões dos arquivos
+# Permissões dos arquivos e pastas temporárias
 RUN chown -R www-data:www-data /var/www/html /tmp/apache2
 
 # Copia e prepara o entrypoint
