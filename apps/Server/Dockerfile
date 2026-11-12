@@ -36,7 +36,9 @@ RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
 COPY . /var/www/html/
 
 # Permissões dos arquivos e pastas temporárias
-RUN chown -R www-data:www-data /var/www/html /tmp/apache2
+RUN mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
+    && chown -R www-data:www-data /var/www/html /tmp/apache2 \
+    && chmod -R 755 /tmp/apache2
 
 # Copia e prepara o entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

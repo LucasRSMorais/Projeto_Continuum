@@ -2,19 +2,20 @@
 #!/bin/sh
 set -eu
 
-echo "=== VALIDANDO MODULOS MPM ==="
+# Garante que os diretorios temporarios existam
+mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
 
-echo "=== MODULOS HABILITADOS ==="
-ls -la /etc/apache2/mods-enabled/mpm_*
-
-echo "=== TESTANDO CONFIGURACAO ==="
+# Verifica a configuracao do Apache
 apache2ctl -t
 
-echo "=== VERIFICANDO MPM PREFORK ==="
-if ! apache2ctl -M | grep -q 'mpm_prefork_module'; then
-    echo "ERRO: mpm_prefork nao esta carregado."
+# Confirma que somente o MPM prefork esta carregado
+apache2ctl -M | grep -q 'mpm_prefork_module'
+
+if apache2ctl -M | grep -Eq 'mpm_(event|worker)_module'; then
+    echo "ERRO: Outro MPM esta carregado junto com o prefork."
     exit 1
 fi
 
-echo "=== INICIANDO APACHE ==="
+echo "Apache validado com sucesso!"
+
 exec apache2-foreground
