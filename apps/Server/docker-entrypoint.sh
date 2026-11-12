@@ -2,20 +2,22 @@
 #!/bin/sh
 set -eu
 
-echo "=== INICIANDO BACKEND CONTINUUM ==="
+# Cria os diretorios temporarios do Apache
+mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
 
-mkdir -p /tmp/apache2/run \
-         /tmp/apache2/lock \
-         /tmp/apache2/log
+# Remove qualquer MPM diferente do prefork
+rm -f /etc/apache2/mods-enabled/mpm_event.load \
+      /etc/apache2/mods-enabled/mpm_event.conf \
+      /etc/apache2/mods-enabled/mpm_worker.load \
+      /etc/apache2/mods-enabled/mpm_worker.conf
 
-echo "=== ARQUIVOS MPM HABILITADOS ==="
-ls -la /etc/apache2/mods-enabled/mpm_* || true
+# Garante que o prefork esteja habilitado
+a2enmod mpm_prefork
 
-echo "=== DECLARACOES LOADMODULE MPM ==="
-grep -RniE '^[[:space:]]*LoadModule[[:space:]]+mpm_' \
-    /etc/apache2 2>/dev/null || true
+echo "=== MPM ATIVOS NO RUNTIME ==="
+ls -l /etc/apache2/mods-enabled/mpm_*
 
-echo "=== VALIDANDO APACHE ==="
+# Valida a configuração do Apache
 apache2ctl -t
 
 echo "Apache validado com sucesso!"

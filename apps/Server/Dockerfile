@@ -15,10 +15,9 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-
-
 # Configuração dos módulos MPM do Apache
 
+# Configuração dos módulos MPM do Apache
 # Configuração dos módulos MPM do Apache
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
@@ -29,11 +28,9 @@ RUN set -eux; \
           /etc/apache2/mods-enabled/mpm_prefork.load \
           /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork rewrite headers; \
-    echo "=== CONFERINDO MODULOS MPM ==="; \
-    ls -la /etc/apache2/mods-enabled/mpm_*; \
-    test -e /etc/apache2/mods-enabled/mpm_prefork.load; \
-    test ! -e /etc/apache2/mods-enabled/mpm_event.load; \
-    test ! -e /etc/apache2/mods-enabled/mpm_worker.load; \
+    echo "=== MODULOS MPM ATIVOS ==="; \
+    ls -l /etc/apache2/mods-enabled/mpm_*; \
+    apache2ctl -M | grep mpm; \
     apache2ctl -t
 
 
