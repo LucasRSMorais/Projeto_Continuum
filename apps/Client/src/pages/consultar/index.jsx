@@ -7,7 +7,6 @@ import * as C from './styles';
 import { Title } from './styles';
 import { buildApiUrl } from '../../config/api';
 
-import { FaTrash } from 'react-icons/fa';
 
 function ConsultarConta() {
   const navigate = useNavigate();
