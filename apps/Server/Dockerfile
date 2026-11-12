@@ -18,7 +18,10 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 
 # Configuração dos módulos MPM do Apache
+
+# Configuração dos módulos MPM do Apache
 RUN set -eux; \
+    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
           /etc/apache2/mods-enabled/mpm_event.conf \
           /etc/apache2/mods-enabled/mpm_worker.load \
