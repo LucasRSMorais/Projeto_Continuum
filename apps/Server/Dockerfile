@@ -17,22 +17,13 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 # Configuração dos módulos MPM do Apache
 RUN set -eux; \
-    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
-    printf '%s\n' 'ServerName localhost' > /etc/apache2/conf-available/servername.conf; \
-    a2dismod mpm_event || true; \
-    a2dismod mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf; \
+    find /etc/apache2/mods-enabled -maxdepth 1 \
+      \( -name 'mpm_*.load' -o -name 'mpm_*.conf' \) \
+      -delete; \
     a2enmod mpm_prefork rewrite headers; \
     echo "=== MODULOS MPM ATIVOS ==="; \
-    find /etc/apache2/mods-enabled -maxdepth 1 -name 'mpm_*' -ls; \
-    echo "=== MODULOS MPM CARREGADOS ==="; \
-    apache2ctl -M | grep 'mpm'; \
-    a2enconf servername; \
-    docker-php-ext-install pdo pdo_mysql mysqli; \
-    test "$(find /etc/apache2/mods-enabled -maxdepth 1 -name 'mpm_*.load' | wc -l)" -eq 1; \
+    ls -l /etc/apache2/mods-enabled/mpm_*; \
+    apache2ctl -M | grep mpm; \
     apache2ctl -t
 
 # Configuração da porta 8080
