@@ -88,13 +88,11 @@ const senhaIgual = password === confirmacaoSenha;
 
       navigate('/');
 
-    } catch (error) {
-      console.error( 'Error real' , error);
-     
-
+    }catch (error) {
+      console.error(error);
       setMessage(
-        error.message || 'Ocorreu um erro ao tentar realizar o cadastro.'
-      );
+        'Não foi possível conectar ao servidor.'
+      ); 
     } finally {
       setLoading(false);
     }
