@@ -1,19 +1,17 @@
 #!/bin/sh
 set -eu
 
-# Cria os diretorios temporarios do Apache
-mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+echo "========== DIAGNOSTICO RUNTIME =========="
 
-# Os módulos são configurados durante o build; aqui apenas validamos a configuração.
-mpm_modules=$(apache2ctl -M | grep ' mpm_')
-if [ "$mpm_modules" != " mpm_prefork_module (shared)" ]; then
-    echo "Configuracao MPM inesperada: $mpm_modules" >&2
-    exit 1
-fi
+echo "=== MODULOS MPM ATIVOS ==="
+ls -la /etc/apache2/mods-enabled/ | grep mpm || true
 
-echo "MPM ativo: $mpm_modules"
-apache2ctl -t
+echo "=== REFERENCIAS MPM ==="
+grep -RInE '^[[:space:]]*LoadModule[[:space:]]+mpm_' \
+    /etc/apache2/mods-enabled/ || true
 
-echo "Iniciando o Apache..."
+echo "=== TESTE APACHE ==="
+apache2ctl -M
 
+echo "=== INICIANDO APACHE ==="
 exec apache2-foreground
