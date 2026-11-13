@@ -17,7 +17,9 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 # Configuração dos módulos MPM do Apache feita no BUILD (como root)
 
 # Configuração dos módulos MPM do Apache
+# Configuração dos módulos MPM do Apache
 RUN set -eux; \
+    mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     a2dismod mpm_event mpm_worker || true; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
           /etc/apache2/mods-enabled/mpm_event.conf \
@@ -30,7 +32,6 @@ RUN set -eux; \
     ls -la /etc/apache2/mods-enabled/mpm*; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
-
 
 # Configuração da porta 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
