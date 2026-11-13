@@ -51,6 +51,13 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
+
+RUN echo "=== MODULOS MPM ENCONTRADOS ===" \
+    && ls -la /etc/apache2/mods-enabled/mpm* \
+    && echo "=== REFERENCIAS A LOADMODULE ===" \
+    && grep -RInE '^[[:space:]]*LoadModule[[:space:]]+mpm_' /etc/apache2
+
+
 # Configurações de segurança e cabeçalhos HTTP
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 
