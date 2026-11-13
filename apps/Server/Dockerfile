@@ -33,9 +33,10 @@ RUN set -eux; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
 
-# Configuração da porta 8080
-RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
-    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8080>/' \
+
+# Configuração da porta 80
+RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
+    && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
 
 # Copia os arquivos do backend
@@ -71,7 +72,7 @@ RUN echo "=== MODULOS ATIVOS NO FINAL ===" \
     && apache2ctl -M | grep mpm
 
 # Porta utilizada pelo Railway
-EXPOSE 8080
+EXPOSE 80
 
 
 
