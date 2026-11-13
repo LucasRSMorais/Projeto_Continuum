@@ -1,5 +1,9 @@
 FROM php:8.5-apache
 
+
+# Instala o driver PDO para MySQL
+RUN docker-php-ext-install pdo_mysql
+
 # Configurações de segurança e sessão do PHP
 RUN printf '%s\n' \
     'expose_php=Off' \
