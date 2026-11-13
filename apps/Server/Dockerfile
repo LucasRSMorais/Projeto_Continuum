@@ -1,4 +1,3 @@
-
 FROM php:8.5-apache
 
 # Configurações de segurança e sessão do PHP
@@ -15,7 +14,7 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# Configuração dos módulos MPM do Apache
+# Configuração dos módulos MPM do Apache (Executado como root durante o build)
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
@@ -29,8 +28,6 @@ RUN set -eux; \
     ls -l /etc/apache2/mods-enabled/mpm_*; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
-
-
 
 # Configuração da porta 8080
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf \
@@ -60,7 +57,7 @@ RUN a2enconf docker-security \
 # Porta utilizada pelo Railway
 EXPOSE 8080
 
-# Executa como usuário não-root
-USER www-data
+# Nota: Não colocamos o USER www-data aqui para permitir que o container inicie 
+# o entrypoint com privilégios adequados, enquanto o próprio Apache gerencia a segurança.
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
