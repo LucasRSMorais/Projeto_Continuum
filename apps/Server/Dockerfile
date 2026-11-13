@@ -65,6 +65,11 @@ COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security \
     && apache2ctl -t
 
+
+RUN echo "=== MODULOS ATIVOS NO FINAL ===" \
+    && ls -l /etc/apache2/mods-enabled/mpm* \
+    && apache2ctl -M | grep mpm
+
 # Porta utilizada pelo Railway
 EXPOSE 8080
 
