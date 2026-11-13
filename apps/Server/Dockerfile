@@ -14,7 +14,7 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# Configuração dos módulos MPM do Apache (Executado como root durante o build)
+# Configuração dos módulos MPM do Apache feita no BUILD (como root)
 RUN set -eux; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
@@ -56,8 +56,5 @@ RUN a2enconf docker-security \
 
 # Porta utilizada pelo Railway
 EXPOSE 8080
-
-# Nota: Não colocamos o USER www-data aqui para permitir que o container inicie 
-# o entrypoint com privilégios adequados, enquanto o próprio Apache gerencia a segurança.
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
