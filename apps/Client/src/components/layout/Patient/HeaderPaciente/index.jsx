@@ -25,7 +25,7 @@ function HeaderPaciente() {
       return;
     }
 
-    window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponent(user?.email)}`;
+    window.location.href = `${buildApiUrl('patients/exportar.php')}?email=${encodeURIComponent(user?.email)}`;
   };
 
   return (

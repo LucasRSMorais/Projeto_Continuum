@@ -122,13 +122,47 @@ CREATE TABLE pacientes (
     -- allowed sexo/etnia options before encrypting and storing it.
     sexo VARCHAR(512) NOT NULL,
     etnia VARCHAR(512) NOT NULL,
-    senha_hash VARCHAR(255) NOT NULL,
+    senha_hash VARCHAR(255) NULL,
 	alergias TEXT NULL,
     telefone VARCHAR(20) NULL,
     aceite_termo_uso ENUM('sim', 'nao') NOT NULL DEFAULT 'nao',
+    acesso_ativado TINYINT(1) NOT NULL DEFAULT 0,
     endereco INT NULL,
     PRIMARY KEY (id),
     UNIQUE KEY uq_pacientes_email (email)
+) ENGINE=InnoDB;
+
+CREATE TABLE eventos_termos_paciente (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    id_paciente INT NOT NULL,
+    documento VARCHAR(64) NOT NULL,
+    versao VARCHAR(20) NOT NULL,
+    acao ENUM('aceite', 'revogacao') NOT NULL,
+    hash_documento CHAR(64) NOT NULL,
+    data_hora_utc DATETIME(6) NOT NULL,
+    ip_address VARCHAR(45) NULL,
+    user_agent VARCHAR(255) NULL,
+    PRIMARY KEY (id),
+    KEY idx_eventos_termos_paciente_documento (id_paciente, documento, id),
+    CONSTRAINT fk_eventos_termos_paciente
+        FOREIGN KEY (id_paciente)
+        REFERENCES pacientes(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE codigos_primeiro_acesso_paciente (
+    id_paciente INT NOT NULL,
+    codigo_hash VARCHAR(255) NOT NULL,
+    solicitado_em_utc DATETIME(6) NOT NULL,
+    expira_em_utc DATETIME(6) NOT NULL,
+    tentativas TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (id_paciente),
+    CONSTRAINT fk_codigos_primeiro_acesso_paciente
+        FOREIGN KEY (id_paciente)
+        REFERENCES pacientes(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ENDEREÇO
@@ -605,6 +639,20 @@ WHERE p.status = 'encerrado'
 -- 4. TIGGERS DE VALIDAÇÃO E AUDITORIA
 -- ============================================================================
 DELIMITER $$
+
+CREATE TRIGGER trg_eventos_termos_paciente_bu_immutavel
+BEFORE UPDATE ON eventos_termos_paciente
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Eventos de termos sao imutaveis; registre um novo evento.';
+END$$
+
+CREATE TRIGGER trg_eventos_termos_paciente_bd_immutavel
+BEFORE DELETE ON eventos_termos_paciente
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Eventos de termos nao podem ser excluidos.';
+END$$
 
 -- Medicos
 CREATE TRIGGER trg_medicos_bi_validacao

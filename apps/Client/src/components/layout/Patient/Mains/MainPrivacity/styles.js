@@ -10,23 +10,8 @@ export const CardContainer = styled.main`
   max-width: 1000px;
   margin: 20px auto;
 
-  .consent-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
-    padding: 16px;
-    background-color: #f5f5f5;
-    border-radius: 8px;
-  }
-
   @media (max-width: 600px) {
     padding: 1.5rem;
-
-    .consent-row {
-      align-items: flex-start;
-      gap: 8px;
-    }
   }
 `;
 

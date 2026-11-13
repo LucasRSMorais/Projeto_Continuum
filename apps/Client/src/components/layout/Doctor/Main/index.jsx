@@ -34,14 +34,14 @@ function Main() {
     loading,
     error,
   } = useDashboardCards(
-    buildApiUrl(`Cards/get_dashboard_cards.php?id_setor=${sectorId}`)
+    buildApiUrl(`dashboard/get_dashboard_cards.php?id_setor=${sectorId}`)
   );
   const {
     kpis,
     loading: kpisLoading,
     error: kpisError,
   } = useDashboardKpis(
-    buildApiUrl(`KPIs/get_dashboard_kpis.php?id_setor=${sectorId}`)
+    buildApiUrl(`dashboard/get_dashboard_kpis.php?id_setor=${sectorId}`)
   );
   const {
     plantao,

@@ -6,7 +6,7 @@ import Input from '../../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 import { buildApiUrl } from '../../../config/api';
- import { FaEye , FaEyeSlash } from 'react-icons/fa';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 // Página de login do sistema.
 // Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
 // ele entra no app ou precisa confirmar um código de segurança (2FA).
@@ -39,7 +39,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-          buildApiUrl('login_paciente.php'),
+          buildApiUrl('auth/login_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -86,7 +86,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-         buildApiUrl('verificar2FA_paciente.php'),
+         buildApiUrl('auth/verificar2FA_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -169,20 +169,26 @@ function LoginPacientes() {
               setError('');
             }}
           />
-            <Input type={exibirSenha ? "text" : "password"} placeholder="Password" value={password} onChange={(event) => {
-              setPassword(event.target.value);
-              setError('');
-            }}
-          />
-            <button type='button' onClick={() => setExibir(!exibirSenha)}
-            
-           
+          <C.PasswordRow>
+            <Input
+              type={exibirSenha ? 'text' : 'password'}
+              placeholder="Password"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError('');
+              }}
+              aria-label="Senha"
+            />
+            <button
+              type="button"
+              onClick={() => setExibir(!exibirSenha)}
+              aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
+              aria-pressed={exibirSenha}
             >
-
-            
-
-            {exibirSenha ?  <FaEyeSlash/> : <FaEye/>  }
-          </button>
+              {exibirSenha ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+            </button>
+          </C.PasswordRow>
          
           {error && (<C.labelError>{error}</C.labelError>)}
 
@@ -190,22 +196,17 @@ function LoginPacientes() {
         </C.Form>
 
                  <C.LabelFirstAcess>
-          Esqueceu a Senha?
-          <C.Strong>
-            <Link to="/recuperacao">{' '}Clique aqui</Link>
-            
-          </C.Strong>
-        </C.LabelFirstAcess>
+                   Esqueceu a Senha?
+                   <C.Strong>
+                     <Link to="/recuperacao">{' '}Clique aqui</Link>
+                   </C.Strong>
+                 </C.LabelFirstAcess>
 
-
-
-        {/*<C.LabelSignup>
-          Consultar conta
-          <C.Strong>
-            <Link to="/consultar">{' '}Clique aqui</Link>
-          </C.Strong>
-        </C.LabelSignup>
-        */}
+                 <C.LabelSignup>
+                   <C.Strong>
+                     <Link to="/register_pacientes">Primeiro Acesso?</Link>
+                   </C.Strong>
+                 </C.LabelSignup>
          
       </C.Content>
     </C.Container>

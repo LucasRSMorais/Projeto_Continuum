@@ -23,7 +23,7 @@ function nova_Senha() {
 
     try {
       const response = await fetch(
-        buildApiUrl('novaSenhaDoPaciente.php'),
+        buildApiUrl('password/novaSenhaDoPaciente.php'),
         {
           method: 'POST',
           credentials: 'include',

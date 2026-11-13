@@ -1,187 +1,244 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../services/utils/auth';
+import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
-import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaEye, FaTimes } from 'react-icons/fa';
+import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaTimes } from 'react-icons/fa';
 import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
+import Footer from '../../components/layout/Footer';
 
-const formatarDataCadastro = (valor) => {
-  if (!valor) return 'Indisponível';
+const formatarDataUtc = (valor) => {
+  if (!valor) return 'Sem registro';
 
-  const data = String(valor).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (data) return `${data[3]}/${data[2]}/${data[1]}`;
-
-  const dataConvertida = new Date(valor);
-  return Number.isNaN(dataConvertida.getTime())
+  const normalizado = String(valor).includes('T')
+    ? String(valor)
+    : `${String(valor).replace(' ', 'T')}Z`;
+  const comPrecisaoJavaScript = normalizado.replace(/(\.\d{3})\d+Z$/, '$1Z');
+  const data = new Date(comPrecisaoJavaScript);
+  return Number.isNaN(data.getTime())
     ? 'Indisponível'
-    : dataConvertida.toLocaleDateString('pt-BR');
+    : `${new Intl.DateTimeFormat('pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+      timeZone: 'UTC',
+    }).format(data)} UTC`;
 };
 
-const dataLocalDeHoje = () => {
-  const hoje = new Date();
-  const ano = hoje.getFullYear();
-  const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoje.getDate()).padStart(2, '0');
-  return `${dia}/${mes}/${ano}`;
+const textosStatus = {
+  aceito: 'Aceito',
+  revogado: 'Revogado',
+  sem_registro: 'Sem aceite registrado',
+  informativo: 'Documento informativo',
+  pendente_documento: 'Aguardando termo final',
+};
+
+const orientacaoDocumento = {
+  politica_privacidade: 'Aviso sobre tratamento de dados; sua consulta não é registrada como consentimento.',
+  termo_uso_servico: 'Aceite necessário para ativar o acesso ao Portal do Paciente.',
+  dados_sensiveis: 'O PDF atual contém campos de modelo para paciente, CPF e instituição; não está habilitado para aceite.',
+  uso_imagem: 'O PDF atual contém campos de modelo e opções de finalidade não preenchidas; não está habilitado para aceite.',
+  consentimento_procedimento: 'Documento-modelo para procedimento específico, com campos a preencher no atendimento.',
+  recusa_tratamento: 'Documento-modelo para recusa específica, com campos a preencher no atendimento.',
 };
 
 function Consentimento() {
   const { user } = useAuth();
-  const [detalhe, setDetalhe] = useState(null);
-  const [dataCadastro, setDataCadastro] = useState('');
-  const [erroData, setErroData] = useState('');
+  const [documentos, setDocumentos] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [documentoEmAtualizacao, setDocumentoEmAtualizacao] = useState('');
+  const [erro, setErro] = useState('');
+  const [mensagem, setMensagem] = useState('');
+
+  const buscarDocumentos = useCallback(async () => {
+    const response = await fetch(buildApiUrl('patients/consentimentos_paciente.php'), {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Não foi possível carregar os documentos.');
+    }
+    return data.documentos;
+  }, []);
 
   useEffect(() => {
-    const dataVindaDoServidor = user?.created_at || user?.data_cadastro;
-    if (dataVindaDoServidor) {
-      setDataCadastro(formatarDataCadastro(dataVindaDoServidor));
-      return;
-    }
+    let cancelado = false;
+    buscarDocumentos()
+      .then((dados) => {
+        if (!cancelado) setDocumentos(dados);
+      })
+      .catch((requestError) => {
+        if (cancelado) return;
+        console.error('Erro ao carregar documentos e consentimentos:', requestError);
+        setErro(requestError.message || 'Não foi possível carregar seus documentos.');
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
 
-    const identificador = user?.id || user?.email;
-    if (!identificador) return;
+    return () => {
+      cancelado = true;
+    };
+  }, [buscarDocumentos]);
 
-    const chaveData = `continuum:consentimento:data-cadastro:${identificador}`;
+  const atualizarConsentimento = async (documento, acao) => {
+    const textoAcao = acao === 'revogar' ? 'revogação' : 'autorização';
+    const confirmado = window.confirm(
+      `Confirma a ${textoAcao} para "${documento.titulo}", versão v.${documento.versao}? A decisão será registrada com data e hora UTC.`
+    );
+    if (!confirmado) return;
+
+    setDocumentoEmAtualizacao(documento.chave);
+    setErro('');
+    setMensagem('');
     try {
-      const dataSalva = window.localStorage.getItem(chaveData);
-      if (dataSalva) {
-        setDataCadastro(dataSalva);
-        return;
+      const response = await fetch(buildApiUrl('patients/consentimentos_paciente.php'), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ documento: documento.chave, acao }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Não foi possível atualizar este consentimento.');
       }
-
-      const dataHoje = dataLocalDeHoje();
-      window.localStorage.setItem(chaveData, dataHoje);
-      setDataCadastro(dataHoje);
-    } catch (error) {
-      console.error('Não foi possível salvar a data de cadastro do consentimento:', error);
-      setErroData('Não foi possível salvar a data deste consentimento neste dispositivo.');
+      setMensagem(data.message);
+      try {
+        setDocumentos(await buscarDocumentos());
+      } catch (refreshError) {
+        console.error('A revogação foi registrada, mas a lista não pôde ser atualizada:', refreshError);
+        setErro('A revogação foi registrada, mas não foi possível atualizar a lista. Recarregue a página.');
+      }
+    } catch (requestError) {
+      console.error('Erro ao atualizar consentimento:', requestError);
+      setErro(requestError.message || 'Não foi possível registrar esta decisão.');
+    } finally {
+      setDocumentoEmAtualizacao('');
     }
-  }, [user?.created_at, user?.data_cadastro, user?.email, user?.id]);
-
-  const consentimentos = [
-    {
-      data: '25/10/2026',
-      tipo: 'Consetimentos e Autorizações Clinicas.',
-      finalidade: '(Cirurgia, Anestesia, Exames, etec) .',
-      versao: '1.0',
-      status: 'Registrado',
-    },
-    {
-      data: dataCadastro,
-      tipo: 'Dados e imagem',
-      finalidade: '(Compartilhamento de dados , Uso de imagem).',
-      versao: '1.0',
-      status: user?.aceite_termo_uso === 'sim'
-        ? 'Registrado'
-        : user?.aceite_termo_uso === 'nao'
-          ? 'Não registrado'
-          : 'Indisponível',
-    },
-    {
-      data: '25/10/2026',
-      tipo: 'Recusas e Responsabilidades',
-      finalidade: '(Recusa de tratamento , Termo de Internação)',
-      versao: '1.0',
-      status: 'Registrado',
-    },
-    {
-      data: '25/10/2026',
-      tipo: 'Altas',
-      finalidade: 'Altas hospitalar , Alta a pedido.',
-      versao: '1.0',
-      status: 'Registrado',
-    },
-  ];
+  };
 
   return (
     <C.PageShell>
       <HeaderPaciente />
       <C.PageLayout>
         <C.Container>
-          <C.Title>Meus consentimentos</C.Title>
+          <C.Title>Meus documentos e consentimentos</C.Title>
           <C.Content>
             <C.Heading>
               <C.HeadingIcon><FaShieldAlt /></C.HeadingIcon>
               <div>
-                <h2>Consentimentos de privacidade</h2>
+                <h2>Documentos, versões e decisões</h2>
                 <p>
-                  Olá, {user?.nome || 'paciente'}. Consulte os termos relacionados aos seus dados.
+                  Olá, {user?.nome || 'paciente'}. Consulte os documentos, versões e
+                  decisões registradas na sua conta.
                 </p>
               </div>
             </C.Heading>
 
+            <C.TransparencyNotice role="note">
+              <strong>Como interpretar os registros</strong>
+              <p>
+                Cada aceite ou revogação é associado à versão e ao hash do PDF apresentado,
+                com data e hora UTC. A revogação não apaga o histórico nem registros clínicos.
+                Ela registra sua decisão sobre o consentimento específico; a aplicação da
+                revogação e a existência de outras bases legais devem ser avaliadas para cada uso.
+                Os termos de dados sensíveis, imagem, procedimento e recusa ainda contêm campos
+                de modelo e não podem ser aceitos aqui como autorizações finais.
+              </p>
+            </C.TransparencyNotice>
+
+            {erro && <C.Error role="alert">{erro}</C.Error>}
+            {mensagem && <C.Success role="status">{mensagem}</C.Success>}
+
             <C.Toolbar>
-              <strong>Documentos registrados</strong>
-              <C.Count>{consentimentos.length} {consentimentos.length === 1 ? 'documento' : 'documentos'}</C.Count>
+              <strong>Documentos disponíveis</strong>
+              <C.Count>
+                {carregando ? 'Carregando...' : `${documentos.length} documentos`}
+              </C.Count>
             </C.Toolbar>
-            {erroData && <C.Error role="alert">{erroData}</C.Error>}
 
             <C.TableWrapper>
               <table>
                 <thead>
                   <tr>
-                    <th>Data</th>
-                    <th>Consentimento</th>
+                    <th>Documento e finalidade</th>
                     <th>Versão</th>
                     <th>Status</th>
-                    <th><span className="sr-only">Ação</span></th>
+                    <th>Data do evento</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {consentimentos.map((item) => (
-                    <tr key={item.tipo}>
-                      <td data-label="Data">{item.data}</td>
-                      <td data-label="Consentimento">
-                        <C.DocumentName><FaFileAlt /> {item.tipo}</C.DocumentName>
+                  {carregando ? (
+                    <tr><td colSpan="5">Carregando documentos...</td></tr>
+                  ) : documentos.length === 0 ? (
+                    <tr><td colSpan="5">Nenhum documento disponível.</td></tr>
+                  ) : documentos.map((documento) => (
+                    <tr key={documento.chave}>
+                      <td data-label="Documento e finalidade">
+                        <C.DocumentName>
+                          <FaFileAlt />
+                          <span>
+                            <strong>{documento.titulo}</strong>
+                            <small>{orientacaoDocumento[documento.chave]}</small>
+                            <small className="document-hash">SHA-256: {documento.hash}</small>
+                          </span>
+                        </C.DocumentName>
                       </td>
-                      <td data-label="Versão">{item.versao}</td>
+                      <td data-label="Versão">v.{documento.versao}</td>
                       <td data-label="Status">
-                        <C.Status $status={item.status}>
-                          {item.status === 'Registrado' && <FaCheckCircle />}
-                          {item.status}
+                        <C.Status $status={documento.status}>
+                          {documento.status === 'aceito' && <FaCheckCircle />}
+                          {documento.status === 'revogado' && <FaTimes />}
+                          {textosStatus[documento.status]}
                         </C.Status>
                       </td>
-                      <td data-label="Ação">
-                        <C.ActionButton
-                          type="button"
-                          onClick={() => setDetalhe(item)}
-                          aria-label={`Ver detalhes: ${item.tipo}`}
-                        >
-                          <FaEye /> Detalhes
-                        </C.ActionButton>
+                      <td data-label="Data do evento">{formatarDataUtc(documento.data_hora_utc)}</td>
+                      <td data-label="Ações">
+                        <C.RowActions>
+                          <C.PolicyLink
+                            href={documento.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Abrir PDF
+                          </C.PolicyLink>
+                          {documento.revogavel && documento.status === 'aceito' && (
+                            <C.ActionButton
+                              type="button"
+                              disabled={documentoEmAtualizacao === documento.chave}
+                              onClick={() => atualizarConsentimento(documento, 'revogar')}
+                              aria-label={`Revogar consentimento: ${documento.titulo}`}
+                            >
+                              {documentoEmAtualizacao === documento.chave
+                                ? 'Registrando...'
+                                : 'Revogar'}
+                            </C.ActionButton>
+                          )}
+                          {documento.revogavel
+                            && documento.aceitavel
+                            && documento.status !== 'aceito' && (
+                            <C.ActionButton
+                              type="button"
+                              disabled={documentoEmAtualizacao === documento.chave}
+                              onClick={() => atualizarConsentimento(documento, 'aceitar')}
+                              aria-label={`Autorizar: ${documento.titulo}`}
+                            >
+                              {documentoEmAtualizacao === documento.chave
+                                ? 'Registrando...'
+                                : 'Autorizar'}
+                            </C.ActionButton>
+                          )}
+                        </C.RowActions>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </C.TableWrapper>
-
-            {detalhe && (
-              <C.Details role="region" aria-label={`Detalhes de ${detalhe.tipo}`}>
-                <div>
-                  <h3>{detalhe.tipo}</h3>
-                  <C.CloseButton
-                    type="button"
-                    onClick={() => setDetalhe(null)}
-                    aria-label="Fechar detalhes"
-                  >
-                    <FaTimes />
-                  </C.CloseButton>
-                </div>
-                <dl>
-                  <dt>Paciente</dt>
-                  <dd>{user?.nome || 'Paciente'}</dd>
-                  <dt>Data do registro</dt>
-                  <dd>{detalhe.data}</dd>
-                  <dt>Versão</dt>
-                  <dd>{detalhe.versao}</dd>
-                  <dt>Finalidade</dt>
-                  <dd>{detalhe.finalidade}</dd>
-                </dl>
-              </C.Details>
-            )}
           </C.Content>
         </C.Container>
       </C.PageLayout>
+      <Footer />
     </C.PageShell>
   );
 }

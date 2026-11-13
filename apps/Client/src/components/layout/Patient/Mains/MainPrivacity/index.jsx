@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { 
-  Typography, Accordion, AccordionSummary, AccordionDetails, 
-  Switch, Button, Divider, Dialog, DialogTitle, DialogContent, 
-  DialogContentText, DialogActions, TextField, Alert 
+import {
+  Typography, Accordion, AccordionSummary, AccordionDetails,
+  Button, Divider, Dialog, DialogTitle, DialogContent,
+  DialogContentText, DialogActions, TextField, Alert
 } from '@mui/material';
 import { FaChevronDown, FaDownload, FaTrashAlt } from 'react-icons/fa';
 import { Link as RouterLink } from 'react-router-dom';
@@ -10,22 +10,17 @@ import { CardContainer, Title, SubTitle } from './styles';
 import { buildApiUrl } from '../../../../../config/api';
 
 function MainPrivacity() {
-  const [consentimentoAtivo, setConsentimentoAtivo] = useState(true);
   const [modalExclusaoOpen, setModalExclusaoOpen] = useState(false);
   const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
   const [exportandoDados, setExportandoDados] = useState(false);
   const [erroExportacao, setErroExportacao] = useState('');
-
-  const handleRevogarConsentimento = (event) => {
-    setConsentimentoAtivo(event.target.checked);
-  };
 
   const handleExportarDados = async () => {
     setExportandoDados(true);
     setErroExportacao('');
 
     try {
-      const response = await fetch(buildApiUrl('exportar.php'), {
+      const response = await fetch(buildApiUrl('patients/exportar.php'), {
         method: 'GET',
         credentials: 'include',
         headers: { Accept: 'application/json' },
@@ -102,23 +97,12 @@ function MainPrivacity() {
       <Typography variant="h6" gutterBottom fontWeight="bold">
         2. Meus Consentimentos
       </Typography>
-      <div className="consent-row">
-        <div>
-          <Typography variant="subtitle1" fontWeight="bold">
-            Tratamento de Dados Clínicos (Passagem de Plantão)
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Autorizo o acesso aos meus dados vitais e prescrições pela equipe médica escalada.
-          </Typography>
-        </div>
-        <Switch
-          checked={consentimentoAtivo}
-          onChange={handleRevogarConsentimento}
-          color="primary"
-        />
-      </div>
+      <Typography variant="body2" color="text.secondary" gutterBottom>
+        Consulte os documentos, versões e decisões registradas. As autorizações opcionais
+        podem ser revogadas na tela de consentimentos.
+      </Typography>
       <Button component={RouterLink} to="/consentimentos" variant="outlined" sx={{ mt: 2 }}>
-        Gerenciar consentimentos
+        Ver documentos e gerenciar consentimentos
       </Button>
 
       <Divider sx={{ my: 4 }} />

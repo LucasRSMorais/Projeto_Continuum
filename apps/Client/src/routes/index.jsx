@@ -8,7 +8,6 @@ import NovaSenha from '../pages/new_senha';
 import Register_Pacientes from '../pages/Admin/CRUD/Registrer_pacientes';
 import LoginPacientes from '../pages/Patient/Login_pacientes';
 import HomePaciente from '../pages/Patient/Home_paciente';
-import Revogacao from '../pages/revogar';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
 import Consetimento from '../pages/consentimentos';
@@ -57,7 +56,7 @@ const RoutesApp = () => {
         {/* Páginas administrativas e de configuração */}
         <Route path="/consentimentos" element={<PrivateRoute><Consetimento /></PrivateRoute>} />
         <Route path="/consetimentos" element={<Navigate to="/consentimentos" replace />} />
-        <Route path="/revogar" element={<PrivateRoute><Revogacao /></PrivateRoute>} />
+        <Route path="/revogar" element={<Navigate to="/consentimentos" replace />} />
 
         {/* Página inicial protegida do médico */}
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />

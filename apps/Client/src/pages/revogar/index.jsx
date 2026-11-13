@@ -39,7 +39,7 @@ const revogarConta = async(event)=>{
 try{
 
 const response = await fetch(
-    buildApiUrl('revoga_conta.php'),
+    buildApiUrl('patients/revoga_conta.php'),
   {
     method : 'POST',
     credentials : 'include',

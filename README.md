@@ -153,6 +153,16 @@ Após a execução, a API estará disponível em `http://localhost:8000`. O dash
 
 Para atualizar a imagem do backend e obter os patches de segurança mais recentes do PHP 8.5, execute `docker compose build --pull backend` e depois `docker compose up -d backend`.
 
+#### Primeiro acesso e termos do paciente
+
+O cadastro público de pacientes foi desativado. A integração institucional deve criar o registro do paciente antes do primeiro acesso, com e-mail verificado, `acesso_ativado = 0` (padrão) e `senha_hash = NULL`. Configure `RESEND_API_KEY` no backend para enviar o código de ativação. O paciente confirma o código por e-mail, cria uma senha e registra o aceite do Termo de Uso e Serviço; autorizações opcionais são armazenadas separadamente.
+
+Em uma instalação nova, `database/init.sql` cria as tabelas necessárias. Para atualizar uma base existente, faça backup e aplique `apps/database/migrations/20261113_patient_terms_first_access.sql` antes de publicar a nova versão do backend. A migração marca as contas existentes para primeiro acesso; elas precisarão ser ativadas pelo e-mail já cadastrado.
+
+Os PDFs do portal ficam em `apps/Client/public/document/terms/patient/`. Ao substituir um documento, atualize sua versão e o SHA-256 no catálogo do backend (`apps/Server/api/shared/catalogo_termos_paciente.php`) antes de disponibilizar o arquivo, para que o histórico continue identificando exatamente o texto aceito.
+
+Os PDFs atuais de dados sensíveis, imagem, procedimento e recusa ainda contêm campos entre colchetes ou escolhas não preenchidas. O sistema os exibe como modelos pendentes e não registra novos aceites para eles até que sejam substituídos por documentos finalizados e aprovados.
+
 #### Parar o ambiente temporariamente:
 Para os serviços sem destruir os contêineres ou a rede interna.
 ```bash

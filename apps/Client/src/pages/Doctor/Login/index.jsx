@@ -41,7 +41,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('login.php'),
+        buildApiUrl('auth/login.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -88,7 +88,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('verify-2fa.php'),
+        buildApiUrl('auth/verify-2fa.php'),
         {
           method: 'POST',
           credentials: 'include',

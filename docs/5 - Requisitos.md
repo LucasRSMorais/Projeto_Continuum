@@ -42,7 +42,7 @@ A arquitetura atual do sistema de log foi definida em torno de persistência em 
 
 ### 4.1 Registro central de auditoria
 
-A rotina principal de registro está em [apps/Server/api/registrarLog.php](apps/Server/api/registrarLog.php). Ela recebe os seguintes dados:
+A rotina principal de registro está em [apps/Server/api/shared/registrarLog.php](apps/Server/api/shared/registrarLog.php). Ela recebe os seguintes dados:
 
 - usuário associado ao evento;
 - ação executada;
@@ -243,14 +243,14 @@ A estrutura atual atende ao contexto do projeto, especialmente no que diz respei
 
 Os principais módulos relacionados à implementação do sistema de log podem ser consultados em:
 
-- [apps/Server/api/registrarLog.php](apps/Server/api/registrarLog.php)
+- [apps/Server/api/shared/registrarLog.php](apps/Server/api/shared/registrarLog.php)
 - [apps/Server/config/logger.php](apps/Server/config/logger.php)
 - [apps/Server/sql/logs_auditoria.sql](apps/Server/sql/logs_auditoria.sql)
-- [apps/Server/api/login.php](apps/Server/api/login.php)
-- [apps/Server/api/verify-2fa.php](apps/Server/api/verify-2fa.php)
-- [apps/Server/api/verificar.php](apps/Server/api/verificar.php)
-- [apps/Server/api/verificar2FA_paciente.php](apps/Server/api/verificar2FA_paciente.php)
-- [apps/Server/api/senha.php](apps/Server/api/senha.php)
-- [apps/Server/api/register.php](apps/Server/api/register.php)
-- [apps/Server/api/register_paciente.php](apps/Server/api/register_paciente.php)
-- [apps/Server/api/revoga_conta.php](apps/Server/api/revoga_conta.php)
+- [apps/Server/api/auth/login.php](apps/Server/api/auth/login.php)
+- [apps/Server/api/auth/verify-2fa.php](apps/Server/api/auth/verify-2fa.php)
+- [apps/Server/api/password/verificar.php](apps/Server/api/password/verificar.php)
+- [apps/Server/api/auth/verificar2FA_paciente.php](apps/Server/api/auth/verificar2FA_paciente.php)
+- [apps/Server/api/password/senha.php](apps/Server/api/password/senha.php)
+- [apps/Server/api/staff/register.php](apps/Server/api/staff/register.php)
+- [apps/Server/api/patients/register_paciente.php](apps/Server/api/patients/register_paciente.php)
+- [apps/Server/api/patients/revoga_conta.php](apps/Server/api/patients/revoga_conta.php)

@@ -15,7 +15,7 @@ export const API_BASE_URL = import.meta.env.VITE_BACKEND;
  * - http://localhost:8000 -> http://localhost:8000/api
  * - http://localhost:8000/api -> mantém a base existente
  *
- * @param {string} path - caminho específico do endpoint, como 'session.php' ou 'login.php'
+ * @param {string} path - caminho específico do endpoint, como 'auth/session.php' ou 'auth/login.php'
  * @returns {string} URL completa pronta para fetch
  */
 export const buildApiUrl = (path = '') => {

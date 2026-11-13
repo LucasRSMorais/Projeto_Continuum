@@ -148,36 +148,43 @@ export const Form = styled.form`
 `;
 
 export const PasswordRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  position: relative;
   width: 100%;
 
   > div {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
   }
 
   input {
     width: 100%;
+    padding-right: 52px;
   }
 
   > button {
-    display: flex;
-    flex: 0 0 46px;
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: grid;
     align-items: center;
     justify-content: center;
-    width: 46px;
-    height: 46px;
-    padding: 0;
-    border: 1px solid #d6deea;
-    border-radius: 8px;
-    background: #f5f8fc;
-    color: #52657d;
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #61738a;
     cursor: pointer;
   }
 
   > button:hover {
     background: #eaf2fc;
+    color: #1769c2;
+  }
+
+  > button:focus-visible {
+    outline: 2px solid #3982d6;
+    outline-offset: 1px;
   }
 `;

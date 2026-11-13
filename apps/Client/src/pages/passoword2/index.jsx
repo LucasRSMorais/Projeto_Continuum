@@ -39,7 +39,7 @@ function LoginSenha() {
 
     try {
       const response = await fetch(
-        buildApiUrl('email2.php'),
+        buildApiUrl('password/email2.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -86,7 +86,7 @@ function LoginSenha() {
 
     try {
       const response = await fetch(
-        buildApiUrl('verificar2.php'),
+        buildApiUrl('password/verificar2.php'),
         {
           method: 'POST',
           credentials: 'include',
