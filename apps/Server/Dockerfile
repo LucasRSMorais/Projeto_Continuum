@@ -16,6 +16,9 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 
 # Configuração dos módulos MPM do Apache feita no BUILD (como root)
 RUN set -eux; \
+    printf '%s\n' 'ServerName localhost' \
+        > /etc/apache2/conf-available/servername.conf; \
+    a2enconf servername; \
     mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
           /etc/apache2/mods-enabled/mpm_event.conf \
