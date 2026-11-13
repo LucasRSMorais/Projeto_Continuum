@@ -37,7 +37,7 @@ services:
       - no-new-privileges:true
     read_only: true
     ports:
-      - "127.0.0.1:${API_PUBLISHED_PORT:-8000}:8080"
+      - "127.0.0.1:${API_PUBLISHED_PORT:-8000}:80"
     environment:
       APP_ENV: ${APP_ENV:-development}
       DB_HOST: ${DB_HOST:-db}
