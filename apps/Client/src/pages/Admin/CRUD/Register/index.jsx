@@ -62,7 +62,7 @@ const senhaIgual = password === confirmacaoSenha;
     try {
       setLoading(true);
       const response = await fetch(
-        buildApiUrl('register.php'),
+        buildApiUrl('staff/register.php'),
         {
           method: 'POST',
           headers: {

@@ -172,13 +172,34 @@ export const Form = styled.form`
   button {
     max-width: none;
     min-height: 46px;
+    padding: 11px 14px;
+    border: 1px solid #1769c2;
     border-radius: 8px;
+    background: #1769c2;
+    color: #fff;
+    font: inherit;
     font-weight: 600;
+    cursor: pointer;
     transition: background-color 150ms ease, transform 150ms ease;
   }
 
   button:hover {
     background-color: #035bbf;
+  }
+
+  button.secondary {
+    border-color: #c9d9ed;
+    background: #fff;
+    color: #1769c2;
+  }
+
+  button.secondary:hover {
+    background: #f2f7fd;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
   }
 
   button:active {

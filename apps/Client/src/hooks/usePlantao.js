@@ -3,7 +3,7 @@ import { buildApiUrl } from '../config/api';
 
 async function fetchPlantao(sectorId, signal) {
   const response = await fetch(
-    buildApiUrl(`Plantoes/plantao.php?id_setor=${sectorId}`),
+    buildApiUrl(`clinical/plantao.php?id_setor=${sectorId}`),
     { credentials: 'include', signal }
   );
   const result = await response.json();
@@ -66,7 +66,7 @@ export function usePlantao(sectorId) {
     setError('');
     setMessage('');
     try {
-      const response = await fetch(buildApiUrl('Plantoes/plantao.php'), {
+      const response = await fetch(buildApiUrl('clinical/plantao.php'), {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

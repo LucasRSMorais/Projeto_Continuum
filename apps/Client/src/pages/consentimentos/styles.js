@@ -136,6 +136,148 @@ export const Count = styled.span`
   font-size: 13px;
 `;
 
+export const TransparencyNotice = styled.aside`
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid #e8c878;
+  border-radius: 9px;
+  background: #fff9e9;
+  color: #59491e;
+  line-height: 1.55;
+
+  strong {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  p {
+    margin: 0;
+  }
+`;
+
+export const ScopeSummary = styled.section`
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #dce8f5;
+  border-radius: 9px;
+  background: #f8fbff;
+  color: #344b66;
+  line-height: 1.55;
+
+  h3 {
+    margin: 0 0 10px;
+    color: #213c5b;
+    font-size: 16px;
+  }
+
+  ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  p {
+    margin: 12px 0 0;
+    color: #68798e;
+    font-size: 13px;
+  }
+`;
+
+export const DocumentChecklist = styled.section`
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #dce8f5;
+  border-radius: 10px;
+  background: #fff;
+
+  .checklist-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  h3 {
+    margin: 0 0 5px;
+    color: #213c5b;
+    font-size: 17px;
+  }
+
+  .checklist-heading p,
+  .checklist-note {
+    margin: 0;
+    color: #68798e;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  ul {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid #e8edf4;
+    border-radius: 8px;
+    color: #5486bf;
+  }
+
+  li > svg {
+    flex: 0 0 auto;
+    margin-top: 3px;
+  }
+
+  li > div {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .document-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    color: #294a70;
+  }
+
+  .document-title span {
+    flex: 0 0 auto;
+    color: #718198;
+    font-size: 12px;
+  }
+
+  li p {
+    margin: 5px 0 0;
+    color: #68798e;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .checklist-note {
+    margin-top: 14px;
+  }
+
+  @media (max-width: 600px) {
+    padding: 16px;
+
+    .checklist-heading,
+    .document-title {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 5px;
+    }
+  }
+`;
+
 export const TableWrapper = styled.div`
   width: 100%;
   overflow-x: auto;
@@ -263,6 +405,28 @@ export const DocumentName = styled.span`
     flex: 0 0 auto;
     color: #5486bf;
   }
+
+  strong {
+    display: block;
+    white-space: normal;
+  }
+
+  small {
+    display: block;
+    margin-top: 4px;
+    color: #718198;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+    white-space: normal;
+  }
+
+  .document-hash {
+    overflow-wrap: anywhere;
+    color: #8a96a6;
+    font-family: monospace;
+    font-size: 11px;
+  }
 `;
 
 export const Status = styled.span`
@@ -270,14 +434,23 @@ export const Status = styled.span`
   align-items: center;
   gap: 7px;
   color: ${({ $status }) => (
-    $status === 'Registrado'
+    $status === 'aceito'
       ? '#258053'
-      : $status === 'Não registrado'
+      : $status === 'revogado'
         ? '#b54747'
-        : '#718198'
+        : $status === 'informativo'
+          ? '#1769c2'
+          : '#718198'
   )};
   font-size: 13px;
   font-weight: 600;
+`;
+
+export const RowActions = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 `;
 
 export const ActionButton = styled.button`
@@ -312,6 +485,24 @@ export const EmptyState = styled.p`
   padding: 14px;
   color: #718198;
   text-align: center;
+`;
+
+export const Error = styled.p`
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #f1b6b6;
+  border-radius: 8px;
+  background: #fff2f2;
+  color: #a4262c;
+`;
+
+export const Success = styled.p`
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #a9d8bd;
+  border-radius: 8px;
+  background: #f0fbf4;
+  color: #1d6b43;
 `;
 
 export const Details = styled.section`
@@ -363,6 +554,21 @@ export const Details = styled.section`
     dd:not(:last-child) {
       margin-bottom: 8px;
     }
+  }
+`;
+
+export const PolicyLink = styled.a`
+  display: inline-block;
+  margin-top: 18px;
+  color: #1769c2;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  &:focus-visible {
+    outline: 3px solid rgba(57, 130, 214, 0.35);
+    outline-offset: 3px;
   }
 `;
 

@@ -11,7 +11,7 @@ ChartJS.register(ArcElement, Tooltip);
 export const KPI_CardHosp = () => {
   // Consumindo o custom hook
 // const { kpiData, loading, error } = useKpiData('http://localhost:8000/kpi_plantoes.php');
-const { kpiData, loading, error } = useKpiData(buildApiUrl('KPIs/kpi_plantoes.php'));
+const { kpiData, loading, error } = useKpiData(buildApiUrl('dashboard/kpi_plantoes.php'));
 
   const chartData = {
     labels: ['Concluído', 'Pendente'],

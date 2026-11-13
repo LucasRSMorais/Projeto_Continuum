@@ -163,7 +163,7 @@ const mascararCPF = (cpf) => {
         setAddressMessage('');
         setAddressMessageIsError(false);
         try {
-            const response = await fetch(buildApiUrl('atualizar_endereco_paciente.php'), {
+            const response = await fetch(buildApiUrl('patients/atualizar_endereco_paciente.php'), {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -224,7 +224,7 @@ const mascararCPF = (cpf) => {
         setMessage('');
         setMessageIsError(false);
         try {
-            const response = await fetch(buildApiUrl('atualizar_perfil_paciente.php'), {
+            const response = await fetch(buildApiUrl('patients/atualizar_perfil_paciente.php'), {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },

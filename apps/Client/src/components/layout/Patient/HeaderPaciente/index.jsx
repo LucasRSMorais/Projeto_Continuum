@@ -25,7 +25,7 @@ function HeaderPaciente() {
       return;
     }
 
-    window.location.href = `${buildApiUrl('exportar.php')}?email=${encodeURIComponent(user?.email)}`;
+    window.location.href = `${buildApiUrl('patients/exportar.php')}?email=${encodeURIComponent(user?.email)}`;
   };
 
   return (
@@ -51,11 +51,6 @@ function HeaderPaciente() {
           <li>
             <NavLink href="/" className="nav-link" title="Alterar Tema">
               <img src={ColormodeIcon} alt="" />
-            </NavLink>
-          </li>
-          <li>
-            <NavLink className="nav-link" title="Exporta os meus dados" onClick={exporta}>
-              <img src={downloadIcon} alt="" />
             </NavLink>
           </li>
           <li ref={ref} style={{ position: 'relative' }}>
