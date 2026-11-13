@@ -1,5 +1,5 @@
 
-FROM php:8.2-apache
+FROM php:8.5-apache
 
 # Configurações de segurança e sessão do PHP
 RUN printf '%s\n' \

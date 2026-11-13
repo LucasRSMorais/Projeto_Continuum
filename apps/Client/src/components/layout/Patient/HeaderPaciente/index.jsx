@@ -53,11 +53,6 @@ function HeaderPaciente() {
               <img src={ColormodeIcon} alt="" />
             </NavLink>
           </li>
-          <li>
-            <NavLink className="nav-link" title="Exporta os meus dados" onClick={exporta}>
-              <img src={downloadIcon} alt="" />
-            </NavLink>
-          </li>
           <li ref={ref} style={{ position: 'relative' }}>
             <div
               className="nav-link"

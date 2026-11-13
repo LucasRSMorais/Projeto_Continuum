@@ -3,7 +3,6 @@ import { useAuth } from '../../services/utils/auth';
 import * as C from './styles';
 import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaEye, FaTimes } from 'react-icons/fa';
 import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
-import SidebarPaciente from '../../components/layout/Patient/SidebarPaciente';
 
 const formatarDataCadastro = (valor) => {
   if (!valor) return 'Indisponível';
@@ -97,7 +96,6 @@ function Consentimento() {
     <C.PageShell>
       <HeaderPaciente />
       <C.PageLayout>
-        <SidebarPaciente />
         <C.Container>
           <C.Title>Meus consentimentos</C.Title>
           <C.Content>

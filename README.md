@@ -42,7 +42,7 @@ O projeto está sendo desenvolvido utilizando o seguinte **stack tecnológico**:
 
 | Categoria | Tecnologias |
 |---|---|
-| **Linguagens** | JavaScript, PHP e Node.js |
+| **Linguagens** | JavaScript, PHP 8.5 e Node.js |
 | **Marcação e Estilização** | HTML5 e CSS3 |
 | **Bibliotecas/Frameworks** | React (JavaScript), Styled Components |
 | **Build Tool** | Vite |
@@ -119,7 +119,7 @@ Antes de iniciar a aplicação, é necessário configurar as credenciais do ambi
 ---
 
 ### 6.3 Executando o Servidor e Banco de Dados com Docker (Recomendado)
-Para garantir que o projeto seja executado com as mesmas configurações em qualquer máquina, utilizamos o **Docker** para orquestrar o servidor PHP (Backend) e a base de dados MySQL.
+Para garantir que o projeto seja executado com as mesmas configurações em qualquer máquina, utilizamos o **Docker** para orquestrar o servidor PHP 8.5 (Backend) e a base de dados MySQL. A imagem usa a versão oficial `php:8.5-apache`; a série PHP 8.5 recebe atualizações de segurança até 31 de dezembro de 2029.
 
 #### Pré-requisitos do Docker
 - **Docker Desktop:** Versão 4.95.0 ou superior (recomendado).
@@ -151,6 +151,8 @@ docker compose up -d
 ```
 Após a execução, a API estará disponível em `http://localhost:8000`. O dashboard exige autenticação também no ambiente local; não existe opção de desativar a autenticação no Compose. As portas publicadas são somente locais e podem ser alteradas por `API_PUBLISHED_PORT` e `DB_PUBLISHED_PORT` no `.env`.
 
+Para atualizar a imagem do backend e obter os patches de segurança mais recentes do PHP 8.5, execute `docker compose build --pull backend` e depois `docker compose up -d backend`.
+
 #### Parar o ambiente temporariamente:
 Para os serviços sem destruir os contêineres ou a rede interna.
 ```bash
@@ -168,6 +170,8 @@ docker compose down
 ### 6.4 Configuração do Banco de Dados Manualmente (Alternativa)
 
 Caso não deseje utilizar o Docker, é necessário possuir um servidor PHP e um servidor MySQL em funcionamento. 
+
+Use PHP 8.5 ou outra versão ainda mantida pelo projeto PHP para receber correções de segurança.
 
 **Ferramentas recomendadas:**
 

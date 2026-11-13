@@ -314,6 +314,15 @@ export const EmptyState = styled.p`
   text-align: center;
 `;
 
+export const Error = styled.p`
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid #f1b6b6;
+  border-radius: 8px;
+  background: #fff2f2;
+  color: #a4262c;
+`;
+
 export const Details = styled.section`
   margin-top: 20px;
   padding: 20px;

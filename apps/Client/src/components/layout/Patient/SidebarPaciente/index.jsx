@@ -9,7 +9,7 @@ function SidebarPaciente() {
         <ul>
           <li><a href ="/home_paciente">Inicio</a></li>
           <li><a href="">Exames</a></li>
-          <li><a href="/consetimentos">Consetimentos</a></li>
+          <li><a href="/consentimentos">Consentimentos</a></li>
         </ul>
       </Menu>
     </Container>

@@ -34,6 +34,17 @@ Este software tem como finalidade ser apresentado ao SUMMIT UMC 2026, à discipl
 ## Instrução de uso
 1- Abrir XAMPP, ativar APACHE e MySql
 
+### Visualizar telas em desenvolvimento
+Para abrir as rotas privadas sem autenticar durante o desenvolvimento, crie
+`apps/Client/.env.local` com:
+
+```env
+VITE_DEV_AUTH_BYPASS=true
+```
+
+Reinicie o servidor Vite após alterar essa variável. O bypass só é aceito quando
+o Vite está em modo de desenvolvimento (`npm run dev`) e não tem efeito no build
+de produção. Sem essa variável, as rotas privadas continuam exigindo autenticação.
 
 ## Licença
 ### Apache 2.0

@@ -8,20 +8,22 @@ import NovaSenha from '../pages/new_senha';
 import Register_Pacientes from '../pages/Admin/CRUD/Registrer_pacientes';
 import LoginPacientes from '../pages/Patient/Login_pacientes';
 import HomePaciente from '../pages/Patient/Home_paciente';
-import DeletaConta from '../pages/deleta_conta';
-import ConsultarConta from '../pages/consultar';
 import Revogacao from '../pages/revogar';
-import Endereco from '../pages/endereco';
-import Configuracao from '../pages/configuracao';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
 import Consetimento from '../pages/consentimentos';
 import PerfilPaciente from '../pages/Patient/PerfilPaciente';
+import Privacidade from '../pages/Patient/Privacidade';
 
-// Guarda de rota: impede que usuários não autenticados acessem páginas privadas.
-// Enquanto a sessão está sendo verificada, o usuário recebe uma mensagem de carregamento.
+const devAuthBypass = import.meta.env.DEV
+  && import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
+
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
+
+  if (devAuthBypass) {
+    return children;
+  }
 
   if (loading) {
     return <div>Verificando autenticação...</div>;
@@ -48,19 +50,17 @@ const RoutesApp = () => {
         {/* Fluxo específico para pacientes */}
         <Route path="/register_pacientes" element={<Register_Pacientes />} />
         <Route path="/login_pacientes" element={<LoginPacientes />} />
-        <Route path="/home_paciente" element={<HomePaciente />} />
-        <Route path="/perfilpaciente" element={<PerfilPaciente />} />
+        <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>} />
+        <Route path="/perfilpaciente" element={<PrivateRoute><PerfilPaciente /></PrivateRoute>} />
+        <Route path="/privacidade" element={<PrivateRoute><Privacidade /></PrivateRoute>} />
 
         {/* Páginas administrativas e de configuração */}
-        <Route path="/configuracao" element={<Configuracao />} />
-        <Route path="/deleta_conta" element={<DeletaConta />} />
-        <Route path="/consultar" element={<ConsultarConta />} />
-        <Route path="/consetimentos" element={<Consetimento />} />
-        <Route path="/revogar" element={<Revogacao />} />
-        <Route path="/endereco" element={<Endereco />} />
+        <Route path="/consentimentos" element={<PrivateRoute><Consetimento /></PrivateRoute>} />
+        <Route path="/consetimentos" element={<Navigate to="/consentimentos" replace />} />
+        <Route path="/revogar" element={<PrivateRoute><Revogacao /></PrivateRoute>} />
 
         {/* Página inicial protegida do médico */}
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
 
         {/* Qualquer rota desconhecida retorna para o login */}
         <Route path="*" element={<Navigate to="/" replace />} />
