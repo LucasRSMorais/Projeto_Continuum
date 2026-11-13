@@ -18,6 +18,11 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
+
+RUN mkdir -p /tmp/apache2/run \
+    /tmp/apache2/lock \
+    /tmp/apache2/log
+
 # Configuração dos módulos MPM do Apache feita no BUILD (como root)
 
 # Configuração dos módulos MPM do Apache

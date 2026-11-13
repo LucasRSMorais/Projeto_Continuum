@@ -3,7 +3,8 @@ set -eu
 
 echo "========== CORRIGINDO MODULOS APACHE =========="
 
-# Remove os links dos módulos MPM que não devem estar ativos
+mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+
 rm -f /etc/apache2/mods-enabled/mpm_event.load
 rm -f /etc/apache2/mods-enabled/mpm_event.conf
 rm -f /etc/apache2/mods-enabled/mpm_worker.load
