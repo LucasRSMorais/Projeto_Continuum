@@ -1,6 +1,15 @@
 FROM php:8.5-apache
 
 
+RUN apt-get update \
+    && apt-get install -y --only-upgrade --no-install-recommends \
+       apache2 \
+       apache2-bin \
+       apache2-data \
+       apache2-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # Instala o driver PDO para MySQL
 RUN docker-php-ext-install pdo_mysql
 
