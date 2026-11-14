@@ -23,6 +23,7 @@ jobs:
   dast-scan:
     name: DAST - OWASP ZAP
     runs-on: ubuntu-latest
+
     env:
       DB_ROOT_PASSWORD: ci-root-password
       DB_APP_USER: continuum_user
@@ -42,18 +43,27 @@ jobs:
         run: |
           docker compose -f apps/docker-compose.yml up -d --build
           echo "Aguardando o backend iniciar..."
+
           for i in {1..30}; do
             if curl --silent --fail http://localhost:8000/; then
               echo "Backend iniciado com sucesso!"
               exit 0
             fi
+
             echo "Aguardando... tentativa $i"
             sleep 5
           done
+
           echo "O backend não iniciou corretamente."
           docker compose -f apps/docker-compose.yml logs
           exit 1
 
+      # Verifica a versão real do Apache no container
+      - name: Verificar versão do Apache
+        run: |
+          docker compose -f apps/docker-compose.yml exec -T backend apache2 -v
+
+      # Executa a análise dinâmica de segurança
       - name: OWASP ZAP Scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
         with:
@@ -61,6 +71,7 @@ jobs:
           rules_file_name: '.zap/rules.tsv'
           fail_action: true
 
+      # Finaliza os containers mesmo se alguma etapa falhar
       - name: Stop and clean up container
         if: always()
         run: |
@@ -70,6 +81,7 @@ jobs:
   privacy-scan:
     name: Privacy - Bearer Scanner
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -84,6 +96,7 @@ jobs:
   supply-chain:
     name: Supply Chain - Trivy SBOM
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout do repositório
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
