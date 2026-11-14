@@ -63,6 +63,11 @@ jobs:
         run: |
           docker compose -f apps/docker-compose.yml exec -T backend apache2 -v
 
+      # Verifica a versão dos pacotes Apache instalados
+      - name: Verificar pacote Apache2 instalado
+        run: |
+          docker compose -f apps/docker-compose.yml exec -T backend dpkg-query -W apache2 apache2-bin
+
       # Executa a análise dinâmica de segurança
       - name: OWASP ZAP Scan
         uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
