@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
-import Input from '../../../../components/Input';
-import Button from '../../../../components/Buttons/Button';
-import { buildApiUrl } from '../../../../config/api';
+import Input from "../../components/Input";
+import Button from "../../components/Buttons/Button";
+import { buildApiUrl } from "../../config/api";
 import { FaEye , FaEyeSlash } from 'react-icons/fa';
 
 const formatTelefone = (value) => {

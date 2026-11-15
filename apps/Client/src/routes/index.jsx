@@ -47,7 +47,7 @@ const RoutesApp = () => {
         <Route path="/recuperacao" element={<LoginSenha />} />
 
         {/* Fluxo específico para pacientes */}
-        <Route path="/register_pacientes" element={<Register_Pacientes123 />} />
+        <Route path="/register_pacientes123" element={<Register_Pacientes123 />} />
      
 
         <Route path="/login_pacientes" element={<LoginPacientes />} />
