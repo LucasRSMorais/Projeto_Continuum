@@ -286,14 +286,15 @@ try {
         exit;
     }
 
-    http_response_code(401);
+    /*http_response_code(401);
     echo json_encode([
         "success" => false,
         "message" => "E-mail ou senha inválidos. Se sua conta ainda não foi ativada, use a opção Primeiro acesso na tela de login."
     ]);
-    exit;
+    exit;  */
 }
 
+/*
 if ((int) ($usuario['acesso_ativado'] ?? 0) !== 1) {
     http_response_code(401);
     echo json_encode([
@@ -301,7 +302,7 @@ if ((int) ($usuario['acesso_ativado'] ?? 0) !== 1) {
         "message" => "E-mail ou senha inválidos. Se sua conta ainda não foi ativada, use a opção Primeiro acesso na tela de login."
     ]);
     exit;
-}
+}*/
 
 $resendAPI = getenv('RESEND_API_KEY');
     // Verifica se a senha digitada corresponde ao hash salvo no banco.

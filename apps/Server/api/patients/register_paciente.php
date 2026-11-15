@@ -3,7 +3,8 @@
 // Página de cadastro de novos usuários.
 // Recebe dados do frontend, valida e salva o usuário no banco com senha criptografada.
 
-require_once __DIR__ . '/../vendor/autoload.php';
+//require_once __DIR__ . '../../../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 header("Content-Type: application/json; charset=UTF-8");
 require_once __DIR__ . "/../../config/cors.php";
 applyCorsHeaders();
@@ -246,7 +247,7 @@ exit ;
 
 
     // Grava no log a criação do cadastro do paciente como evento de auditoria.
-    require_once __DIR__ . "/registrarLog.php";
+        require_once __DIR__ . "/../shared/registrarLog.php";
     registrarLog(
         $pdo,
         NULL , // Nenhum usuário logado no momento do cadastro do paciente.
