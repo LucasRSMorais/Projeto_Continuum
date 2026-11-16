@@ -62,6 +62,8 @@ function applyCorsHeaders(): void
         'http://127.0.0.1:5173',
         'https://127.0.0.1:5173',
         'https://frontend-production-55eb.up.railway.app',
+        'https://dev-projcontinuum.up.railway.app',
+
     ];
 
     $clientUrl = getenv('CLIENT_URL');
