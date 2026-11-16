@@ -1,6 +1,9 @@
 
 <?php
 
+require_once __DIR__ . "/../../config/cors.php";
+applyCorsHeaders();
+
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
@@ -9,8 +12,7 @@ session_set_cookie_params([
 
 session_start();
 
-require_once __DIR__ . "/../../config/cors.php";
-applyCorsHeaders();
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
