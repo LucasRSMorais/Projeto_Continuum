@@ -116,20 +116,24 @@ try {
     $conteudo .= "       FIM DA EXPORTAÇÃO\n";
     $conteudo .= "========================================\n";
 
-    // Limpa qualquer buffer de saída acidental antes dos headers
+   
+
+// Limpa qualquer buffer de saída acidental antes dos headers
     if (ob_get_level()) {
         ob_end_clean();
     }
 
-    $saidaFinal = "\xEF\xBB\xBF" . $conteudo;
-
-    header('Content-Type: text/plain; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="meus-dados-continuum.txt"');
-    header('Content-Length: ' . strlen($saidaFinal));
+    applyCorsHeaders();
+    header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store, private');
 
-    echo $saidaFinal;
+    echo json_encode([
+        "success" => true,
+        "filename" => "meus-dados-continuum.txt",
+        "conteudo" => $conteudo
+    ], JSON_UNESCAPED_UNICODE);
     exit;
+
    
 
 

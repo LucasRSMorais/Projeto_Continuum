@@ -16,8 +16,7 @@ function MainPrivacity() {
   const [erroExportacao, setErroExportacao] = useState('');
   const navigate = useNavigate();
 
- 
-const handleExportarDados = async () => {
+ const handleExportarDados = async () => {
   setExportandoDados(true);
   setErroExportacao('');
 
@@ -25,28 +24,23 @@ const handleExportarDados = async () => {
     const response = await fetch(buildApiUrl('patients/exportar.php'), {
       method: 'GET',
       credentials: 'include',
-      headers: {
-        Accept: 'text/plain, application/json, */*',
-      },
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || 'Não foi possível exportar seus dados.');
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Não foi possível exportar seus dados.');
     }
 
-    const textoExportado = await response.text();
+    // Adiciona o BOM UTF-8 (\uFEFF) para acentos abrirem perfeitos no Bloco de Notas/Windows
+    const exportFile = new Blob(['\uFEFF' + data.conteudo], {
+      type: 'text/plain;charset=utf-8',
+    });
 
-    // Garante que o servidor não devolveu uma página HTML por erro de rota/WAF
-    if (!textoExportado || textoExportado.trim().startsWith('<!DOCTYPE') || textoExportado.trim().startsWith('<html')) {
-      throw new Error('O servidor retornou uma resposta inválida ao exportar os dados.');
-    }
-
-    const exportFile = new Blob([textoExportado], { type: 'text/plain;charset=utf-8' });
     const downloadUrl = URL.createObjectURL(exportFile);
     const downloadLink = document.createElement('a');
     downloadLink.href = downloadUrl;
-    downloadLink.download = 'meus-dados-continuum.txt';
+    downloadLink.download = data.filename || 'meus-dados-continuum.txt';
     document.body.appendChild(downloadLink);
     downloadLink.click();
     downloadLink.remove();
