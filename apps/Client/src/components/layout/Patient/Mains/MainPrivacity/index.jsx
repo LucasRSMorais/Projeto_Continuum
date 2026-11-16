@@ -16,38 +16,49 @@ function MainPrivacity() {
   const [erroExportacao, setErroExportacao] = useState('');
   const navigate = useNavigate();
 
-  const handleExportarDados = async () => {
-    setExportandoDados(true);
-    setErroExportacao('');
+ 
+const handleExportarDados = async () => {
+  setExportandoDados(true);
+  setErroExportacao('');
 
-    try {
-      const response = await fetch(buildApiUrl('patients/exportar.php'), {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
+  try {
+    const response = await fetch(buildApiUrl('patients/exportar.php'), {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Accept: 'text/plain, application/json, */*',
+      },
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Não foi possível exportar seus dados.');
-      }
-
-      const exportFile = await response.blob();
-      const downloadUrl = URL.createObjectURL(exportFile);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = 'meus-dados-continuum.json';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-    } catch (error) {
-      console.error('Erro ao exportar dados do paciente:', error);
-      setErroExportacao(error.message || 'Não foi possível exportar seus dados. Tente novamente.');
-    } finally {
-      setExportandoDados(false);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || 'Não foi possível exportar seus dados.');
     }
-  };
+
+    const textoExportado = await response.text();
+
+    // Garante que o servidor não devolveu uma página HTML por erro de rota/WAF
+    if (!textoExportado || textoExportado.trim().startsWith('<!DOCTYPE') || textoExportado.trim().startsWith('<html')) {
+      throw new Error('O servidor retornou uma resposta inválida ao exportar os dados.');
+    }
+
+    const exportFile = new Blob([textoExportado], { type: 'text/plain;charset=utf-8' });
+    const downloadUrl = URL.createObjectURL(exportFile);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = downloadUrl;
+    downloadLink.download = 'meus-dados-continuum.txt';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+  } catch (error) {
+    console.error('Erro ao exportar dados do paciente:', error);
+    setErroExportacao(error.message || 'Não foi possível exportar seus dados. Tente novamente.');
+  } finally {
+    setExportandoDados(false);
+  }
+};
+
 
   const handleExcluirConta = async () => {
     
