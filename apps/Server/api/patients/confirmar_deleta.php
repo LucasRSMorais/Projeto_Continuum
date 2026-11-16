@@ -67,27 +67,27 @@ try {
     }
 
     // Extrai os dados do formulário enviado pelo cliente.
-    $email = trim($dados["email"] ?? "");
+  $usuario_id = $_SESSION['usuario_id'];
     $senha = trim($dados["senha"] ?? "");
 
    
 
     // Valida se email e senha não vieram vazios.
-    if ($email === "" || $senha === "") {
+    if ( $senha === "") {
         
 
         http_response_code(400);
         echo json_encode([
             "success" => false,
-            "message" => "Email e senha são obrigatórios."
+            "message" => "Senha é obrigatória."
         ]);
         exit;
     }
 
     // Busca o usuário pelo email no banco.
-    $sql = "SELECT * FROM pacientes WHERE email = :email LIMIT 1";
+    $sql = "SELECT * FROM pacientes WHERE id = :id LIMIT 1";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([':email' => $email]);
+    $stmt->execute([':id' => $usuario_id]);
 
     $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -97,7 +97,7 @@ try {
         http_response_code(401);
         echo json_encode([
             "success" => false,
-            "message" => "Email ou senha inválidos."
+            "message" => "Senha inválida."
         ]);
         exit;
     }
@@ -108,7 +108,7 @@ try {
         http_response_code(401);
         echo json_encode([
             "success" => false,
-            "message" => "Email ou senha inválidos."
+            "message" => "Senha inválida."
         ]);
         exit;
     }

@@ -8,12 +8,13 @@ import { FaChevronDown, FaDownload, FaTrashAlt } from 'react-icons/fa';
 import { Link as RouterLink } from 'react-router-dom';
 import { CardContainer, Title, SubTitle } from './styles';
 import { buildApiUrl } from '../../../../../config/api';
-
+import { useNavigate } from 'react-router-dom';
 function MainPrivacity() {
   const [modalExclusaoOpen, setModalExclusaoOpen] = useState(false);
   const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
   const [exportandoDados, setExportandoDados] = useState(false);
   const [erroExportacao, setErroExportacao] = useState('');
+  const navigate = useNavigate();
 
   const handleExportarDados = async () => {
     setExportandoDados(true);
@@ -48,9 +49,48 @@ function MainPrivacity() {
     }
   };
 
-  const handleExcluirConta = () => {
-    alert('Conta excluída logicamente. Dados clínicos retidos por obrigação legal.');
+  const handleExcluirConta = async () => {
+    
+             try {
+    const resposta = await fetch(
+      buildApiUrl('patients/confirmar_deleta.php'),
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        
+          senha: senhaConfirmacao,
+        }),
+      }
+    );
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok || !resultado.success) {
+      alert(resultado.message || 'Não foi possível excluir a conta.');
+      return;
+    }
+
+  
+    alert(resultado.message);
     setModalExclusaoOpen(false);
+    setSenhaConfirmacao('');
+
+    navigate('/login_pacientes');
+
+
+    setModalExclusaoOpen(false);
+    setSenhaConfirmacao('');
+
+  } catch (erro) {
+    console.error('Erro ao excluir conta:', erro);
+    alert('Erro ao conectar com o servidor.');
+  }
+
+
   };
 
   return (
