@@ -115,9 +115,22 @@ try {
 
 
     $pdo->beginTransaction();
+    $stmt = $pdo->prepare("
+    UPDATE pacientes
+    SET
+        nome_completo = NULL,
+        email = NULL,
+        cpf = NULL,
+        telefone = NULL
+    WHERE id = :id
+");
 
-    $stmt = $pdo->prepare("DELETE FROM pacientes WHERE id = :id");
-    $stmt->execute([':id' => $usuario['id']]);
+$stmt->execute([
+    ':id' => $usuario['id']
+]);
+
+  
+
 
     registrarLog(
         $pdo,
