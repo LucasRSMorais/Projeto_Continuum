@@ -120,8 +120,9 @@ try {
     SET
         nome_completo = NULL,
         email = NULL,
-        cpf = NULL,
+         data_nascimento = NULL,
         telefone = NULL
+        
     WHERE id = :id
 ");
 
