@@ -1,4 +1,6 @@
 <?php
+// 1. Captura a origem da requisição imediatamente
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = [
     'http://localhost:5173',
     'https://localhost:5173',
@@ -8,7 +10,7 @@ $allowedOrigins = [
     'https://dev-projcontinuum.up.railway.app',
 ];
 
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+// Se a origem for permitida, define o CORS na hora
 if (in_array($origin, $allowedOrigins, true)) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Access-Control-Allow-Credentials: true');
@@ -17,31 +19,23 @@ if (in_array($origin, $allowedOrigins, true)) {
     header('Vary: Origin');
 }
 
+// 2. Responde requisições OPTIONS (preflight) imediatamente sem mexer em sessão
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
     exit;
 }
 
+// 3. Inicia sessão com segurança
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
     'samesite' => 'None'
 ]);
-
 session_start();
-
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     http_response_code(405);
     header('Content-Type: application/json; charset=UTF-8');
-    header('Allow: GET, OPTIONS');
-
     echo json_encode([
         "success" => false,
         "message" => "Método não permitido."
@@ -58,7 +52,6 @@ if (
 ) {
     http_response_code(401);
     header('Content-Type: application/json; charset=UTF-8');
-
     echo json_encode([
         "success" => false,
         "message" => "Faça login novamente para exportar seus dados."
@@ -72,8 +65,6 @@ require_once __DIR__ . "/../../config/patient_data_encryption.php";
 $idPaciente = (int) $_SESSION['usuario_id'];
 
 try {
-
-    // Busca somente os dados da tabela pacientes
     $stmt = $pdo->prepare(
         "SELECT nome_completo, email, cpf, telefone,
                 data_nascimento, sexo, etnia, aceite_termo_uso
@@ -82,16 +73,12 @@ try {
          LIMIT 1"
     );
 
-    $stmt->execute([
-        'id' => $idPaciente
-    ]);
-
+    $stmt->execute(['id' => $idPaciente]);
     $paciente = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$paciente) {
         http_response_code(404);
         header('Content-Type: application/json; charset=UTF-8');
-
         echo json_encode([
             "success" => false,
             "message" => "Paciente não encontrado."
@@ -99,7 +86,6 @@ try {
         exit;
     }
 
-    // Descriptografa os campos protegidos
     $sexo = $paciente['sexo'] !== null
         ? decryptPatientSensitiveValue($paciente['sexo'])
         : 'Não informado';
@@ -108,16 +94,12 @@ try {
         ? decryptPatientSensitiveValue($paciente['etnia'])
         : 'Não informado';
 
-    // Organiza os dados em formato de texto
     $conteudo = "========================================\n";
     $conteudo .= "       DADOS DO PACIENTE - CONTINUUM\n";
     $conteudo .= "========================================\n\n";
-
     $conteudo .= "Data da exportação: " . gmdate('d/m/Y H:i:s') . " UTC\n\n";
-
     $conteudo .= "DADOS PESSOAIS\n";
     $conteudo .= "----------------------------------------\n";
-
     $conteudo .= "Nome completo: " . ($paciente['nome_completo'] ?? 'Não informado') . "\n";
     $conteudo .= "E-mail: " . ($paciente['email'] ?? 'Não informado') . "\n";
     $conteudo .= "CPF: " . ($paciente['cpf'] ?? 'Não informado') . "\n";
@@ -125,23 +107,18 @@ try {
     $conteudo .= "Data de nascimento: " . ($paciente['data_nascimento'] ?? 'Não informado') . "\n";
     $conteudo .= "Sexo: " . $sexo . "\n";
     $conteudo .= "Etnia: " . $etnia . "\n\n";
-
     $conteudo .= "TERMOS DE USO\n";
     $conteudo .= "----------------------------------------\n";
     $conteudo .= "Aceite dos termos: " . $paciente['aceite_termo_uso'] . "\n\n";
-
     $conteudo .= "========================================\n";
     $conteudo .= "       FIM DA EXPORTAÇÃO\n";
     $conteudo .= "========================================\n";
 
-   
-
-// Limpa qualquer buffer de saída acidental antes dos headers
+    // Limpa qualquer buffer residual
     if (ob_get_level()) {
         ob_end_clean();
     }
 
-    applyCorsHeaders();
     header('Content-Type: application/json; charset=UTF-8');
     header('Cache-Control: no-store, private');
 
@@ -152,18 +129,14 @@ try {
     ], JSON_UNESCAPED_UNICODE);
     exit;
 
-   
-
-
 } catch (Throwable $error) {
-
     error_log('Patient data export failed: ' . $error->getMessage());
 
     http_response_code(500);
     header('Content-Type: application/json; charset=UTF-8');
-
     echo json_encode([
         "success" => false,
         "message" => "Não foi possível exportar seus dados no momento."
     ]);
+    exit;
 }
