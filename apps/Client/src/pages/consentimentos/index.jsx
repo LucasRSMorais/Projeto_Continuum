@@ -228,6 +228,35 @@ function Consentimento() {
           </C.PdfActionButton>
         </td>
       </tr>
+      
+      <tr>
+        <td data-label="Data">16/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Termo de Uso do Sistema</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">2.1v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/geral/Termo_de_Uso_Continuum_Revisado_v2.1.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
 
       <tr>
         <td data-label="Data">07/11/2026</td>
@@ -344,6 +373,36 @@ function Consentimento() {
           </C.PdfActionButton>
         </td>
       </tr>
+
+    <tr>
+        <td data-label="Data">16/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Diretrizes de Conformidade LGPD (institucional)</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">2.1v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="../../../../../docs/LGPD/Diretrizes_Conformidade_LGPD_Continuum_v2.1_Implantacao_Institucional.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>                
+
     </tbody>
   </table>
 </C.PdfTableWrapper>
