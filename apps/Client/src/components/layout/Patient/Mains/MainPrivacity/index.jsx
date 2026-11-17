@@ -8,49 +8,94 @@ import { FaChevronDown, FaDownload, FaTrashAlt } from 'react-icons/fa';
 import { Link as RouterLink } from 'react-router-dom';
 import { CardContainer, Title, SubTitle } from './styles';
 import { buildApiUrl } from '../../../../../config/api';
-
+import { useNavigate } from 'react-router-dom';
 function MainPrivacity() {
   const [modalExclusaoOpen, setModalExclusaoOpen] = useState(false);
   const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
   const [exportandoDados, setExportandoDados] = useState(false);
   const [erroExportacao, setErroExportacao] = useState('');
+  const navigate = useNavigate();
 
-  const handleExportarDados = async () => {
-    setExportandoDados(true);
-    setErroExportacao('');
+ const handleExportarDados = async () => {
+  setExportandoDados(true);
+  setErroExportacao('');
 
-    try {
-      const response = await fetch(buildApiUrl('patients/exportar.php'), {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      });
+  try {
+    const response = await fetch(buildApiUrl('patients/exportar.php'), {
+      method: 'GET',
+      credentials: 'include',
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Não foi possível exportar seus dados.');
-      }
+    const data = await response.json();
 
-      const exportFile = await response.blob();
-      const downloadUrl = URL.createObjectURL(exportFile);
-      const downloadLink = document.createElement('a');
-      downloadLink.href = downloadUrl;
-      downloadLink.download = 'meus-dados-continuum.json';
-      document.body.appendChild(downloadLink);
-      downloadLink.click();
-      downloadLink.remove();
-      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-    } catch (error) {
-      console.error('Erro ao exportar dados do paciente:', error);
-      setErroExportacao(error.message || 'Não foi possível exportar seus dados. Tente novamente.');
-    } finally {
-      setExportandoDados(false);
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || 'Não foi possível exportar seus dados.');
     }
-  };
 
-  const handleExcluirConta = () => {
-    alert('Conta excluída logicamente. Dados clínicos retidos por obrigação legal.');
+    // Adiciona o BOM UTF-8 (\uFEFF) para acentos abrirem perfeitos no Bloco de Notas/Windows
+    const exportFile = new Blob(['\uFEFF' + data.conteudo], {
+      type: 'text/plain;charset=utf-8',
+    });
+
+    const downloadUrl = URL.createObjectURL(exportFile);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = downloadUrl;
+    downloadLink.download = data.filename || 'meus-dados-continuum.txt';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+  } catch (error) {
+    console.error('Erro ao exportar dados do paciente:', error);
+    setErroExportacao(error.message || 'Não foi possível exportar seus dados. Tente novamente.');
+  } finally {
+    setExportandoDados(false);
+  }
+};
+
+
+  const handleExcluirConta = async () => {
+    
+             try {
+    const resposta = await fetch(
+      buildApiUrl('patients/confirmar_deleta.php'),
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+        
+          senha: senhaConfirmacao,
+        }),
+      }
+    );
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok || !resultado.success) {
+      alert(resultado.message || 'Não foi possível excluir a conta.');
+      return;
+    }
+
+  
+    alert(resultado.message);
     setModalExclusaoOpen(false);
+    setSenhaConfirmacao('');
+
+    navigate('/login_pacientes');
+
+
+    setModalExclusaoOpen(false);
+    setSenhaConfirmacao('');
+
+  } catch (erro) {
+    console.error('Erro ao excluir conta:', erro);
+    alert('Erro ao conectar com o servidor.');
+  }
+
+
   };
 
   return (

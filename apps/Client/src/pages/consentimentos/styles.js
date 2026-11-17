@@ -594,3 +594,182 @@ export const CloseButton = styled.button`
     outline-offset: 2px;
   }
 `;
+
+export const PdfTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e9f0;
+  border-radius: 10px;
+  background: #fff;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+  }
+
+  th,
+  td {
+    padding: 14px 20px;
+    border-bottom: 1px solid #eef1f6;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  th {
+    background: #f1f4f9;
+    color: #2c333f;
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 1px solid #e5e9f0;
+  }
+
+  td {
+    color: #374151;
+    font-size: 14px;
+  }
+
+  th.align-center,
+  td.align-center {
+    text-align: center;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr {
+    transition: background-color 150ms ease;
+  }
+
+  tbody tr:hover {
+    background: #fafbfd;
+  }
+
+  @media (max-width: 720px) {
+    border: 0;
+    overflow: visible;
+
+    table,
+    tbody,
+    tr,
+    td {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    tbody {
+      display: grid;
+      gap: 12px;
+    }
+
+    tbody tr {
+      padding: 8px 14px;
+      border: 1px solid #e3eaf3;
+      border-radius: 10px;
+      background: #fff;
+    }
+
+    td {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eef1f6;
+      white-space: normal;
+      text-align: right;
+    }
+
+    td::before {
+      flex: 0 0 auto;
+      color: #718198;
+      content: attr(data-label);
+      font-weight: 600;
+      text-align: left;
+    }
+
+    td:last-child {
+      border-bottom: 0;
+    }
+  }
+`;
+
+export const PdfDocName = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #2c333f;
+  font-weight: 500;
+
+  span {
+    white-space: normal;
+  }
+`;
+
+export const PdfIconBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #e8f0fe;
+  color: #5b8def;
+  font-size: 13px;
+  flex-shrink: 0;
+`;
+
+export const PdfStatusActive = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: #e6f9f0;
+  color: #009e55;
+  font-size: 13px;
+  font-weight: 600;
+
+  svg {
+    color: #00c46a;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+`;
+
+export const PdfActionButton = styled.a`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  background-color: #74d6a8;
+  color: #163a28;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 150ms ease, transform 150ms ease;
+
+  &:hover {
+    background-color: #5ec996;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;

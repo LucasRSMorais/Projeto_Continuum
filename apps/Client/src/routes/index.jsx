@@ -13,7 +13,7 @@ import NovaSenha2 from '../pages/new_senha2';
 import Consetimento from '../pages/consentimentos';
 import PerfilPaciente from '../pages/Patient/PerfilPaciente';
 import Privacidade from '../pages/Patient/Privacidade';
-
+import Register_Pacientes123 from '../pages/Registrer_pacientes123';
 const devAuthBypass = import.meta.env.DEV
   && import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
 
@@ -47,7 +47,9 @@ const RoutesApp = () => {
         <Route path="/recuperacao" element={<LoginSenha />} />
 
         {/* Fluxo específico para pacientes */}
-        <Route path="/register_pacientes" element={<Register_Pacientes />} />
+        <Route path="/cadastrar_pacientes" element={<Register_Pacientes123 />} />
+     
+
         <Route path="/login_pacientes" element={<LoginPacientes />} />
         <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>} />
         <Route path="/perfilpaciente" element={<PrivateRoute><PerfilPaciente /></PrivateRoute>} />

@@ -204,7 +204,7 @@ function LoginPacientes() {
 
                  <C.LabelSignup>
                    <C.Strong>
-                     <Link to="/register_pacientes">Primeiro Acesso?</Link>
+                     <Link to="/register_pacientes123">Primeiro Acesso?</Link>
                    </C.Strong>
                  </C.LabelSignup>
          

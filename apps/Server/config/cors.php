@@ -62,6 +62,8 @@ function applyCorsHeaders(): void
         'http://127.0.0.1:5173',
         'https://127.0.0.1:5173',
         'https://frontend-production-55eb.up.railway.app',
+        'https://dev-projcontinuum.up.railway.app',
+
     ];
 
     $clientUrl = getenv('CLIENT_URL');
@@ -88,13 +90,14 @@ function applyCorsHeaders(): void
         http_response_code(403);
         exit;
     }
-
     if ($originToUse !== null) {
         header('Access-Control-Allow-Origin: ' . $originToUse);
         header('Access-Control-Allow-Credentials: true');
         header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept');
     }
+
+   
 
     header('Vary: Origin');
 }

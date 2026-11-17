@@ -126,7 +126,8 @@ try {
 
     echo json_encode([
         "success" => false,
-        "message" => "Erro ao conectar ao banco de dados."
+        "message" => $e->getMessage()
+        
     ]);
 
     exit;

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../services/utils/auth';
 import { buildApiUrl } from '../../config/api';
 import * as C from './styles';
-import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaTimes } from 'react-icons/fa';
+import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaTimes , FaEye } from 'react-icons/fa';
 import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
 import Footer from '../../components/layout/Footer';
 
@@ -134,6 +134,7 @@ function Consentimento() {
               </div>
             </C.Heading>
 
+              {/*}
             <C.TransparencyNotice role="note">
               <strong>Como interpretar os registros</strong>
               <p>
@@ -145,9 +146,269 @@ function Consentimento() {
                 de modelo e não podem ser aceitos aqui como autorizações finais.
               </p>
             </C.TransparencyNotice>
-
+             
             {erro && <C.Error role="alert">{erro}</C.Error>}
             {mensagem && <C.Success role="status">{mensagem}</C.Success>}
+
+                  */}
+
+      
+<C.Toolbar>
+  <strong>Arquivos PDF para consulta</strong>
+  <C.Count>6 documentos</C.Count>
+</C.Toolbar>
+
+<C.PdfTableWrapper>
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Documento</th>
+        <th>Versão</th>
+        <th>Status</th>
+        <th className="align-center">Ação</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Política de Privacidade</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/politica_privacidade.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Termo de Uso e Serviço</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/patient/Termos%20de%20Uso%20e%20Servi%C3%A7o%20-%20Portal%20do%20Paciente.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+      
+      <tr>
+        <td data-label="Data">16/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Termo de Uso do Sistema</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">2.1v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/geral/Termo_de_Uso_Continuum_Revisado_v2.1.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Consentimento de Dados Sensíveis</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/patient/Termo_Consentimento_Dados_Sensiveis.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Autorização para Uso de Imagem</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/patient/Termo_Autorizacao_Imagem.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Consentimento para Procedimento</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/patient/Termo_Consentimento_Procedimento.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+      <tr>
+        <td data-label="Data">07/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Recusa de Tratamento</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">1.0v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="/document/terms/patient/Termo_Recusa_Tratamento.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>
+
+    <tr>
+        <td data-label="Data">16/11/2026</td>
+        <td data-label="Documento">
+          <C.PdfDocName>
+            <C.PdfIconBadge>
+              <FaFileAlt />
+            </C.PdfIconBadge>
+            <span>Diretrizes de Conformidade LGPD (institucional)</span>
+          </C.PdfDocName>
+        </td>
+        <td data-label="Versão">2.1v</td>
+        <td data-label="Status">
+          <C.PdfStatusActive>
+            <FaCheckCircle />
+            Ativo
+          </C.PdfStatusActive>
+        </td>
+        <td data-label="Ação" className="align-center">
+          <C.PdfActionButton
+            href="../../../../../docs/LGPD/Diretrizes_Conformidade_LGPD_Continuum_v2.1_Implantacao_Institucional.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaEye />
+            Visualizar PDF
+          </C.PdfActionButton>
+        </td>
+      </tr>                
+
+    </tbody>
+  </table>
+</C.PdfTableWrapper>
+
+
+
 
             <C.Toolbar>
               <strong>Documentos disponíveis</strong>
@@ -184,7 +445,10 @@ function Consentimento() {
                           </span>
                         </C.DocumentName>
                       </td>
-                      <td data-label="Versão">v.{documento.versao}</td>
+                      <td data-label="Versão">
+
+
+                      </td>
                       <td data-label="Status">
                         <C.Status $status={documento.status}>
                           {documento.status === 'aceito' && <FaCheckCircle />}
