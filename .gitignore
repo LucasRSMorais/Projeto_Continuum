@@ -5,3 +5,4 @@
 .requirements_extracted.txt
 
 geral.sql
+.env.example
