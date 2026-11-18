@@ -6,7 +6,7 @@ export default defineConfig({
   preview: {
     host: '0.0.0.0',
     port: Number(process.env.PORT) || 4173,
-    allowedHosts: ['.railway.app', 'localhost', '127.0.0.1'],
+    allowedHosts: ['.railway.app', 'projcontinnum.com.br', 'localhost', '127.0.0.1'],
     strictPort: false,
   },
 })
