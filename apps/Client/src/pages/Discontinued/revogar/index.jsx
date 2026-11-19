@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { useAuth } from '../../services/utils/auth';
+import { useAuth } from '../../../services/utils/auth';
 import { data, Link, useNavigate } from 'react-router-dom';
-import Button from '../../components/Buttons/Button';
-import Input from '../../components/Input';
+import Button from '../../../components/Buttons/Button';
+import Input from '../../../components/Input';
 import * as C from './styles';
 import { Title } from './styles';
 import { FaTrash } from 'react-icons/fa';
-import { buildApiUrl } from '../../config/api';
+import { buildApiUrl } from '../../../config/api';
 
 function revogacao() {
   const navigate = useNavigate();
@@ -75,43 +75,20 @@ setError("Erro ao revogar")
 
 }
   
-
-
 return(
 <C.Container>
       <Title>Revogação de Conta</Title>
-
       <C.Content>
         <C.Form onSubmit={revogarConta}>
            <Input type="email" placeholder="Email" value={user?.email|| ""}
-          readOnly
-            
-          />
-         
+          readOnly/> 
           {error && (<C.labelError>{error}</C.labelError>)}
-
           <Button type="submit">Revogar</Button>
         </C.Form>
-        {message && <p>{message}</p>}
-
-      
-       
-        
-
-       
-          
-         
+        {message && <p>{message}</p>}    
       </C.Content>
-
-      
-
     </C.Container>
-
-
-
 );
-
-
 }
 
 export default revogacao;

@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as C from './styles';
-import Input from "../../components/Input";
-import Button from "../../components/Buttons/Button";
-import { buildApiUrl } from "../../config/api";
-import { FaEye , FaEyeSlash } from 'react-icons/fa';
+import Input from '../../../../components/Input';
+import Button from '../../../../components/Buttons/Button';
+import { buildApiUrl } from '../../../../config/api';
 
 const formatTelefone = (value) => {
-return value
-.replace(/\D/g, '').slice(0,11)
-.replace(/^(\d{2})(\d)/g, '($1) $2' )
-.replace(/(\d)(\d{4})$/, '$1-$2');
-
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 11)
+    .replace(/^(\d{2})(\d)/g, '($1) $2')
+    .replace(/(\d)(\d{4})$/, '$1-$2');
 };
 
 function formatCPF(valor) {
   valor = valor.replace(/\D/g, ''); // Remove caracteres não numéricos
 
-if (valor.length > 11) {
+  if (valor.length > 11) {
     valor = valor.substring(0, 11); // Limita a 11 dígitos
   }
 
@@ -25,15 +24,11 @@ if (valor.length > 11) {
   valor = valor.replace(/(\d{3})(\d)/, '$1.$2');
   valor = valor.replace(/(\d{3})(\d{1,2})$/, '$1-$2'); // Adiciona o traço
   return valor;
-
-
-
 }
-
 
 // Página de cadastro de novos usuários.
 // Em ambiente de teste, ela registra um usuário com perfil padrão e redireciona para o login.
-function Register_Pacientes123() {
+function PatientRegister() {
   const navigate = useNavigate();
 
   const [nome, setNome] = useState('');
@@ -44,23 +39,19 @@ function Register_Pacientes123() {
   const [etnia, setEtnia] = useState('');
   const [cpf, setCpf] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [alergias, setAlergias] = useState('');
 
   const [aceiteTermo, setAceiteTermo] = useState(false);
-  const [erro, setErro] = useState("");
- 
-   const [confirmacaoSenha , setConfirmarSenha] = useState("");
+  const [erro, setErro] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage('');
     const normalizedEmail = email.trim().toLowerCase();
 
-    
-   
-    if (!nome.trim() || !normalizedEmail ||   !sexo || !telefone || !dataNascimento || !cpf){
-      setMessage('Preencha nome, e-mail,  cpf , sexo ,  telefone e data nascimento.');
+    if (!nome.trim() || !normalizedEmail || !sexo || !telefone || !dataNascimento || !cpf) {
+      setMessage('Preencha nome, e-mail, cpf, sexo, telefone e data nascimento.');
       return;
     }
 
@@ -72,8 +63,6 @@ function Register_Pacientes123() {
       setErro('Selecione o sexo do paciente.');
       return;
     }
-  
-   
 
     if (!aceiteTermo) {
       setMessage('Você deve aceitar a política de privacidade.');
@@ -83,7 +72,7 @@ function Register_Pacientes123() {
     try {
       setLoading(true);
       const response = await fetch(
-         buildApiUrl('patients/register_paciente.php'),
+        buildApiUrl('patients/register_paciente.php'),
         {
           method: 'POST',
           headers: {
@@ -92,17 +81,12 @@ function Register_Pacientes123() {
           body: JSON.stringify({
             nome_completo: nome.trim(),
             email: normalizedEmail,
-             data_nascimento : dataNascimento ,
-          
+            data_nascimento: dataNascimento,
             cpf: cpf.replace(/\D/g, ''), // Remove caracteres não numéricos do CPF
             sexo: sexo,
             etnia: etnia || null,
-            telefone : telefone,
+            telefone: telefone,
             aceite_termo: aceiteTermo ? 'sim' : 'nao',
-          
-           
-            
-           
           }),
         }
       );
@@ -122,18 +106,11 @@ function Register_Pacientes123() {
 
     } catch (error) {
       console.error(error);
-      setMessage(
-          error.message
-      
-      );
+      setMessage(error.message);
     } finally {
       setLoading(false);
     }
   };
-
-
-
-
 
   return (
     <C.Container>
@@ -141,7 +118,7 @@ function Register_Pacientes123() {
 
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
-              <h3>Dados Pessoais</h3>
+          <h3>Dados Pessoais</h3>
 
           <Input
             type="text"
@@ -157,23 +134,19 @@ function Register_Pacientes123() {
             onChange={(event) => setEmail(event.target.value)}
           />
 
-         
-        
-
-         <Input
+          <Input
             type="tel"
             placeholder="(11) 99999-9999"
             value={telefone}
             onChange={(event) => setTelefone(formatTelefone(event.target.value))}
             maxLength={15}
           />
-          
+
           <Input
             type="date"
             value={dataNascimento}
             onChange={(event) => setDataNascimento(event.target.value)}
           />
-          
 
           <Input
             type="text"
@@ -185,17 +158,16 @@ function Register_Pacientes123() {
 
           <hr />
           <h3>Dados complementares</h3>
-          <select 
+          <select
             value={sexo}
             onChange={(event) => setSexo(event.target.value)}
           >
             <option value="">Selecione o sexo</option>
             <option value="masculino">Masculino</option>
             <option value="feminino">Feminino</option>
-           
           </select>
 
-<select 
+          <select
             value={etnia}
             onChange={(event) => setEtnia(event.target.value)}
           >
@@ -208,28 +180,27 @@ function Register_Pacientes123() {
             <option value="outra">Outra</option>
             <option value="nao_informar">Prefiro não informar</option>
           </select>
-           
-      
 
-
-
-  
           <hr />
-            <h3>Política de Privacidade</h3>
-            <a href="/politica_privacidade.pdf" target="_blank" rel="noopener noreferrer">
+          <h3>Política de Privacidade</h3>
+          <a
+            href="/politica_privacidade.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Ver Política de Privacidade
           </a>
 
-          <label >
+          <label>
             <input
               type="checkbox"
               checked={aceiteTermo}
               onChange={(event) => {
                 setAceiteTermo(event.target.checked);
-                setErro("");
+                setErro('');
               }}
             />
-              Concordo com a Política de Privacidade
+            Concordo com a Política de Privacidade
           </label>
 
           <p>Versão do Consetimento V1.0</p>
@@ -240,18 +211,10 @@ function Register_Pacientes123() {
             Type="submit"
             Text={loading ? 'Cadastrando...' : 'Cadastrar'}
           />
-
         </C.Form>
-
-       {/* <Link to="/login_pacientes">{' '}
-                <Button  type="submit"> Você ja tem conta ?</Button>
-                 </Link>
-                 */} 
-       
-
       </C.Content>
     </C.Container>
   );
 }
 
-export default Register_Pacientes123;
+export default PatientRegister;

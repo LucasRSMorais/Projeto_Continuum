@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useAuth } from '../../services/utils/auth';
-import { buildApiUrl } from '../../config/api';
+import { useAuth } from '../../../services/utils/auth';
+import { buildApiUrl } from '../../../config/api';
 import * as C from './styles';
 import { FaShieldAlt, FaFileAlt, FaCheckCircle, FaTimes , FaEye } from 'react-icons/fa';
-import HeaderPaciente from '../../components/layout/Patient/HeaderPaciente';
-import Footer from '../../components/layout/Footer';
+import HeaderPaciente from '../../../components/layout/Patient/HeaderPaciente';
+import Footer from '../../../components/layout/Footer';
 
 const formatarDataUtc = (valor) => {
   if (!valor) return 'Sem registro';
