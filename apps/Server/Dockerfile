@@ -90,8 +90,7 @@ RUN echo "=== MODULOS ATIVOS NO FINAL ===" \
     && apache2ctl -M | grep mpm
 
 
-RUN apt-get update && apt-get install -y libcap2-bin && \
-    setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
+
 
 # Porta utilizada pelo Railway
 EXPOSE 80
