@@ -3,10 +3,10 @@ set -eu
 
 echo "========== INICIANDO AMBIENTE COMO WWW-DATA =========="
 
-# Cria apenas as pastas em /tmp onde o www-data tem total acesso
+# Garante que as pastas temporárias existem e têm permissão
 mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
 
-echo "=== VALIDANDO APACHE ==="
+echo "=== VALIDANDO CONFIGURACAO DO APACHE ==="
 apache2ctl -t
 
 echo "=== INICIANDO APACHE ==="

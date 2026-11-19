@@ -28,10 +28,11 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_GROUP=www-data
 
 # 5. Configuração e limpeza dos módulos MPM do Apache (feita no BUILD como root)
+# Desativa e remove todos os MPMs conflitantes e ativa apenas o prefork
 RUN set -eux; \
-    a2dismod mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.* \
-          /etc/apache2/mods-enabled/mpm_worker.*; \
+    a2dismod -f mpm_event mpm_worker mpm_prefork || true; \
+    rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf; \
     a2enmod mpm_prefork rewrite headers
 
 # 6. Configuração da porta 80
