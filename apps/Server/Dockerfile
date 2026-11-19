@@ -27,7 +27,7 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# 5. Configuração dos módulos MPM do Apache (feita no BUILD como root)
+# 5. Configuração e limpeza dos módulos MPM do Apache (feita no BUILD como root)
 RUN set -eux; \
     a2dismod mpm_event mpm_worker || true; \
     rm -f /etc/apache2/mods-enabled/mpm_event.* \
@@ -49,15 +49,14 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 9. O PULO DO GATO: Permite que o binário do Apache abra a porta 80 sem ser root
-# e ajusta as permissões das pastas para o usuário www-data
+# 9. Permite que o Apache abra a porta 80 sendo www-data e ajusta permissões
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 \
     && mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
     && chown -R www-data:www-data /var/www/html /tmp/apache2 /var/log/apache2 /var/run/apache2
 
 EXPOSE 80
 
-# 10. Mantém o usuário sem privilégios conforme solicitado
+# 10. Mantém o usuário www-data para a execução
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
