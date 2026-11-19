@@ -1,13 +1,20 @@
-
 #!/bin/sh
 set -eu
 
-echo "========== INICIANDO APACHE =========="
+echo "========== CORRIGINDO MODULOS APACHE =========="
 
-echo "=== MODULOS MPM ==="
-apache2ctl -M | grep mpm
+mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+
+rm -f /etc/apache2/mods-enabled/mpm_event.load
+rm -f /etc/apache2/mods-enabled/mpm_event.conf
+rm -f /etc/apache2/mods-enabled/mpm_worker.load
+rm -f /etc/apache2/mods-enabled/mpm_worker.conf
+
+echo "=== MODULOS MPM RESTANTES ==="
+ls -la /etc/apache2/mods-enabled/ | grep mpm || true
 
 echo "=== VALIDANDO APACHE ==="
+apache2ctl -M
 apache2ctl -t
 
 echo "=== INICIANDO APACHE ==="
