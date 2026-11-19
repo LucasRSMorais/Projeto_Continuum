@@ -7,18 +7,20 @@ import * as C from './styles';
 import { Title } from './styles';
 import { buildApiUrl } from '../../../config/api';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import patientImage from '../../../assets/background/doctor_patient_care.jpg';
+
 // Página de login do sistema.
 // Aqui o usuário informa e-mail e senha e, se tudo estiver certo,
 // ele entra no app ou precisa confirmar um código de segurança (2FA).
 function LoginPacientes() {
   const navigate = useNavigate();
-  const {checkSession} = useAuth();
+  const { checkSession } = useAuth();
 
   // Estado dos campos do formulário e das mensagens de erro.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
- const [exibirSenha , setExibir] = useState(false);
+  const [exibirSenha, setExibir] = useState(false);
   // Estados do 2FA: indica se o usuário precisa validar o código
   // e guarda o valor do código informado.
   const [requires2FA, setRequires2FA] = useState(false);
@@ -39,7 +41,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-          buildApiUrl('auth/login_paciente.php'),
+        buildApiUrl('auth/login_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -86,7 +88,7 @@ function LoginPacientes() {
 
     try {
       const response = await fetch(
-         buildApiUrl('auth/verificar2FA_paciente.php'),
+        buildApiUrl('auth/verificar2FA_paciente.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -120,95 +122,130 @@ function LoginPacientes() {
   if (requires2FA) {
     return (
       <C.Container>
-        <Title>VERIFICAÇÃO DE SEGURANÇA</Title>
-        <C.Content>
-          <C.Form onSubmit={handleVerify2FA}>
+        <C.Visual>
+          <img src={patientImage} alt="" />
+          <C.VisualOverlay />
+          <C.VisualCaption>
+            <strong>Continuum</strong>
+            <span>Unindo equipes, priorizando vidas</span>
+          </C.VisualCaption>
+        </C.Visual>
+
+        <C.AuthPanel>
+          <C.Brand src="/logo_sfundo_comp.svg" alt="Continuum" />
+          <C.Content>
+            <Title>VERIFICAÇÃO DE SEGURANÇA</Title>
+            <C.Form onSubmit={handleVerify2FA}>
+              <p>Digite o código de verificação enviado.</p>
+              <p>Verifique na caixa de Email:</p>
+              <Input
+                type="text"
+                placeholder="Código de 6 dígitos"
+                value={codigo}
+                onChange={(event) => {
+                  setCodigo(event.target.value);
+                  setError('');
+                }}
+              />
+
+              {error && <C.labelError>{error}</C.labelError>}
+
+              <Button type="submit">Verificar código</Button>
+            </C.Form>
+
             <p>
-              Digite o código de verificação enviado.
+              <button
+                type="button"
+                onClick={() => {
+                  setRequires2FA(false);
+                  setCodigo('');
+                  setError('');
+                }}
+              >
+                Voltar
+              </button>
             </p>
-            {/* TEMPORÁRIO: apenas para testes */}
-            <p>
-              Verifique na caixa de Email: 
-            </p>
-            <Input
-              type="text"
-              placeholder="Código de 6 dígitos"
-              value={codigo}
-              onChange={(event) => {
-                setCodigo(event.target.value);
-                setError('');
-              }}
-            />
-
-            {error && (<C.labelError>{error}</C.labelError>)}
-
-            <Button type="submit">Verificar código</Button>
-          </C.Form>
-
-          <p><button type="button" onClick={() => {
-                setRequires2FA(false);
-                setCodigo('');
-                setError('');
-              }}>Voltar
-            </button></p>
-        </C.Content>
+          </C.Content>
+        </C.AuthPanel>
       </C.Container>
     );
   }
 
-// Aqui é renderizado o formulário de login, com campos para e-mail e senha, além de um botão para enviar os dados
+  // Aqui é renderizado o formulário de login, com campos para e-mail e senha, além de um botão para enviar os dados
   return (
     <C.Container>
-      <Title>SISTEMA DE LOGIN PARA O PACIENTE</Title>
+      <C.Visual>
+        <img src={patientImage} alt="" />
+        <C.VisualOverlay />
+        <C.VisualCaption>
+          <strong>Continuum</strong>
+          <span>Unindo equipes, priorizando vidas</span>
+        </C.VisualCaption>
+      </C.Visual>
 
-      <C.Content>
-        <C.Form onSubmit={handleSubmit}>
-          <Input type="email" placeholder="Email" value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
-          />
-          <C.PasswordRow>
+      <C.AuthPanel>
+        <C.Brand src="/logo_sfundo_comp.svg" alt="Continuum" />
+        <C.Content>
+          <C.Form onSubmit={handleSubmit}>
             <Input
-              type={exibirSenha ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
+              type="email"
+              placeholder="Email"
+              value={email}
               onChange={(event) => {
-                setPassword(event.target.value);
+                setEmail(event.target.value);
                 setError('');
               }}
-              aria-label="Senha"
             />
-            <button
-              type="button"
-              onClick={() => setExibir(!exibirSenha)}
-              aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
-              aria-pressed={exibirSenha}
-            >
-              {exibirSenha ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
-            </button>
-          </C.PasswordRow>
-         
-          {error && (<C.labelError>{error}</C.labelError>)}
+            <C.PasswordRow>
+              <Input
+                type={exibirSenha ? 'text' : 'password'}
+                placeholder="Senha"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  setError('');
+                }}
+                aria-label="Senha"
+              />
+              <button
+                type="button"
+                onClick={() => setExibir(!exibirSenha)}
+                aria-label={exibirSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                aria-pressed={exibirSenha}
+              >
+                {exibirSenha ? (
+                  <FaEyeSlash aria-hidden="true" />
+                ) : (
+                  <FaEye aria-hidden="true" />
+                )}
+              </button>
+            </C.PasswordRow>
 
-          <Button type="submit"> Login</Button>
-        </C.Form>
+            {error && <C.labelError>{error}</C.labelError>}
 
-                 <C.LabelFirstAcess>
-                   Esqueceu a Senha?
-                   <C.Strong>
-                     <Link to="/recuperacao">{' '}Clique aqui</Link>
-                   </C.Strong>
-                 </C.LabelFirstAcess>
+            <Button type="submit">Entrar</Button>
+          </C.Form>
 
-                 <C.LabelSignup>
-                   <C.Strong>
-                     <Link to="/register_pacientes123">Primeiro Acesso?</Link>
-                   </C.Strong>
-                 </C.LabelSignup>
-         
-      </C.Content>
+          <C.LabelFirstAcess>
+            Esqueceu a Senha?
+            <C.Strong>
+              <Link to="/recuperacao">{' '}Clique aqui</Link>
+            </C.Strong>
+          </C.LabelFirstAcess>
+
+          <C.LabelSignup>
+            <C.Strong>
+              <Link to="/primeiro_acesso_paciente">Primeiro Acesso?</Link>
+            </C.Strong>
+          </C.LabelSignup>
+          <C.LabelSignup>
+            Não possui cadastro?{' '}
+            <C.Strong>
+              <Link to="/cadastrar_pacientes">Cadastre-se</Link>
+            </C.Strong>
+          </C.LabelSignup>
+        </C.Content>
+      </C.AuthPanel>
     </C.Container>
   );
 }

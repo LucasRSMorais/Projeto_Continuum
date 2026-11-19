@@ -1,19 +1,18 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Home from '../pages/Doctor/Home';
 import Login from '../pages/Doctor/Login';
-import Register from '../pages/Admin/CRUD/Register';
 import { useAuth } from '../services/utils/auth';
 import Password from '../pages/password';
 import NovaSenha from '../pages/new_senha';
-import Register_Pacientes from '../pages/Admin/CRUD/Registrer_pacientes';
+import PrimeiroAcessoPaciente from '../pages/Admin/CRUD/first_access';
+import PatientRegister from '../pages/Admin/CRUD/patient_register';
 import LoginPacientes from '../pages/Patient/Login_pacientes';
 import HomePaciente from '../pages/Patient/Home_paciente';
 import LoginSenha from '../pages/passoword2';
 import NovaSenha2 from '../pages/new_senha2';
-import Consetimento from '../pages/consentimentos';
+import Consetimento from '../pages/Patient/consentimentos';
 import PerfilPaciente from '../pages/Patient/PerfilPaciente';
 import Privacidade from '../pages/Patient/Privacidade';
-import Register_Pacientes123 from '../pages/Registrer_pacientes123';
 const devAuthBypass = import.meta.env.DEV
   && import.meta.env.VITE_DEV_AUTH_BYPASS === 'true';
 
@@ -40,27 +39,27 @@ const RoutesApp = () => {
       <Routes>
         {/* Fluxo de autenticação e recuperação de senha do profissional de saúde */}
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/password" element={<Password />} />
         <Route path="/novaSenha" element={<NovaSenha2 />} />
         <Route path="/pass" element={<NovaSenha />} />
         <Route path="/recuperacao" element={<LoginSenha />} />
 
         {/* Fluxo específico para pacientes */}
-        <Route path="/cadastrar_pacientes" element={<Register_Pacientes123 />} />
-     
-
         <Route path="/login_pacientes" element={<LoginPacientes />} />
         <Route path="/home_paciente" element={<PrivateRoute><HomePaciente /></PrivateRoute>} />
         <Route path="/perfilpaciente" element={<PrivateRoute><PerfilPaciente /></PrivateRoute>} />
         <Route path="/privacidade" element={<PrivateRoute><Privacidade /></PrivateRoute>} />
 
+
         {/* Páginas administrativas e de configuração */}
         <Route path="/consentimentos" element={<PrivateRoute><Consetimento /></PrivateRoute>} />
         <Route path="/consetimentos" element={<Navigate to="/consentimentos" replace />} />
         <Route path="/revogar" element={<Navigate to="/consentimentos" replace />} />
+        <Route path="/cadastrar_pacientes" element={<PatientRegister />} />
+        <Route path="/primeiro_acesso_paciente" element={<PrimeiroAcessoPaciente />} />
 
-        {/* Página inicial protegida do médico */}
+
+        {/* Fluxo específico para profissionais */}
         <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
 
         {/* Qualquer rota desconhecida retorna para o login */}

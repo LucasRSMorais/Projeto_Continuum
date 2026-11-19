@@ -1,5 +1,6 @@
 import styled from 'styled-components';
-import {IMaskInput} from 'react-imask';
+import { IMaskInput } from 'react-imask';
+
 // Estilos específicos para a página de registro, aplicados apenas nesta página
 
 export const Container = styled.div`
@@ -13,7 +14,6 @@ export const Container = styled.div`
   padding: 40px 20px;
   background: linear-gradient(135deg, #eef5ff 0%, #f7f9fc 55%, #e9f2ff 100%);
 `;
-
 
 export const Content = styled.div`
   display: flex;
