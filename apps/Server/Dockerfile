@@ -30,19 +30,19 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 # Cria os diretórios temporários
 RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
-    /tmp/apache2/log
+    /tmp/apache2/log \
+    && chown -R www-data:www-data /tmp/apache2
 
 # Configura a porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
 
-# Copia os arquivos do backend
+# Copia todos os arquivos do backend
 COPY . /var/www/html/
 
-# Ajusta permissões dos arquivos e diretórios
-RUN mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
-    && chown -R www-data:www-data /var/www/html /tmp/apache2 \
+# Ajusta permissões
+RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /tmp/apache2
 
 # Copia o entrypoint
@@ -54,19 +54,15 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 # Configurações de segurança HTTP
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 
-RUN a2enconf docker-security \
-    && apache2ctl -t
+RUN a2enconf docker-security
 
-EXPOSE 80
-
-# Permite utilizar a porta 80 sem root
+# Instala ferramenta para permitir porta 80 sem root
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libcap2-bin \
     && setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 \
-    && getcap /usr/sbin/apache2 \
     && rm -rf /var/lib/apt/lists/*
 
-# LIMPEZA FINAL: deixa somente o MPM prefork ativo
+# Mantém somente o MPM prefork
 RUN set -eux; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
           /etc/apache2/mods-enabled/mpm_event.conf \
@@ -75,14 +71,12 @@ RUN set -eux; \
           /etc/apache2/mods-enabled/mpm_prefork.load \
           /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork; \
-    echo "=== CONFERINDO MPM NO BUILD ==="; \
-    ls -l /etc/apache2/mods-enabled/mpm*; \
-    test ! -e /etc/apache2/mods-enabled/mpm_event.load; \
-    test ! -e /etc/apache2/mods-enabled/mpm_worker.load; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
 
-# Mantém o container como usuário não-root
+EXPOSE 80
+
+# Executa como usuario nao-root
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
