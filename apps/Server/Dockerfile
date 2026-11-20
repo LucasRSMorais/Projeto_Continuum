@@ -32,19 +32,6 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# Configura somente o MPM prefork
-RUN set -eux; \
-    a2dismod mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf \
-          /etc/apache2/mods-enabled/mpm_prefork.load \
-          /etc/apache2/mods-enabled/mpm_prefork.conf; \
-    a2enmod mpm_prefork rewrite headers; \
-    apache2ctl -M | grep mpm_prefork_module; \
-    apache2ctl -t
-
 # Configura a porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
@@ -70,19 +57,6 @@ COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security \
     && apache2ctl -t
 
-# Confirma novamente que somente prefork está ativo
-RUN set -eux; \
-    a2dismod mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf \
-          /etc/apache2/mods-enabled/mpm_prefork.load \
-          /etc/apache2/mods-enabled/mpm_prefork.conf; \
-    a2enmod mpm_prefork; \
-    apache2ctl -M | grep mpm_prefork_module; \
-    apache2ctl -t
-
 EXPOSE 80
 
 # Permite utilizar a porta 80 sem root
@@ -92,7 +66,7 @@ RUN apt-get update \
     && getcap /usr/sbin/apache2 \
     && rm -rf /var/lib/apt/lists/*
 
-
+# LIMPEZA FINAL: deixa somente o MPM prefork ativo
 RUN set -eux; \
     rm -f /etc/apache2/mods-enabled/mpm_*.load \
           /etc/apache2/mods-enabled/mpm_*.conf; \
@@ -101,7 +75,6 @@ RUN set -eux; \
     ls -l /etc/apache2/mods-enabled/mpm*; \
     apache2ctl -M | grep mpm; \
     apache2ctl -t
-
 
 # Mantém o container como usuário não-root
 USER www-data
