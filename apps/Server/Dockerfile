@@ -75,7 +75,11 @@ RUN set -eux; \
           /etc/apache2/mods-enabled/mpm_prefork.load \
           /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork; \
+    echo "=== CONFERINDO MPM NO BUILD ==="; \
     ls -l /etc/apache2/mods-enabled/mpm*; \
+    test ! -e /etc/apache2/mods-enabled/mpm_event.load; \
+    test ! -e /etc/apache2/mods-enabled/mpm_worker.load; \
+    apache2ctl -M | grep mpm; \
     apache2ctl -t
 
 # Mantém o container como usuário não-root
