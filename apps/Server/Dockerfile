@@ -27,37 +27,32 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_RUN_USER=www-data \
     APACHE_RUN_GROUP=www-data
 
-# 5. Configuração e limpeza dos módulos MPM do Apache (feita no BUILD como root)
-# Desativa e remove todos os MPMs conflitantes e ativa apenas o prefork
-RUN set -eux; \
-    a2dismod -f mpm_event mpm_worker mpm_prefork || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf; \
-    a2enmod mpm_prefork rewrite headers
-
-# 6. Configuração da porta 80
+# 5. Configuração da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
 
-# 7. Copia os arquivos do backend e configurações
+# 6. Copia os arquivos do backend e configurações
 COPY . /var/www/html/
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security
 
-# 8. Copia e prepara o entrypoint
+# 7. Copia e prepara o entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 9. Permite que o Apache abra a porta 80 sendo www-data e ajusta permissões
+# 8. Permissões essenciais: 
+# - setcap permite que o Apache abra a porta 80 como www-data
+# - chown libera o acesso às pastas do Apache para o www-data conseguir rodar o script sem erro de permissão
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 \
     && mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
-    && chown -R www-data:www-data /var/www/html /tmp/apache2 /var/log/apache2 /var/run/apache2
+    && chown -R www-data:www-data /var/www/html /tmp/apache2 /var/log/apache2 /var/run/apache2 \
+    && chown -R www-data:www-data /etc/apache2/mods-enabled /etc/apache2/mods-available
 
 EXPOSE 80
 
-# 10. Mantém o usuário www-data para a execução
+# 9. Mantém o usuário www-data para a execução
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
