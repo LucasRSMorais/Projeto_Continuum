@@ -92,8 +92,16 @@ RUN echo "=== MODULOS ATIVOS NO FINAL ===" \
 # Porta utilizada pelo Railway
 EXPOSE 80
 
+# Permite ao Apache utilizar a porta 80 como usuário não-root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libcap2-bin \
+    && setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2 \
+    && getcap /usr/sbin/apache2 \
+    && rm -rf /var/lib/apt/lists/*
 
-#USER www-data
+
+
+USER www-data
 
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
