@@ -68,12 +68,14 @@ RUN apt-get update \
 
 # LIMPEZA FINAL: deixa somente o MPM prefork ativo
 RUN set -eux; \
-    rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf; \
+    rm -f /etc/apache2/mods-enabled/mpm_event.load \
+          /etc/apache2/mods-enabled/mpm_event.conf \
+          /etc/apache2/mods-enabled/mpm_worker.load \
+          /etc/apache2/mods-enabled/mpm_worker.conf \
+          /etc/apache2/mods-enabled/mpm_prefork.load \
+          /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork; \
-    echo "=== MPM ATIVO NO BUILD ==="; \
     ls -l /etc/apache2/mods-enabled/mpm*; \
-    apache2ctl -M | grep mpm; \
     apache2ctl -t
 
 # Mantém o container como usuário não-root
