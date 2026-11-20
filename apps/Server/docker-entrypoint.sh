@@ -2,27 +2,21 @@
 #!/bin/sh
 set -eu
 
-echo "========== VALIDANDO APACHE =========="
+echo "========== DIAGNOSTICO APACHE =========="
 
-# Garante que os diretórios temporários existam
-mkdir -p /tmp/apache2/run \
-         /tmp/apache2/lock \
-         /tmp/apache2/log
+echo "=== USUARIO ATUAL ==="
+whoami
 
-echo "=== VERIFICANDO MODULO MPM ==="
+echo "=== MODULOS MPM ATIVOS ==="
+ls -la /etc/apache2/mods-enabled/mpm* || true
 
-apache2ctl -M | grep mpm
+echo "=== REFERENCIAS MPM NA CONFIGURACAO ==="
+grep -RInE '^[[:space:]]*LoadModule[[:space:]]+mpm_' /etc/apache2
 
-# Impede a inicialização se houver MPM duplicado
-if apache2ctl -M 2>&1 | grep -qE 'mpm_(event|worker)_module'; then
-    echo "ERRO: MPM event ou worker encontrado!"
-    exit 1
-fi
+echo "=== FIM DO DIAGNOSTICO ==="
 
-echo "=== VALIDANDO CONFIGURACAO ==="
-
+echo "=== VALIDANDO APACHE ==="
 apache2ctl -t
 
-echo "=== INICIANDO APACHE COMO WWW-DATA ==="
-
+echo "=== INICIANDO APACHE ==="
 exec apache2-foreground
