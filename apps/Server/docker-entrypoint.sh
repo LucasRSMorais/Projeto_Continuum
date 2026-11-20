@@ -2,21 +2,47 @@
 #!/bin/sh
 set -eu
 
-echo "========== DIAGNOSTICO APACHE =========="
+echo "========== INICIANDO APACHE =========="
 
 echo "=== USUARIO ATUAL ==="
 whoami
 
-echo "=== MODULOS MPM ATIVOS ==="
-ls -la /etc/apache2/mods-enabled/mpm* || true
+# Cria uma pasta temporaria com os modulos do Apache
+MODS_DIR="/tmp/apache2-mods-www-data"
+CONF_FILE="/tmp/apache2-www-data.conf"
 
-echo "=== REFERENCIAS MPM NA CONFIGURACAO ==="
-grep -RInE '^[[:space:]]*LoadModule[[:space:]]+mpm_' /etc/apache2
+mkdir -p "$MODS_DIR"
 
-echo "=== FIM DO DIAGNOSTICO ==="
+# Copia os links dos modulos, mantendo somente o prefork
+for arquivo in /etc/apache2/mods-enabled/*; do
+    [ -e "$arquivo" ] || continue
 
-echo "=== VALIDANDO APACHE ==="
-apache2ctl -t
+    nome=$(basename "$arquivo")
+
+    case "$nome" in
+        mpm_*.load|mpm_*.conf)
+            case "$nome" in
+                mpm_prefork.*) ;;
+                *) continue ;;
+            esac
+            ;;
+    esac
+
+    ln -sf "$arquivo" "$MODS_DIR/$nome"
+done
+
+echo "=== MODULOS MPM SELECIONADOS ==="
+ls -la "$MODS_DIR"/mpm*
+
+# Cria uma configuracao alternativa sem alterar /etc/apache2
+sed "s#mods-enabled/#$MODS_DIR/#g" \
+    /etc/apache2/apache2.conf > "$CONF_FILE"
+
+# Carrega as variaveis do Apache
+. /etc/apache2/envvars
+
+echo "=== VALIDANDO CONFIGURACAO ==="
+apache2 -t -f "$CONF_FILE"
 
 echo "=== INICIANDO APACHE ==="
-exec apache2-foreground
+exec apache2 -f "$CONF_FILE" -D FOREGROUND
