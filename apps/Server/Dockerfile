@@ -1,6 +1,6 @@
 FROM php:8.5-apache
 
-# 1. Instalação limpa do Apache e dependências
+# 1. Instalação e remoção radical de pacotes MPM conflitantes via apt
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -8,6 +8,7 @@ RUN apt-get update \
        apache2-data \
        apache2-utils \
        libcap2-bin \
+    && apt-get purge -y apache2-mpm-event apache2-mpm-worker || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala o driver PDO para MySQL
@@ -31,7 +32,7 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# 2. Correção agressiva: Remove todos os arquivos de MPM e força apenas o mpm_prefork
+# 2. Assegura a remoção física de qualquer vestígio em mods-available e mods-enabled
 RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
           /etc/apache2/mods-enabled/mpm_*.conf \
           /etc/apache2/mods-available/mpm_event.* \
