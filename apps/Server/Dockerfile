@@ -1,5 +1,5 @@
 
-# CACHE-BUST: 2026-11-21-NGINX-SECURITY-HEADERS-3
+# CACHE-BUST: 2026-11-21-NGINX-SECURITY-HEADERS-4
 FROM php:8.5-fpm
 
 # 1. Instala Nginx e dependências do sistema
@@ -46,6 +46,7 @@ RUN echo 'server {\n\
     add_header Content-Security-Policy "default-src '\''self'\''; object-src '\''none'\''; base-uri '\''self'\''; frame-ancestors '\''self'\''; form-action '\''self'\''" always;\n\
     add_header Cross-Origin-Embedder-Policy "require-corp" always;\n\
     add_header Cross-Origin-Opener-Policy "same-origin" always;\n\
+    add_header Cross-Origin-Resource-Policy "same-origin" always;\n\
     \n\
     # Diretórios temporários do Nginx\n\
     client_body_temp_path /tmp/nginx/client_body_temp;\n\
