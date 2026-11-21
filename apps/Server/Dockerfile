@@ -31,14 +31,15 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# 2. Limpeza total de outros MPMs e ativação exclusiva do prefork
-RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf \
-          /etc/apache2/mods-available/mpm_event.load \
-          /etc/apache2/mods-available/mpm_event.conf \
-          /etc/apache2/mods-available/mpm_worker.load \
-          /etc/apache2/mods-available/mpm_worker.conf \
-    && a2enmod mpm_prefork rewrite headers
+# ==============================================================================
+# GARANTIA ABSOLUTA DE MPM ÚNICO: Remove tudo de event e worker em mods-enabled
+# ==============================================================================
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
+          /etc/apache2/mods-enabled/mpm_worker.* \
+          /etc/apache2/mods-available/mpm_event.* \
+          /etc/apache2/mods-available/mpm_worker.* \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load 2>/dev/null || true \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf 2>/dev/null || true
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
