@@ -1,15 +1,12 @@
-# CACHE-BUST: 2026-11-21-FIX-PERMISSIONS
-FROM php:8.5-apache
+# CACHE-BUST: 2026-11-21-FINAL-CLEAN-APACHE
+FROM php:8.5-cli
 
-# 1. Instalação e remoção via purge dos pacotes conflitantes
+# 1. Instalação limpa do Apache e PHP sem scripts automáticos indesejados
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
-       apache2-bin \
-       apache2-data \
-       apache2-utils \
+       libapache2-mod-php8.5 \
        libcap2-bin \
-    && apt-get purge -y apache2-mpm-event apache2-mpm-worker || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala o driver PDO para MySQL
@@ -33,16 +30,12 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# 2. LIMPEZA DEFINITIVA DE MPM AQUI NO BUILD (Enquanto somos root)
-RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
-          /etc/apache2/mods-enabled/mpm_worker.* \
-          /etc/apache2/mods-available/mpm_event.* \
-          /etc/apache2/mods-available/mpm_worker.* \
-    && a2enmod mpm_prefork rewrite headers
+# 2. Como instalamos o apache2 manualmente, apenas o mpm_prefork é carregado por padrão com o mod_php
+RUN a2enmod rewrite headers
 
 # Configuração explícita da porta 80
-RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
-    && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
+RUN sed -i 's/Listen 80/Listen 80/' /etc/apache2/ports.conf \
+    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
 
 # Copia os arquivos do backend e ajusta as permissões para o www-data
