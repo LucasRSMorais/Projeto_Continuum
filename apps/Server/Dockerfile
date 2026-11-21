@@ -31,18 +31,16 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# Configuração dos módulos MPM do Apache (executado com permissões de root)
+# ==============================================================================
+# CORREÇÃO DO MPM: Remove agressivamente QUALQUER outro MPM para evitar conflito
+# ==============================================================================
 RUN set -eux; \
-    a2dismod mpm_event mpm_worker || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_event.load \
-          /etc/apache2/mods-enabled/mpm_event.conf \
-          /etc/apache2/mods-enabled/mpm_worker.load \
-          /etc/apache2/mods-enabled/mpm_worker.conf \
-          /etc/apache2/mods-enabled/mpm_prefork.load \
-          /etc/apache2/mods-enabled/mpm_prefork.conf; \
+    a2dismod mpm_event mpm_worker mpm_prefork || true; \
+    rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf; \
     a2enmod mpm_prefork rewrite headers
 
-# Configuração da porta 80
+# Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
@@ -68,9 +66,7 @@ RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
 # Expõe a porta 80
 EXPOSE 80
 
-# ==========================================
-# 2. SÓ AGORA, NO FINAL, ATIVAMOS O USUÁRIO SEGURO
-# ==========================================
+# Ativa o usuário seguro para todo o ciclo de vida do container
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
