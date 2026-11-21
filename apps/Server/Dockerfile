@@ -1,6 +1,6 @@
 FROM php:8.5-apache
 
-# 1. Instalação e remoção radical de pacotes MPM conflitantes via apt
+# 1. Instalação limpa do Apache e utilitários
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -8,7 +8,6 @@ RUN apt-get update \
        apache2-data \
        apache2-utils \
        libcap2-bin \
-    && apt-get purge -y apache2-mpm-event apache2-mpm-worker || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala o driver PDO para MySQL
@@ -32,14 +31,13 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# 2. Assegura a remoção física de qualquer vestígio em mods-available e mods-enabled
-RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf \
-          /etc/apache2/mods-available/mpm_event.* \
-          /etc/apache2/mods-available/mpm_worker.* \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf \
-    && a2enmod rewrite headers
+# 2. Desativação forçada de qualquer outro MPM e ativação exclusiva do prefork
+RUN a2dismod -f mpm_event mpm_worker 2>/dev/null || true \
+    && rm -f /etc/apache2/mods-enabled/mpm_event.* \
+             /etc/apache2/mods-enabled/mpm_worker.* \
+             /etc/apache2/mods-available/mpm_event.* \
+             /etc/apache2/mods-available/mpm_worker.* \
+    && a2enmod mpm_prefork rewrite headers
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
