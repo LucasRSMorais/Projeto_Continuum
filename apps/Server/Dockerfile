@@ -63,9 +63,7 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security
 
-# ==============================================================================
-# O PULO DO GATO: Permite que o usuário www-data abra a porta 80 sem ser root
-# ==============================================================================
+# Permite que o usuário www-data abra a porta 80 sem privilégios de root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
 
 # Porta utilizada
