@@ -1,4 +1,4 @@
-# CACHE-BUST: 2026-11-21-NGINX-PID-FIX
+# CACHE-BUST: 2026-11-21-NGINX-TMP-FIX
 FROM php:8.5-fpm
 
 # 1. Instala Nginx e dependências do sistema
@@ -17,7 +17,7 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# 2. Configura o Nginx para usar /tmp para o PID, logs e temporários (evitando Permission Denied)
+# 2. Configura o Nginx para usar /tmp para o PID e cria a estrutura de diretórios temporários
 RUN sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
     && mkdir -p /tmp/nginx/client_body_temp \
                 /tmp/nginx/proxy_temp \
@@ -30,14 +30,22 @@ RUN sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
 COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
-# Configura o site padrão do Nginx para a porta 80 apontando para o projeto
+# 3. Configura o site padrão do Nginx com os caminhos temporários redirecionados para /tmp
 RUN echo 'server {\n\
     listen 80;\n\
     root /var/www/html;\n\
     index index.php index.html;\n\
+    \n\
+    client_body_temp_path /tmp/nginx/client_body_temp;\n\
+    proxy_temp_path /tmp/nginx/proxy_temp;\n\
+    fastcgi_temp_path /tmp/nginx/fastcgi_temp;\n\
+    uwsgi_temp_path /tmp/nginx/uwsgi_temp;\n\
+    scgi_temp_path /tmp/nginx/scgi_temp;\n\
+    \n\
     location / {\n\
         try_files $uri $uri/ /index.php?$query_string;\n\
     }\n\
+    \n\
     location ~ \\.php$ {\n\
         include snippets/fastcgi-php.conf;\n\
         fastcgi_pass 127.0.0.1:9000;\n\

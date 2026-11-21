@@ -6,6 +6,6 @@ echo "========== INICIANDO AMBIENTE SEGURO (NGINX + PHP-FPM) =========="
 # Inicia o PHP-FPM em background
 php-fpm -D
 
-# Inicia o Nginx apontando para a configuração segura
+# Inicia o Nginx em primeiro plano na porta 80
 echo "=== INICIANDO NGINX NA PORTA 80 ==="
 exec nginx -g "daemon off;"
