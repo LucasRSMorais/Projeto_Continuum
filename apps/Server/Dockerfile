@@ -19,7 +19,7 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# Variáveis de ambiente do Apache
+# Variáveis de ambiente do Apache apontando para diretórios temporários (/tmp)
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_LOCK_DIR=/tmp/apache2/lock \
     APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
@@ -31,9 +31,7 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# ==============================================================================
-# LIMPEZA TOTAL E FORÇADA DE TODOS OS MPMs ANTES DE ATIVAR APENAS O PREFORK
-# ==============================================================================
+# 2. Limpeza total de outros MPMs e ativação exclusiva do prefork
 RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
           /etc/apache2/mods-enabled/mpm_*.conf \
           /etc/apache2/mods-available/mpm_event.load \
