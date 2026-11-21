@@ -52,14 +52,17 @@ RUN set -eux; \
     apache2ctl -t
 
 
-# Configuração da porta 80
-# Faz o Apache escutar a porta injetada pela Railway (ex: 8080) em vez da porta 80 fixa
 
-RUN sed -i "s/Listen 80/Listen \${PORT:-8080}/g" /etc/apache2/ports.conf \
-    && sed -i "s/<VirtualHost \*:80>/<VirtualHost *:\${PORT:-8080}>/g" /etc/apache2/sites-available/000-default.conf
 
-COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
-RUN a2enconf docker-security
+# Garante que o arquivo ports.conf tenha uma porta padrão válida (8080) durante o build
+# e evita que quebre caso a variável ${PORT} não exista neste exato segundo.
+RUN if grep -q "Listen 80" /etc/apache2/ports.conf; then \
+        sed -i "s/Listen 80/Listen \${PORT:-8080}/g" /etc/apache2/ports.conf; \
+    fi \
+    && if grep -q "<VirtualHost \*:80>" /etc/apache2/sites-available/000-default.conf; then \
+        sed -i "s/<VirtualHost \*:80>/<VirtualHost *:\${PORT:-8080}>/g" /etc/apache2/sites-available/000-default.conf; \
+    fi
+
 
 
 
