@@ -1,4 +1,5 @@
-# CACHE-BUST: 2026-11-21-NGINX-TMP-FIX
+
+# CACHE-BUST: 2026-11-21-NGINX-SECURITY-HEADERS
 FROM php:8.5-fpm
 
 # 1. Instala Nginx e dependências do sistema
@@ -17,7 +18,8 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# 2. Configura o Nginx para usar /tmp para o PID e cria a estrutura de diretórios temporários
+# 2. Configura o Nginx para usar /tmp para o PID
+# e cria a estrutura de diretórios temporários
 RUN sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
     && mkdir -p /tmp/nginx/client_body_temp \
                 /tmp/nginx/proxy_temp \
@@ -30,12 +32,19 @@ RUN sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
 COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
-# 3. Configura o site padrão do Nginx com os caminhos temporários redirecionados para /tmp
+# 3. Configura o site padrão do Nginx
 RUN echo 'server {\n\
     listen 80;\n\
     root /var/www/html;\n\
     index index.php index.html;\n\
     \n\
+    # Cabeçalhos de segurança HTTP\n\
+    add_header X-Frame-Options "SAMEORIGIN" always;\n\
+    add_header X-Content-Type-Options "nosniff" always;\n\
+    add_header Permissions-Policy "camera=(), microphone=()" always;\n\
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;\n\
+    \n\
+    # Diretórios temporários do Nginx\n\
     client_body_temp_path /tmp/nginx/client_body_temp;\n\
     proxy_temp_path /tmp/nginx/proxy_temp;\n\
     fastcgi_temp_path /tmp/nginx/fastcgi_temp;\n\
@@ -61,7 +70,7 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Permite que o usuário www-data abra a porta 80 e 9000 sem privilégios de root
+# Permite que o usuário www-data abra a porta 80
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx \
     && setcap 'cap_net_bind_service=+ep' /usr/local/sbin/php-fpm
 
