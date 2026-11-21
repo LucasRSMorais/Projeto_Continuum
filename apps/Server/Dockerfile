@@ -1,3 +1,4 @@
+# CACHE-BUST: 2026-11-21-V5-FORCED-REBUILD
 FROM php:8.5-apache
 
 # 1. Instalação limpa e remoção via purge dos pacotes conflitantes do event/worker
