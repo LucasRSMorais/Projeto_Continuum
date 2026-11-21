@@ -1,6 +1,6 @@
 FROM php:8.5-apache
 
-# 1. Instalação de dependências do sistema e do Apache (roda como root)
+# 1. Instalação de dependências do sistema e do Apache
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -19,7 +19,7 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# Variáveis de ambiente do Apache apontando para diretórios temporários
+# Variáveis de ambiente do Apache
 ENV APACHE_RUN_DIR=/tmp/apache2/run \
     APACHE_LOCK_DIR=/tmp/apache2/lock \
     APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
@@ -32,13 +32,15 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/log
 
 # ==============================================================================
-# CORREÇÃO DO MPM: Remove agressivamente QUALQUER outro MPM para evitar conflito
+# LIMPEZA TOTAL E FORÇADA DE TODOS OS MPMs ANTES DE ATIVAR APENAS O PREFORK
 # ==============================================================================
-RUN set -eux; \
-    a2dismod mpm_event mpm_worker mpm_prefork || true; \
-    rm -f /etc/apache2/mods-enabled/mpm_*.load \
-          /etc/apache2/mods-enabled/mpm_*.conf; \
-    a2enmod mpm_prefork rewrite headers
+RUN rm -f /etc/apache2/mods-enabled/mpm_*.load \
+          /etc/apache2/mods-enabled/mpm_*.conf \
+          /etc/apache2/mods-available/mpm_event.load \
+          /etc/apache2/mods-available/mpm_event.conf \
+          /etc/apache2/mods-available/mpm_worker.load \
+          /etc/apache2/mods-available/mpm_worker.conf \
+    && a2enmod mpm_prefork rewrite headers
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
