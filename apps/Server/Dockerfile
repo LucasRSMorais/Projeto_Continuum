@@ -1,7 +1,7 @@
-# CACHE-BUST: 2026-11-21-V5-FORCED-REBUILD
+# CACHE-BUST: 2026-11-21-FIX-MPM-RUNTIME
 FROM php:8.5-apache
 
-# 1. Instalação limpa e remoção via purge dos pacotes conflitantes do event/worker
+# 1. Instalação de dependências do sistema e utilitários
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -32,13 +32,6 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
-
-# 2. Assegura exclusividade absoluta do mpm_prefork limpando arquivos residuais
-RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
-          /etc/apache2/mods-enabled/mpm_worker.* \
-          /etc/apache2/mods-available/mpm_event.* \
-          /etc/apache2/mods-available/mpm_worker.* \
-    && a2enmod mpm_prefork rewrite headers
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
