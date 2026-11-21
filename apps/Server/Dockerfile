@@ -1,9 +1,10 @@
-# CACHE-BUST: 2026-11-21-FINAL-MPM-FIX
-FROM php:8.5-apache
+# CACHE-BUST: 2026-11-21-NGINX-FPM-FINAL
+FROM php:8.5-fpm
 
-# 1. Instala utilitários necessários
+# 1. Instala Nginx e dependências do sistema
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+       nginx \
        libcap2-bin \
     && rm -rf /var/lib/apt/lists/*
 
@@ -16,53 +17,47 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# Variáveis de ambiente do Apache apontando para diretórios temporários (/tmp)
-ENV APACHE_RUN_DIR=/tmp/apache2/run \
-    APACHE_LOCK_DIR=/tmp/apache2/lock \
-    APACHE_PID_FILE=/tmp/apache2/run/apache2.pid \
-    APACHE_LOG_DIR=/tmp/apache2/log \
-    APACHE_RUN_USER=www-data \
-    APACHE_RUN_GROUP=www-data
+# Configura o Nginx para rodar na porta 80 e usar /tmp para arquivos temporários
+RUN sed -i 's/user www-data;/user www-data;/' /etc/nginx/nginx.conf \
+    && sed -i 's/listen 80;/listen 80;/' /etc/nginx/sites-enabled/default \
+    && mkdir -p /tmp/nginx/client_body_temp \
+                /tmp/nginx/proxy_temp \
+                /tmp/nginx/fastcgi_temp \
+                /tmp/nginx/uwsgi_temp \
+                /tmp/nginx/scgi_temp \
+    && chown -R www-data:www-data /tmp/nginx /var/log/nginx /var/lib/nginx
 
-RUN mkdir -p /tmp/apache2/run \
-    /tmp/apache2/lock \
-    /tmp/apache2/log
-
-# 2. RESOLUÇÃO DEFINITIVA DO MPM: Remove fisicamente o event/worker e força o prefork
-RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
-          /etc/apache2/mods-enabled/mpm_worker.* \
-          /etc/apache2/mods-available/mpm_event.* \
-          /etc/apache2/mods-available/mpm_worker.* \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load 2>/dev/null || true \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf 2>/dev/null || true
-
-# Configuração explícita da porta 80
-RUN sed -i 's/Listen 80/Listen 80/' /etc/apache2/ports.conf \
-    && sed -i 's/<VirtualHost \*:80>/<VirtualHost *:80>/' \
-       /etc/apache2/sites-available/000-default.conf
-
-# Copia os arquivos do backend e ajusta as permissões para o www-data
+# Copia os arquivos do projeto
 COPY . /var/www/html/
-RUN chown -R www-data:www-data /var/www/html \
-    && mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
-    && chown -R www-data:www-data /tmp/apache2
+RUN chown -R www-data:www-data /var/www/html
+
+# Configura o site padrão do Nginx para apontar para o projeto e processar PHP via FPM
+RUN echo 'server {\n\
+    listen 80;\n\
+    root /var/www/html;\n\
+    index index.php index.html;\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+    }\n\
+    location ~ \\.php$ {\n\
+        include snippets/fastcgi-php.conf;\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+    }\n\
+}' > /etc/nginx/sites-available/default
 
 # Copia e prepara o entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configurações de segurança e cabeçalhos HTTP
-COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
-RUN a2enconf docker-security
-
-# Permite que o usuário www-data abra a porta 80 sem privilégios de root
-RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
+# Permite que o usuário www-data abra a porta 80 e 9000 sem privilégios de root
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/nginx \
+    && setcap 'cap_net_bind_service=+ep' /usr/local/sbin/php-fpm
 
 # Expõe a porta 80
 EXPOSE 80
 
-# Ativa o usuário seguro para todo o ciclo de vida do container
+# Roda a aplicação com o usuário seguro
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]

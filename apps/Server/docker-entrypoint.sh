@@ -1,8 +1,11 @@
 #!/bin/sh
 set -eu
 
-echo "========== INICIANDO AMBIENTE SEGURO =========="
-mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+echo "========== INICIANDO AMBIENTE SEGURO (NGINX + PHP-FPM) =========="
 
-echo "=== INICIANDO APACHE NA PORTA 80 ==="
-exec apache2-foreground
+# Inicia o PHP-FPM em background
+php-fpm -D
+
+# Inicia o Nginx em foreground na porta 80
+echo "=== INICIANDO NGINX NA PORTA 80 ==="
+exec nginx -g "daemon off;"
