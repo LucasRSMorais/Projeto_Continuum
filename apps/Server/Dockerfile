@@ -54,8 +54,14 @@ RUN set -eux; \
 
 # Configuração da porta 80
 # Faz o Apache escutar a porta injetada pela Railway (ex: 8080) em vez da porta 80 fixa
-RUN sed -i "s/Listen 80/Listen \${PORT}/g" /etc/apache2/ports.conf \
-    && sed -i "s/<VirtualHost \*:80>/<VirtualHost *:\${PORT}>/g" /etc/apache2/sites-available/000-default.conf
+
+RUN sed -i "s/Listen 80/Listen \${PORT:-8080}/g" /etc/apache2/ports.conf \
+    && sed -i "s/<VirtualHost \*:80>/<VirtualHost *:\${PORT:-8080}>/g" /etc/apache2/sites-available/000-default.conf
+
+COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
+RUN a2enconf docker-security
+
+
 
 # Copia os arquivos do backend
 COPY . /var/www/html/
