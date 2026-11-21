@@ -1,6 +1,6 @@
 FROM php:8.5-apache
 
-# 1. Instalação de dependências do sistema e do Apache
+# 1. Instalação limpa do Apache e remoção prévia de pacotes MPM conflitantes
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -8,6 +8,7 @@ RUN apt-get update \
        apache2-data \
        apache2-utils \
        libcap2-bin \
+    && apt-get purge -y apache2-mpm-event apache2-mpm-worker || true \
     && rm -rf /var/lib/apt/lists/*
 
 # Instala o driver PDO para MySQL
@@ -31,15 +32,12 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# ==============================================================================
-# GARANTIA ABSOLUTA DE MPM ÚNICO: Remove tudo de event e worker em mods-enabled
-# ==============================================================================
+# 2. Assegura que apenas o mpm_prefork está ativo
 RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
           /etc/apache2/mods-enabled/mpm_worker.* \
           /etc/apache2/mods-available/mpm_event.* \
           /etc/apache2/mods-available/mpm_worker.* \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load 2>/dev/null || true \
-    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf 2>/dev/null || true
+    && a2enmod mpm_prefork rewrite headers
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
