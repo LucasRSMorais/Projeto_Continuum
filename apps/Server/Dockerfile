@@ -1,6 +1,6 @@
 FROM php:8.5-apache
 
-# 1. Instala o Apache e o pacote 'libcap2-bin' (necessário para o setcap)
+# 1. Instalação de dependências do sistema e do Apache (roda como root)
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        apache2 \
@@ -31,7 +31,7 @@ RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
 
-# Configuração dos módulos MPM do Apache
+# Configuração dos módulos MPM do Apache (executado com permissões de root)
 RUN set -eux; \
     a2dismod mpm_event mpm_worker || true; \
     rm -f /etc/apache2/mods-enabled/mpm_event.load \
@@ -42,20 +42,16 @@ RUN set -eux; \
           /etc/apache2/mods-enabled/mpm_prefork.conf; \
     a2enmod mpm_prefork rewrite headers
 
-# Mantém explicitamente a porta 80 configurada
+# Configuração da porta 80
 RUN sed -i 's/Listen 8080/Listen 80/' /etc/apache2/ports.conf \
     && sed -i 's/<VirtualHost \*:8080>/<VirtualHost *:80>/' \
        /etc/apache2/sites-available/000-default.conf
 
-# Copia os arquivos do backend
+# Copia os arquivos do backend e ajusta as permissões para o www-data
 COPY . /var/www/html/
-
-# Permissões dos arquivos e pastas para o www-data
-RUN mkdir -p /tmp/apache2/run \
-    /tmp/apache2/lock \
-    /tmp/apache2/log \
-    && chown -R www-data:www-data /var/www/html /tmp/apache2 \
-    && chmod -R 755 /tmp/apache2
+RUN chown -R www-data:www-data /var/www/html \
+    && mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log \
+    && chown -R www-data:www-data /tmp/apache2
 
 # Copia e prepara o entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
@@ -66,13 +62,15 @@ RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
 COPY docker-security.conf /etc/apache2/conf-available/docker-security.conf
 RUN a2enconf docker-security
 
-# 2. O PULO DO GATO: Dá permissão ao binário do Apache para abrir portas baixas (como a 80) mesmo sendo usuário comum
+# Permite que o usuário www-data abra a porta 80 sem privilégios de root
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
 
 # Expõe a porta 80
 EXPOSE 80
 
-# 3. Roda 100% o tempo como usuário www-data (segurança máxima)
+# ==========================================
+# 2. SÓ AGORA, NO FINAL, ATIVAMOS O USUÁRIO SEGURO
+# ==========================================
 USER www-data
 
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
