@@ -1,4 +1,4 @@
-# CACHE-BUST: 2026-11-21-NGINX-FPM-FINAL
+# CACHE-BUST: 2026-11-21-NGINX-PID-FIX
 FROM php:8.5-fpm
 
 # 1. Instala Nginx e dependências do sistema
@@ -17,9 +17,8 @@ RUN printf '%s\n' \
     'session.save_path=/tmp' \
     > /usr/local/etc/php/conf.d/zzzz-security.ini
 
-# Configura o Nginx para rodar na porta 80 e usar /tmp para arquivos temporários
-RUN sed -i 's/user www-data;/user www-data;/' /etc/nginx/nginx.conf \
-    && sed -i 's/listen 80;/listen 80;/' /etc/nginx/sites-enabled/default \
+# 2. Configura o Nginx para usar /tmp para o PID, logs e temporários (evitando Permission Denied)
+RUN sed -i 's|pid /run/nginx.pid;|pid /tmp/nginx.pid;|' /etc/nginx/nginx.conf \
     && mkdir -p /tmp/nginx/client_body_temp \
                 /tmp/nginx/proxy_temp \
                 /tmp/nginx/fastcgi_temp \
@@ -31,7 +30,7 @@ RUN sed -i 's/user www-data;/user www-data;/' /etc/nginx/nginx.conf \
 COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
-# Configura o site padrão do Nginx para apontar para o projeto e processar PHP via FPM
+# Configura o site padrão do Nginx para a porta 80 apontando para o projeto
 RUN echo 'server {\n\
     listen 80;\n\
     root /var/www/html;\n\
