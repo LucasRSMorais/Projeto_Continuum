@@ -1,12 +1,13 @@
-# CACHE-BUST: 2026-11-21-STABLE-APACHE
+# CACHE-BUST: 2026-11-21-FINAL-MPM-FIX
 FROM php:8.5-apache
 
-# Instala apenas o necessário e o driver PDO para MySQL
+# 1. Instala utilitários necessários
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        libcap2-bin \
     && rm -rf /var/lib/apt/lists/*
 
+# Instala o driver PDO para MySQL
 RUN docker-php-ext-install pdo_mysql
 
 # Configurações de segurança e sessão do PHP
@@ -26,6 +27,14 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
+
+# 2. RESOLUÇÃO DEFINITIVA DO MPM: Remove fisicamente o event/worker e força o prefork
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.* \
+          /etc/apache2/mods-enabled/mpm_worker.* \
+          /etc/apache2/mods-available/mpm_event.* \
+          /etc/apache2/mods-available/mpm_worker.* \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.load /etc/apache2/mods-enabled/mpm_prefork.load 2>/dev/null || true \
+    && ln -s /etc/apache2/mods-available/mpm_prefork.conf /etc/apache2/mods-enabled/mpm_prefork.conf 2>/dev/null || true
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 80/Listen 80/' /etc/apache2/ports.conf \
