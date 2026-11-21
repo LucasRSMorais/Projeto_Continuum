@@ -1,15 +1,12 @@
-# CACHE-BUST: 2026-11-21-FINAL-CLEAN-APACHE
-FROM php:8.5-cli
+# CACHE-BUST: 2026-11-21-STABLE-APACHE
+FROM php:8.5-apache
 
-# 1. Instalação limpa do Apache e PHP sem scripts automáticos indesejados
+# Instala apenas o necessário e o driver PDO para MySQL
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       apache2 \
-       libapache2-mod-php8.5 \
        libcap2-bin \
     && rm -rf /var/lib/apt/lists/*
 
-# Instala o driver PDO para MySQL
 RUN docker-php-ext-install pdo_mysql
 
 # Configurações de segurança e sessão do PHP
@@ -29,9 +26,6 @@ ENV APACHE_RUN_DIR=/tmp/apache2/run \
 RUN mkdir -p /tmp/apache2/run \
     /tmp/apache2/lock \
     /tmp/apache2/log
-
-# 2. Como instalamos o apache2 manualmente, apenas o mpm_prefork é carregado por padrão com o mod_php
-RUN a2enmod rewrite headers
 
 # Configuração explícita da porta 80
 RUN sed -i 's/Listen 80/Listen 80/' /etc/apache2/ports.conf \
