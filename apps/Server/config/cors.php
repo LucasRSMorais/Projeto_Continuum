@@ -1,7 +1,6 @@
-
 <?php
-// Este arquivo centraliza a configuração de CORS da API.
-// Salvar como UTF-8 sem BOM.
+// Configuração centralizada de CORS da API.
+// Arquivo UTF-8 sem BOM.
 
 if (!function_exists('loadDotenvFromProjectRoot')) {
     function loadDotenvFromProjectRoot(): void
@@ -42,9 +41,6 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
                     explode('=', $line, 2)
                 );
 
-                $key = trim($key);
-                $value = trim($value);
-
                 if ($key === '') {
                     continue;
                 }
@@ -66,20 +62,11 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 loadDotenvFromProjectRoot();
 
 /**
- * Aplica os cabeçalhos CORS necessários para a API.
+ * Aplica os cabeçalhos CORS necessários.
  */
 if (!function_exists('applyCorsHeaders')) {
     function applyCorsHeaders(): void
     {
-        // Não tenta modificar cabeçalhos que já foram enviados.
-        if (headers_sent($file, $line)) {
-            error_log(
-                'CORS: cabeçalhos já enviados em '
-                . $file . ':' . $line
-            );
-            return;
-        }
-
         $allowedOrigins = [
             'http://localhost:5173',
             'https://localhost:5173',
@@ -105,10 +92,7 @@ if (!function_exists('applyCorsHeaders')) {
         $originToUse = null;
 
         foreach ($allowedOrigins as $allowedOrigin) {
-            if (
-                $origin !== ''
-                && $origin === $allowedOrigin
-            ) {
+            if ($origin !== '' && $origin === $allowedOrigin) {
                 $originToUse = $origin;
                 break;
             }
@@ -122,9 +106,11 @@ if (!function_exists('applyCorsHeaders')) {
         if ($originToUse !== null) {
             header('Access-Control-Allow-Origin: ' . $originToUse);
             header('Access-Control-Allow-Credentials: true');
+
             header(
                 'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS'
             );
+
             header(
                 'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept'
             );
@@ -132,10 +118,7 @@ if (!function_exists('applyCorsHeaders')) {
 
         header('Vary: Origin');
 
-        // Finaliza as requisições de preflight.
-        $method = $_SERVER['REQUEST_METHOD'] ?? '';
-
-        if ($method === 'OPTIONS') {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
             http_response_code(204);
             exit;
         }
