@@ -40,7 +40,7 @@ function HeaderPaciente() {
             <HeaderActions>
               {/* Os destinos podem ser atualizados quando as páginas forem definidas. */}
               <HeaderButton to="/exames">Exames</HeaderButton>
-              <HeaderButton to="/home_paciente">Inicio</HeaderButton>
+              <HeaderButton to="/Paciente/home">Inicio</HeaderButton>
             </HeaderActions>
           </li>
           <li>
@@ -79,7 +79,7 @@ function HeaderPaciente() {
                   <ul>
                     <MenuItem>
                       <img src={humanIcon} alt="" className="icon" />
-                      <span><a href="/perfilpaciente">Perfil</a></span>
+                      <span><a href="/Paciente/perfil">Perfil</a></span>
                     </MenuItem> 
                   </ul>
                 </MenuSection>
@@ -92,11 +92,11 @@ function HeaderPaciente() {
                     </MenuItem>
                     <MenuItem>
                       <FcPrivacy alt="" className="icon" />
-                      <span><a href="/privacidade">Privacidade</a></span>
+                      <span><a href="/Paciente/privacidade">Privacidade</a></span>
                     </MenuItem>
                     <MenuItem>
                       <img src={logoutIcon} alt="" className="icon" />
-                      <span><a href="/login_pacientes">Logout</a></span>
+                      <span><a href="/Paciente/login">Logout</a></span>
                     </MenuItem>
                   </ul>
                 </MenuSection>

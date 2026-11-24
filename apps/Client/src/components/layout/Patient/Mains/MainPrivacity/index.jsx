@@ -84,7 +84,7 @@ function MainPrivacity() {
     setModalExclusaoOpen(false);
     setSenhaConfirmacao('');
 
-    navigate('/login_pacientes');
+    navigate('/Paciente/login');
 
 
     setModalExclusaoOpen(false);
@@ -146,7 +146,7 @@ function MainPrivacity() {
         Consulte os documentos, versões e decisões registradas. As autorizações opcionais
         podem ser revogadas na tela de consentimentos.
       </Typography>
-      <Button component={RouterLink} to="/consentimentos" variant="outlined" sx={{ mt: 2 }}>
+      <Button component={RouterLink} to="/Paciente/consentimentos" variant="outlined" sx={{ mt: 2 }}>
         Ver documentos e gerenciar consentimentos
       </Button>
 

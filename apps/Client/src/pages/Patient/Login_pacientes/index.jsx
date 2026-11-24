@@ -67,7 +67,7 @@ function LoginPacientes() {
         return;
       }
 
-      navigate('/home_paciente');
+      navigate('/Paciente/home');
 
     } catch (error) {
       console.error(error);
@@ -110,7 +110,7 @@ function LoginPacientes() {
 
       await checkSession();
 
-      navigate('/home_paciente');
+      navigate('/Paciente/home');
 
     } catch (error) {
       console.error(error);
@@ -229,19 +229,19 @@ function LoginPacientes() {
           <C.LabelFirstAcess>
             Esqueceu a Senha?
             <C.Strong>
-              <Link to="/recuperacao">{' '}Clique aqui</Link>
+              <Link to="/Paciente/recuperacao">{' '}Clique aqui</Link>
             </C.Strong>
           </C.LabelFirstAcess>
 
           <C.LabelSignup>
             <C.Strong>
-              <Link to="/primeiro_acesso_paciente">Primeiro Acesso?</Link>
+              <Link to="/Paciente/primeiro_acesso_paciente">Primeiro Acesso?</Link>
             </C.Strong>
           </C.LabelSignup>
           <C.LabelSignup>
             Não possui cadastro?{' '}
             <C.Strong>
-              <Link to="/cadastrar_pacientes">Cadastre-se</Link>
+              <Link to="/ADM/cadastrar_pacientes">Cadastre-se</Link>
             </C.Strong>
           </C.LabelSignup>
         </C.Content>

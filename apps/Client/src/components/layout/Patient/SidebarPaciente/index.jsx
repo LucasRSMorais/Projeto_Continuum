@@ -7,9 +7,9 @@ function SidebarPaciente() {
       <Heading>Menu</Heading>
       <Menu aria-label="Navegação principal">
         <ul>
-          <li><a href ="/home_paciente">Inicio</a></li>
+          <li><a href="/Paciente/home">Inicio</a></li>
           <li><a href="">Exames</a></li>
-          <li><a href="/consentimentos">Consentimentos</a></li>
+          <li><a href="/Paciente/consentimentos">Consentimentos</a></li>
         </ul>
       </Menu>
     </Container>

@@ -1,16 +1,17 @@
 import { useState } from 'react';
-import { useAuth } from '../../services/utils/auth';
+import { useAuth } from '../../../services/utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import Button from '../../components/Buttons/Button';
-import Input from '../../components/Input';
-import { buildApiUrl } from '../../config/api';
+import Button from '../../../components/Buttons/Button';
+import Input from '../../../components/Input';
+import { buildApiUrl } from '../../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
+import doctorImage from '../../../assets/background/passwordReset/password_reset_doctor.jpg';
 
 // Página do inicio recuperar a senha do sistema.
 // Aqui o usuário informa e-mail 
 // Precisa o email para indetificar o codigo de acesso.
-function LoginSenha() {
+function Login() {
   const navigate = useNavigate();
   const {checkSession} = useAuth();
 
@@ -39,7 +40,7 @@ function LoginSenha() {
 
     try {
       const response = await fetch(
-        buildApiUrl('password/email2.php'),
+        buildApiUrl('password/email.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -86,7 +87,7 @@ function LoginSenha() {
 
     try {
       const response = await fetch(
-        buildApiUrl('password/verificar2.php'),
+        buildApiUrl('password/verificar.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -108,7 +109,7 @@ function LoginSenha() {
 
       await checkSession();
 
-      navigate('/novaSenha');
+      navigate('/pass');
 
     } catch (error) {
       console.error(error);
@@ -120,29 +121,50 @@ function LoginSenha() {
   if (requires2FA) {
     return (
       <C.Container>
-        <Title>VERIFICAÇÃO DE SEGURANÇA</Title>
-        <C.Content>
-          <C.Form onSubmit={handleVerify2FA}>
+        <C.Visual>
+          <img src={doctorImage} alt="" />
+          <C.VisualOverlay />
+          <C.VisualCaption>
+            <strong>Continuum</strong>
+            <span>Unindo equipes, priorizando vidas</span>
+          </C.VisualCaption>
+        </C.Visual>
+
+        <C.AuthPanel>
+          <C.Brand src="/logo_sfundo_comp.svg" alt="Continuum" />
+          <C.Content>
+            <Title>VERIFICAÇÃO DE SEGURANÇA</Title>
+            <C.Form onSubmit={handleVerify2FA}>
+              <p>Confira o código enviado para o seu email.</p>
+              <Input
+                type="text"
+                placeholder="Código de 6 dígitos"
+                value={codigo}
+                onChange={(event) => {
+                  setCodigo(event.target.value);
+                  setError('');
+                }}
+              />
+
+              {error && <C.labelError>{error}</C.labelError>}
+
+              <Button type="submit">Verificar código</Button>
+            </C.Form>
+
             <p>
-              Confira o codigo enviado pelo seu email .
+              <button
+                type="button"
+                onClick={() => {
+                  setRequires2FA(false);
+                  setCodigo('');
+                  setError('');
+                }}
+              >
+                Voltar
+              </button>
             </p>
-            <Input
-              type="text"
-              placeholder="Código de 6 dígitos"
-              value={codigo}
-              onChange={(event) => {
-                setCodigo(event.target.value);
-                setError('');
-              }}
-            />
-
-            {error && (<C.labelError>{error}</C.labelError>)}
-
-            <Button type="submit">Verificar código</Button>
-          </C.Form>
-
-          
-        </C.Content>
+          </C.Content>
+        </C.AuthPanel>
       </C.Container>
     );
   }
@@ -150,24 +172,44 @@ function LoginSenha() {
 // Aqui é renderizado inicio do formulário de recuperar a senha, com campo para e-mail. 
   return (
     <C.Container>
-      <Title>Recuperação de Senha do paciente </Title>
+      <C.Visual>
+        <img src={doctorImage} alt="" />
+        <C.VisualOverlay />
+        <C.VisualCaption>
+          <strong>Continuum</strong>
+          <span>Unindo equipes, priorizando vidas</span>
+        </C.VisualCaption>
+      </C.Visual>
 
-      <C.Content>
-        <C.Form onSubmit={handleSubmit}>
-          <Input type="email" placeholder="Email" value={email}
-            onChange={(event) => {
-              setEmail(event.target.value);
-              setError('');
-            }}
-          />
-         
-          {error && (<C.labelError>{error}</C.labelError>)}
+      <C.AuthPanel>
+        <C.Brand src="/logo_sfundo_comp.svg" alt="Continuum" />
+        <C.Content>
+          <Title>Recuperação de Senha</Title>
+          <C.Form onSubmit={handleSubmit}>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setError('');
+              }}
+            />
 
-          <Button type="submit"> Recuperar</Button>
-        </C.Form>
-      </C.Content>
+            {error && <C.labelError>{error}</C.labelError>}
+
+            <Button type="submit">Recuperar</Button>
+          </C.Form>
+
+          <C.LabelFirstAcess>
+            <C.Strong>
+              <Link to="/">Voltar ao login</Link>
+            </C.Strong>
+          </C.LabelFirstAcess>
+        </C.Content>
+      </C.AuthPanel>
     </C.Container>
   );
 }
 
-export default LoginSenha;
+export default Login;

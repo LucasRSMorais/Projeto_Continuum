@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { useAuth } from '../../services/utils/auth';
+import { useAuth } from '../../../services/utils/auth';
 import { Link, useNavigate } from 'react-router-dom';
-import Button from '../../components/Buttons/Button';
-import Input from '../../components/Input';
-import { buildApiUrl } from '../../config/api';
+import Button from '../../../components/Buttons/Button';
+import Input from '../../../components/Input';
+import { buildApiUrl } from '../../../config/api';
 import * as C from './styles';
 import { Title } from './styles';
 
 // Página do inicio recuperar a senha do sistema.
 // Aqui o usuário informa e-mail 
 // Precisa o email para indetificar o codigo de acesso.
-function Login() {
+function LoginSenha() {
   const navigate = useNavigate();
   const {checkSession} = useAuth();
 
@@ -39,7 +39,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('password/email.php'),
+        buildApiUrl('password/email2.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -86,7 +86,7 @@ function Login() {
 
     try {
       const response = await fetch(
-        buildApiUrl('password/verificar.php'),
+        buildApiUrl('password/verificar2.php'),
         {
           method: 'POST',
           credentials: 'include',
@@ -108,7 +108,7 @@ function Login() {
 
       await checkSession();
 
-      navigate('/pass');
+      navigate('/Paciente/Reset/Redefinir');
 
     } catch (error) {
       console.error(error);
@@ -141,7 +141,6 @@ function Login() {
             <Button type="submit">Verificar código</Button>
           </C.Form>
 
-          
         </C.Content>
       </C.Container>
     );
@@ -150,7 +149,7 @@ function Login() {
 // Aqui é renderizado inicio do formulário de recuperar a senha, com campo para e-mail. 
   return (
     <C.Container>
-      <Title>Recuperação de Senha</Title>
+      <Title>Recuperação de Senha do paciente </Title>
 
       <C.Content>
         <C.Form onSubmit={handleSubmit}>
@@ -170,4 +169,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default LoginSenha;
