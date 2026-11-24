@@ -1,7 +1,7 @@
+
 <?php
 // Este arquivo centraliza a configuração de CORS da API.
-// Sem isso, o frontend em React não conseguirá fazer requisições
-// para o backend quando a aplicação estiver rodando em outra origem.
+// Salvar como UTF-8 sem BOM.
 
 if (!function_exists('loadDotenvFromProjectRoot')) {
     function loadDotenvFromProjectRoot(): void
@@ -17,31 +17,47 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
                 continue;
             }
 
-            $lines = file($dotenvFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $lines = file(
+                $dotenvFile,
+                FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
+            );
+
             if ($lines === false) {
                 continue;
             }
 
             foreach ($lines as $line) {
                 $line = trim($line);
-                if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+
+                if (
+                    $line === ''
+                    || str_starts_with($line, '#')
+                    || !str_contains($line, '=')
+                ) {
                     continue;
                 }
 
-                [$key, $value] = array_map('trim', explode('=', $line, 2));
+                [$key, $value] = array_map(
+                    'trim',
+                    explode('=', $line, 2)
+                );
+
                 $key = trim($key);
                 $value = trim($value);
 
                 if ($key === '') {
                     continue;
                 }
+
                 if (!array_key_exists($key, $_ENV)) {
                     $_ENV[$key] = $value;
                 }
+
                 if (getenv($key) === false) {
                     putenv($key . '=' . $value);
                 }
             }
+
             return;
         }
     }
@@ -50,54 +66,78 @@ if (!function_exists('loadDotenvFromProjectRoot')) {
 loadDotenvFromProjectRoot();
 
 /**
- * Aplica os cabeçalhos CORS necessários para permitir que o frontend
- * utilize a API no mesmo navegador, mesmo quando as origens forem diferentes.
+ * Aplica os cabeçalhos CORS necessários para a API.
  */
-function applyCorsHeaders(): void
-{
-    // Origens permitidas para ambiente local e produção.
-    $allowedOrigins = [
-        'http://localhost:5173',
-        'https://localhost:5173',
-        'http://127.0.0.1:5173',
-        'https://127.0.0.1:5173',
-        'https://frontend-production-55eb.up.railway.app',
-        'https://dev-projcontinuum.up.railway.app',
+if (!function_exists('applyCorsHeaders')) {
+    function applyCorsHeaders(): void
+    {
+        // Não tenta modificar cabeçalhos que já foram enviados.
+        if (headers_sent($file, $line)) {
+            error_log(
+                'CORS: cabeçalhos já enviados em '
+                . $file . ':' . $line
+            );
+            return;
+        }
 
-    ];
+        $allowedOrigins = [
+            'http://localhost:5173',
+            'https://localhost:5173',
+            'http://127.0.0.1:5173',
+            'https://127.0.0.1:5173',
+            'https://frontend-production-55eb.up.railway.app',
+            'https://dev-projcontinuum.up.railway.app',
+        ];
 
-    $clientUrl = getenv('CLIENT_URL');
-    if ($clientUrl) {
-        $allowedOrigins[] = rtrim($clientUrl, '/');
-    }
+        $clientUrl = getenv('CLIENT_URL');
 
-    $railwayDomain = getenv('RAILWAY_PUBLIC_DOMAIN');
-    if ($railwayDomain) {
-        $allowedOrigins[] = 'https://' . trim($railwayDomain, '/');
-    }
+        if ($clientUrl) {
+            $allowedOrigins[] = rtrim($clientUrl, '/');
+        }
 
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    $originToUse = null;
+        $railwayDomain = getenv('RAILWAY_PUBLIC_DOMAIN');
 
-    foreach ($allowedOrigins as $allowedOrigin) {
-        if ($origin !== '' && $origin === $allowedOrigin) {
-            $originToUse = $origin;
-            break;
+        if ($railwayDomain) {
+            $allowedOrigins[] = 'https://' . trim($railwayDomain, '/');
+        }
+
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+        $originToUse = null;
+
+        foreach ($allowedOrigins as $allowedOrigin) {
+            if (
+                $origin !== ''
+                && $origin === $allowedOrigin
+            ) {
+                $originToUse = $origin;
+                break;
+            }
+        }
+
+        if ($origin !== '' && $originToUse === null) {
+            http_response_code(403);
+            exit;
+        }
+
+        if ($originToUse !== null) {
+            header('Access-Control-Allow-Origin: ' . $originToUse);
+            header('Access-Control-Allow-Credentials: true');
+            header(
+                'Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            );
+            header(
+                'Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept'
+            );
+        }
+
+        header('Vary: Origin');
+
+        // Finaliza as requisições de preflight.
+        $method = $_SERVER['REQUEST_METHOD'] ?? '';
+
+        if ($method === 'OPTIONS') {
+            http_response_code(204);
+            exit;
         }
     }
-
-    if ($origin !== '' && $originToUse === null) {
-        http_response_code(403);
-        exit;
-    }
-    if ($originToUse !== null) {
-        header('Access-Control-Allow-Origin: ' . $originToUse);
-        header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRF-Token, Accept');
-    }
-
-   
-
-    header('Vary: Origin');
 }

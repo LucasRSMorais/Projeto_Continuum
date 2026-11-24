@@ -1,12 +1,25 @@
 
 <?php
+// Este arquivo deve ser salvo como UTF-8 sem BOM.
 
 // Este endpoint consulta e altera o plantão corrente de um setor.
 // O setor é definido pela especialidade do médico autenticado.
 // As operações de escrita são transacionais para evitar alterações concorrentes.
 
+// Configuração da sessão antes de qualquer saída HTTP.
+session_set_cookie_params([
+    'httponly' => true,
+    'secure' => true,
+    'samesite' => 'None',
+]);
+
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
+}
+
 require_once __DIR__ . '/../../config/cors.php';
 applyCorsHeaders();
+
 header('Content-Type: application/json; charset=utf-8');
 
 /**
@@ -79,10 +92,8 @@ function resolveDoctorSector(PDO $pdo, int $actorId): int
         ]);
     }
 
-    // Inicializa a variável para evitar aviso de possível indefinição.
     $sectorType = '';
 
-    // Relaciona a especialidade do médico ao tipo de setor.
     if ($specialty === 'Clínica Geral') {
         $sectorType = 'Clínica Geral';
     } elseif ($specialty === 'Cirúrgica') {
@@ -119,7 +130,6 @@ function resolveDoctorSector(PDO $pdo, int $actorId): int
             'instituicao' => $institutionId
         ]);
     } else {
-        // Para as demais especialidades, procura pelo tipo e instituição.
         $sectorQuery = $pdo->prepare("
             SELECT id
             FROM setores
@@ -292,17 +302,17 @@ function plantaoFailure(PDO $pdo, int $status, string $message): void
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
+// Responde às verificações CORS.
+if ($method === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 if ($origin !== '' && !plantaoAllowedOrigin($origin)) {
     plantaoRespond(403, [
         'success' => false,
         'message' => 'Origem da solicitação não permitida.'
     ]);
-}
-
-// Responde às verificações CORS.
-if ($method === 'OPTIONS') {
-    http_response_code(204);
-    exit;
 }
 
 if (!in_array($method, ['GET', 'POST'], true)) {
@@ -313,15 +323,6 @@ if (!in_array($method, ['GET', 'POST'], true)) {
         'message' => 'Método não permitido.'
     ]);
 }
-
-// Configuração da sessão.
-session_set_cookie_params([
-    'httponly' => true,
-    'secure' => true,
-    'samesite' => 'None',
-]);
-
-session_start();
 
 // Valida a sessão autenticada.
 $actorId = isset($_SESSION['usuario_id'])
