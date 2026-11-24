@@ -1,4 +1,3 @@
-
 <?php
 // Este arquivo deve ser salvo como UTF-8 sem BOM.
 
