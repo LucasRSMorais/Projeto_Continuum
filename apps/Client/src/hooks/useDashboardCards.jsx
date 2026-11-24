@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 
 const emptyData = {
@@ -15,6 +16,14 @@ export function useDashboardCards(url) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Aguarda a identificação do setor pelo servidor
+    if (!url) {
+      setData(emptyData);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const controller = new AbortController();
 
     async function loadDashboardCards() {
@@ -26,28 +35,39 @@ export function useDashboardCards(url) {
           credentials: 'include',
           signal: controller.signal,
         });
+
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(result.message || 'Não foi possível carregar os dados do painel.');
+          throw new Error(
+            result.message || 'Não foi possível carregar os dados do painel.'
+          );
         }
 
         setData({
-          patients: Array.isArray(result.data?.patients) ? result.data.patients : [],
-          pending: Array.isArray(result.data?.pending) ? result.data.pending : [],
-          movements: Array.isArray(result.data?.movements) ? result.data.movements : [],
+          patients: Array.isArray(result.data?.patients)
+            ? result.data.patients : [],
+          pending: Array.isArray(result.data?.pending)
+            ? result.data.pending : [],
+          movements: Array.isArray(result.data?.movements)
+            ? result.data.movements : [],
           criticalEvents: Array.isArray(result.data?.criticalEvents)
-            ? result.data.criticalEvents
-            : [],
-          utiBeds: Array.isArray(result.data?.utiBeds) ? result.data.utiBeds : [],
+            ? result.data.criticalEvents : [],
+          utiBeds: Array.isArray(result.data?.utiBeds)
+            ? result.data.utiBeds : [],
           enfermariaBeds: Array.isArray(result.data?.enfermariaBeds)
-            ? result.data.enfermariaBeds
-            : [],
+            ? result.data.enfermariaBeds : [],
         });
       } catch (requestError) {
         if (requestError.name !== 'AbortError') {
-          console.error('Erro ao carregar os dados do painel:', requestError);
-          setError(requestError.message || 'Falha na comunicação com o servidor.');
+          console.error(
+            'Erro ao carregar os dados do painel:',
+            requestError
+          );
+
+          setError(
+            requestError.message || 'Falha na comunicação com o servidor.'
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -57,6 +77,7 @@ export function useDashboardCards(url) {
     }
 
     loadDashboardCards();
+
     return () => controller.abort();
   }, [url]);
 

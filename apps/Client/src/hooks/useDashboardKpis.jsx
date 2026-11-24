@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 
 const emptyKpis = {
@@ -13,6 +14,14 @@ export function useDashboardKpis(url) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Aguarda a identificação do setor pelo servidor
+    if (!url) {
+      setKpis(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const controller = new AbortController();
 
     async function loadKpis() {
@@ -24,10 +33,13 @@ export function useDashboardKpis(url) {
           credentials: 'include',
           signal: controller.signal,
         });
+
         const result = await response.json();
 
         if (!response.ok || !result.success) {
-          throw new Error(result.message || 'Não foi possível carregar os KPIs.');
+          throw new Error(
+            result.message || 'Não foi possível carregar os KPIs.'
+          );
         }
 
         setKpis({
@@ -36,14 +48,26 @@ export function useDashboardKpis(url) {
             occupied: Number(result.data?.occupancy?.occupied ?? 0),
             total: Number(result.data?.occupancy?.total ?? 0),
           },
-          adverseEventsLastShift: Number(result.data?.adverseEventsLastShift ?? 0),
-          criticalAlertsToday: Number(result.data?.criticalAlertsToday ?? 0),
-          highRiskPatients: Number(result.data?.highRiskPatients ?? 0),
+          adverseEventsLastShift: Number(
+            result.data?.adverseEventsLastShift ?? 0
+          ),
+          criticalAlertsToday: Number(
+            result.data?.criticalAlertsToday ?? 0
+          ),
+          highRiskPatients: Number(
+            result.data?.highRiskPatients ?? 0
+          ),
         });
       } catch (requestError) {
         if (requestError.name !== 'AbortError') {
-          console.error('Erro ao carregar os KPIs do painel:', requestError);
-          setError(requestError.message || 'Falha na comunicação com o servidor.');
+          console.error(
+            'Erro ao carregar os KPIs do painel:',
+            requestError
+          );
+
+          setError(
+            requestError.message || 'Falha na comunicação com o servidor.'
+          );
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -53,6 +77,7 @@ export function useDashboardKpis(url) {
     }
 
     loadKpis();
+
     return () => controller.abort();
   }, [url]);
 
