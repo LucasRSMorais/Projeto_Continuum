@@ -317,6 +317,41 @@ try {
             plantaoFailure($pdo, 409, 'Este plantão já foi assumido por outro profissional.');
         }
 
+        // ==========================================
+        // TRAVA DE ESPECIALIDADE DO MÉDICO VS SETOR
+        // ==========================================
+        $validaEspecialidade = $pdo->prepare("
+            SELECT m.especialidade, s.tipo AS setor_tipo 
+            FROM medicos m 
+            CROSS JOIN setores s 
+            WHERE m.id = :medico_id AND s.id = :setor_id
+        ");
+        $validaEspecialidade->execute([
+            'medico_id' => (int) $actorId,
+            'setor_id'  => $sectorId
+        ]);
+        $dadosValidacao = $validaEspecialidade->fetch();
+
+        if ($dadosValidacao) {
+            $especialidadeMedico = trim($dadosValidacao['especialidade'] ?? '');
+            $tipoSetor = $dadosValidacao['setor_tipo'];
+
+            $permitido = false;
+
+            // Se o médico não tem especialidade cadastrada, permitimos apenas em Clínica Geral ou Enfermaria
+            if ($especialidadeMedico === '') {
+                $permitido = in_array($tipoSetor, ['Clínica Geral', 'Enfermaria'], true);
+            } else {
+                // Compara a especialidade do médico com o tipo do setor
+                $permitido = (strcasecmp($especialidadeMedico, $tipoSetor) === 0);
+            }
+
+            if (!$permitido) {
+                plantaoFailure($pdo, 403, 'Você não possui a especialidade necessária (' . $tipoSetor . ') para assumir plantão neste setor.');
+            }
+        }
+        // ==========================================
+
         // A condição no UPDATE também protege contra alterações concorrentes.
         $assignQuery = $pdo->prepare("
             UPDATE plantoes
