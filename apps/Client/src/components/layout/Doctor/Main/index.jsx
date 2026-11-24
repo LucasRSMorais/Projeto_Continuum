@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MainContainer,
   ShiftToolbar,
   KPISection,
   OverviewSection,
   HighPrioritySection,
+  ShiftDialog,
 } from './styles';
 import KPI_Card from '../../../Cards/Dashboard/KPI_Card';
 import CriticalEventsCard from '../../../Cards/Dashboard/Critical_Events';
@@ -17,18 +18,43 @@ import WaitingBySectorCard from '../../../Cards/Dashboard/Waiting_By_Sector';
 import { useDashboardCards } from '../../../../hooks/useDashboardCards';
 import { useDashboardKpis } from '../../../../hooks/useDashboardKpis';
 import { usePlantao } from '../../../../hooks/usePlantao';
-import { useAuth } from '../../../../hooks/useAuth'; // Certifique-se do caminho correto do seu hook de auth
+import { useAuth } from '../../../../hooks/useAuth';
 import { buildApiUrl } from '../../../../config/api';
-import { ShiftDialog } from './styles';
+
+const SETOR_TIPOS_MAP = {
+  '1': 'Clínica Geral',
+  '2': 'Cirúrgica',
+  '3': 'Obstétrica e Perinatal',
+  '4': 'Cardiologia',
+  '5': 'Neurologia',
+  '6': 'Isolamento',
+  '7': 'Enfermaria',
+};
 
 function Main() {
-  const [sectorId, setSectorId] = useState('4');
+  const [sectorId, setSectorId] = useState('1');
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [handoffDescription, setHandoffDescription] = useState('');
-  
-  // Obtém os dados do médico logado (ajuste 'user' conforme o retorno do seu useAuth)
+
   const { user } = useAuth();
   const especialidadeMedico = user?.especialidade ? user.especialidade.trim() : '';
+
+  const isSectorAllowed = (tipoSetor) => {
+    if (!especialidadeMedico) {
+      return ['Clínica Geral', 'Enfermaria'].includes(tipoSetor);
+    }
+    return especialidadeMedico.toLowerCase() === tipoSetor.toLowerCase();
+  };
+
+  // Seleciona automaticamente o setor permitido assim que os dados do médico carregarem
+  useEffect(() => {
+    const allowedEntry = Object.entries(SETOR_TIPOS_MAP).find(([, tipo]) =>
+      isSectorAllowed(tipo)
+    );
+    if (allowedEntry && !isSectorAllowed(SETOR_TIPOS_MAP[sectorId] || '')) {
+      setSectorId(allowedEntry[0]);
+    }
+  }, [especialidadeMedico]);
 
   const {
     patients,
@@ -58,34 +84,12 @@ function Main() {
     performAction,
   } = usePlantao(sectorId);
 
-  // Função auxiliar para checar se o setor é permitido para a especialidade do médico
-  const isSectorAllowed = (tipoSetor) => {
-    if (!especialidadeMedico) {
-      // Médicos sem especialidade definida só podem Clínica Geral ou Enfermaria
-      return ['Clínica Geral', 'Enfermaria'].includes(tipoSetor);
-    }
-    // Compara ignorando maiúsculas/minúsculas
-    return especialidadeMedico.toLowerCase() === tipoSetor.toLowerCase();
-  };
-
   const currentShift = plantao?.sectorId === Number(sectorId) ? plantao : null;
   const isMine = currentShift?.isMine === true;
   const isUnassigned = currentShift?.status === 'aberto' && currentShift?.doctorId === null;
   const canManage = currentShift?.canManage === true;
 
-  // Verifica se o setor atualmente selecionado na tela é permitido para este médico
-  // Mapeamento dos tipos de setor baseado no seu select
-  const setorTiposMap = {
-    '1': 'Clínica Geral',
-    '2': 'Cirúrgica',
-    '3': 'Obstétrica e Perinatal', // ou Obstétrico
-    '4': 'Cardiologia',
-    '5': 'Neurologia',
-    '6': 'Isolamento',
-    '7': 'Enfermaria'
-  };
-
-  const currentSectorTipo = setorTiposMap[sectorId] || '';
+  const currentSectorTipo = SETOR_TIPOS_MAP[sectorId] || '';
   const selectedSectorAllowed = isSectorAllowed(currentSectorTipo);
 
   const actionLabel = !canManage
@@ -131,13 +135,14 @@ function Main() {
             value={sectorId}
             onChange={(event) => setSectorId(event.target.value)}
           >
-            <option value="1" disabled={!isSectorAllowed('Clínica Geral')}>Clínica Geral {!isSectorAllowed('Clínica Geral') ? '(Bloqueado)' : ''}</option>
-            <option value="2" disabled={!isSectorAllowed('Cirúrgica')}>Cirúrgico {!isSectorAllowed('Cirúrgica') ? '(Bloqueado)' : ''}</option>
-            <option value="3" disabled={!isSectorAllowed('Obstétrica e Perinatal')}>Obstétrico {!isSectorAllowed('Obstétrica e Perinatal') ? '(Bloqueado)' : ''}</option>
-            <option value="4" disabled={!isSectorAllowed('Cardiologia')}>UTI-Cardiologia {!isSectorAllowed('Cardiologia') ? '(Bloqueado)' : ''}</option>
-            <option value="5" disabled={!isSectorAllowed('Neurologia')}>Neurologia {!isSectorAllowed('Neurologia') ? '(Bloqueado)' : ''}</option>
-            <option value="6" disabled={!isSectorAllowed('Isolamento')}>Isolamento {!isSectorAllowed('Isolamento') ? '(Bloqueado)' : ''}</option>
-            <option value="7" disabled={!isSectorAllowed('Enfermaria')}>Enfermaria {!isSectorAllowed('Enfermaria') ? '(Bloqueado)' : ''}</option>
+            {Object.entries(SETOR_TIPOS_MAP).map(([id, tipo]) => {
+              const permitido = isSectorAllowed(tipo);
+              return (
+                <option key={id} value={id} disabled={!permitido}>
+                  {tipo} {!permitido ? '(Bloqueado)' : ''}
+                </option>
+              );
+            })}
           </select>
         </label>
         <span className="shift-time">
@@ -219,7 +224,6 @@ function Main() {
         </ShiftDialog>
       )}
       <KPISection>
-        {/* Restante dos cards mantidos igual */}
         <KPI_Card
           title="Taxa de Ocupação"
           value={kpis.occupancy.percentage}
