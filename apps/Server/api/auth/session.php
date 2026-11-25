@@ -61,10 +61,10 @@ $paciente = [];
 $medico = [];
 $data_cadastro = null;
 
-// Se não for paciente (ex: Staff, medico, etc.), busca os dados na tabela medicos
+// Se não for paciente, busca apenas a especialidade na tabela medicos
 if (strtolower($perfil) !== 'paciente') {
     $stmtMedico = $pdo->prepare(
-        "SELECT especialidade, crm, crm_uf FROM medicos WHERE id = :id"
+        "SELECT especialidade FROM medicos WHERE id = :id"
     );
     $stmtMedico->execute([':id' => $_SESSION['usuario_id']]);
     $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -98,8 +98,6 @@ echo json_encode([
         "email" => $_SESSION['email'],
         "perfil" => $perfil,
         "especialidade" => $medico['especialidade'] ?? null,
-        "crm" => $medico['crm'] ?? null,
-        "crm_uf" => $medico['crm_uf'] ?? null,
         "cpf" => $paciente['cpf'] ?? null,
         "telefone" => $paciente['telefone'] ?? null,
         "data" => $data_cadastro ?: null,
