@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MainContainer,
   ShiftToolbar,
   KPISection,
   OverviewSection,
   HighPrioritySection,
+  ShiftDialog,
 } from './styles';
 import KPI_Card from '../../../Cards/Dashboard/KPI_Card';
 import CriticalEventsCard from '../../../Cards/Dashboard/Critical_Events';
@@ -17,13 +18,46 @@ import WaitingBySectorCard from '../../../Cards/Dashboard/Waiting_By_Sector';
 import { useDashboardCards } from '../../../../hooks/useDashboardCards';
 import { useDashboardKpis } from '../../../../hooks/useDashboardKpis';
 import { usePlantao } from '../../../../hooks/usePlantao';
+import { useAuth } from '../../../../hooks/useAuth';
 import { buildApiUrl } from '../../../../config/api';
-import { ShiftDialog } from './styles';
+
+const SETOR_TIPOS_MAP = {
+  '1': 'Clínica Geral',
+  '2': 'Cirúrgica',
+  '3': 'Obstétrica e Perinatal',
+  '4': 'Cardiologia',
+  '5': 'Neurologia',
+  '6': 'Isolamento',
+  '7': 'Enfermaria',
+};
 
 function Main() {
-  const [sectorId, setSectorId] = useState('4');
+  const [sectorId, setSectorId] = useState('1');
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [handoffDescription, setHandoffDescription] = useState('');
+
+  const { user } = useAuth();
+  // Garante a leitura correta do objeto retornado pela sessão (seja user ou user.usuario)
+  const userData = user?.usuario || user || {};
+  const especialidadeMedico = userData?.especialidade ? userData.especialidade.trim() : '';
+
+  const isSectorAllowed = (tipoSetor) => {
+    if (!especialidadeMedico) {
+      return ['Clínica Geral', 'Enfermaria'].includes(tipoSetor);
+    }
+    return especialidadeMedico.toLowerCase() === tipoSetor.toLowerCase();
+  };
+
+  // Seleciona automaticamente o primeiro setor permitido assim que os dados do médico carregarem
+  useEffect(() => {
+    const allowedEntry = Object.entries(SETOR_TIPOS_MAP).find(([, tipo]) =>
+      isSectorAllowed(tipo)
+    );
+    if (allowedEntry && !isSectorAllowed(SETOR_TIPOS_MAP[sectorId] || '')) {
+      setSectorId(allowedEntry[0]);
+    }
+  }, [especialidadeMedico]);
+
   const {
     patients,
     pending,
@@ -56,17 +90,24 @@ function Main() {
   const isMine = currentShift?.isMine === true;
   const isUnassigned = currentShift?.status === 'aberto' && currentShift?.doctorId === null;
   const canManage = currentShift?.canManage === true;
+
+  const currentSectorTipo = SETOR_TIPOS_MAP[sectorId] || '';
+  const selectedSectorAllowed = isSectorAllowed(currentSectorTipo);
+
   const actionLabel = !canManage
     ? 'Login necessário'
-    : isMine
-      ? 'Passar Plantão'
-      : isUnassigned
-        ? 'Assumir Plantão'
-        : currentShift?.status === 'encerrado'
-          ? 'Plantão encerrado'
-          : `Assumido por ${currentShift?.doctorName || 'outro profissional'}`;
+    : !selectedSectorAllowed
+      ? 'Setor não permitido'
+      : isMine
+        ? 'Passar Plantão'
+        : isUnassigned
+          ? 'Assumir Plantão'
+          : currentShift?.status === 'encerrado'
+            ? 'Plantão encerrado'
+            : `Assumido por ${currentShift?.doctorName || 'outro profissional'}`;
 
   const handleShiftAction = async () => {
+    if (!selectedSectorAllowed) return;
     if (isMine) {
       setHandoffDescription('');
       setHandoffOpen(true);
@@ -96,13 +137,14 @@ function Main() {
             value={sectorId}
             onChange={(event) => setSectorId(event.target.value)}
           >
-            <option value="1">Clínica Geral</option>
-            <option value="2">Cirúrgico</option>
-            <option value="3">Obstétrico</option>
-            <option value="4">UTI-Cardiologia</option>
-            <option value="5">Neurologia</option>
-            <option value="6">Isolamento</option>
-            <option value="7">Enfermaria</option>
+            {Object.entries(SETOR_TIPOS_MAP).map(([id, tipo]) => {
+              const permitido = isSectorAllowed(tipo);
+              return (
+                <option key={id} value={id} disabled={!permitido}>
+                  {tipo} {!permitido ? '(Bloqueado)' : ''}
+                </option>
+              );
+            })}
           </select>
         </label>
         <span className="shift-time">
@@ -122,6 +164,7 @@ function Main() {
             shiftLoading
             || shiftSaving
             || !canManage
+            || !selectedSectorAllowed
             || (!isMine && !isUnassigned)
           }
         >

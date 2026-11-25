@@ -101,7 +101,7 @@ function PatientRegister() {
       setMessage(data.message || 'Cadastro realizado com sucesso!');
 
       setTimeout(() => {
-        navigate('/login_pacientes');
+        navigate('/Paciente/login');
       }, 1000);
 
     } catch (error) {

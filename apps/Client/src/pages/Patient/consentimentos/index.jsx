@@ -210,7 +210,7 @@ function Consentimento() {
             <span>Termo de Uso e Serviço</span>
           </C.PdfDocName>
         </td>
-        <td data-label="Versão">1.0v</td>
+        <td data-label="Versão">2.1v</td>
         <td data-label="Status">
           <C.PdfStatusActive>
             <FaCheckCircle />
@@ -219,7 +219,7 @@ function Consentimento() {
         </td>
         <td data-label="Ação" className="align-center">
           <C.PdfActionButton
-            href="/document/terms/patient/Termos%20de%20Uso%20e%20Servi%C3%A7o%20-%20Portal%20do%20Paciente.pdf"
+            href="/document/terms/patient/Termos_de_Uso_Portal_do_Paciente_Continuum_v2.1.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -355,7 +355,7 @@ function Consentimento() {
             <span>Recusa de Tratamento</span>
           </C.PdfDocName>
         </td>
-        <td data-label="Versão">1.0v</td>
+        <td data-label="Versão">2.1v</td>
         <td data-label="Status">
           <C.PdfStatusActive>
             <FaCheckCircle />
@@ -364,7 +364,7 @@ function Consentimento() {
         </td>
         <td data-label="Ação" className="align-center">
           <C.PdfActionButton
-            href="/document/terms/patient/Termo_Recusa_Tratamento.pdf"
+            href="/document/terms/patient/Termo_Recusa_Informada_Continuum_v2.1.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -393,7 +393,7 @@ function Consentimento() {
         </td>
         <td data-label="Ação" className="align-center">
           <C.PdfActionButton
-            href="../../../../../docs/LGPD/Diretrizes_Conformidade_LGPD_Continuum_v2.1_Implantacao_Institucional.pdf"
+            href="/document/terms/geral/Diretrizes_Conformidade_LGPD_Continuum_v2.1_Implantacao_Institucional.pdf"
             target="_blank"
             rel="noopener noreferrer"
           >

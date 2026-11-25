@@ -3,6 +3,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 import { useAuth } from '../../../../../services/utils/auth';
 import { ActionButtons, CardContainer, SubCardContainer, SubCardHeader, DataCard, ProfileForm, ProfileMessage, Title, SubTitle } from './styles';
 import { Button } from '../../../../../components/Buttons/Button';
@@ -67,12 +69,16 @@ const mascararCPF = (cpf) => {
     return `${numeros.slice(0, 3)}.***.***-${numeros.slice(-2)}`;
 };
 
-
-
     const { user, loading, updateUser } = useAuth();
+    
+    // Estados de Edição de Perfil
     const [isEditing, setIsEditing] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState({ nome: '', email: '', telefone: '', sexo: '' });
+    const [message, setMessage] = useState('');
+    const [messageIsError, setMessageIsError] = useState(false);
+
+    // Estados de Edição de Endereço
     const [isEditingAddress, setIsEditingAddress] = useState(false);
     const [isSavingAddress, setIsSavingAddress] = useState(false);
     const [addressData, setAddressData] = useState({
@@ -82,10 +88,20 @@ const mascararCPF = (cpf) => {
         pais: '',
         cep: '',
     });
-    const [message, setMessage] = useState('');
-    const [messageIsError, setMessageIsError] = useState(false);
     const [addressMessage, setAddressMessage] = useState('');
     const [addressMessageIsError, setAddressMessageIsError] = useState(false);
+
+    // Estados de Alteração de Senha e Visibilidade
+    const [passwordData, setPasswordData] = useState({ senha_atual: '', nova_senha: '', confirmar_senha: '' });
+    const [isEditingPassword, setIsEditingPassword] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
+    const [passwordMessage, setPasswordMessage] = useState('');
+    const [passwordMessageIsError, setPasswordMessageIsError] = useState(false);
+
+    // Estados para controlar a exibição dos campos de senha
+    const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+    const [showNovaSenha, setShowNovaSenha] = useState(false);
+    const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
     const startEditing = () => {
         setFormData({
@@ -144,12 +160,6 @@ const mascararCPF = (cpf) => {
 
         if (!updatedAddress.rua || !updatedAddress.cidade || !updatedAddress.estado || !updatedAddress.pais) {
             setAddressMessage('Preencha rua, cidade, estado e país.');
-            setAddressMessageIsError(true);
-            return;
-        }
-        if (updatedAddress.rua.length > 150 || updatedAddress.cidade.length > 100
-            || updatedAddress.estado.length > 100 || updatedAddress.pais.length > 100) {
-            setAddressMessage('Confira os limites de caracteres dos campos do endereço.');
             setAddressMessageIsError(true);
             return;
         }
@@ -250,13 +260,53 @@ const mascararCPF = (cpf) => {
         }
     };
 
+    const handleSavePassword = async (event) => {
+        event.preventDefault();
+        if (passwordData.nova_senha !== passwordData.confirmar_senha) {
+            setPasswordMessage('A nova senha e a confirmação não coincidem.');
+            setPasswordMessageIsError(true);
+            return;
+        }
+
+        setIsSavingPassword(true);
+        setPasswordMessage('');
+        setPasswordMessageIsError(false);
+        try {
+            const response = await fetch(buildApiUrl('patients/atualizar_senha_paciente.php'), {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(passwordData),
+            });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                setPasswordMessage(data.message || 'Erro ao alterar senha.');
+                setPasswordMessageIsError(true);
+                return;
+            }
+
+            setPasswordMessage('Senha alterada com sucesso!');
+            setPasswordMessageIsError(false);
+            setIsEditingPassword(false);
+            setPasswordData({ senha_atual: '', nova_senha: '', confirmar_senha: '' });
+        } catch (error) {
+            console.error('Erro ao alterar senha:', error);
+            setPasswordMessage('Erro ao conectar com o servidor.');
+            setPasswordMessageIsError(true);
+        } finally {
+            setIsSavingPassword(false);
+        }
+    };
+
     return (
         <CardContainer>
-                <Title>Meu Perfil</Title>
+            <Title>Meu Perfil</Title>
             <SubCardContainer>
                 <p><strong>Nome:</strong> {loading ? '...' : user?.nome || 'Usuário'}</p>
             </SubCardContainer>
             <div>
+                {/* Informações Pessoais */}
                 <SubCardContainer>
                     <ProfileForm onSubmit={handleSave} noValidate>
                         <SubCardHeader>
@@ -308,41 +358,35 @@ const mascararCPF = (cpf) => {
                                 disabled={!isEditing}
                                 variant="standard"
                             />
-                            
                             <MeuInput
-                                    id="input-telefone"
-                                    label="Telefone"
-                                    type="tel"
-                                    value={
-                                        loading
-                                            ? '...'
-                                            : isEditing
-                                                ? formatTelefone(formData.telefone)
-                                                : mascararTelefone(user?.telefone)
-                                    }
-                                    onChange={handleFieldChange('telefone')}
-                                    required
-                                    disabled={!isEditing}
-                                    variant="standard"
-                                />
-
-                                     <MeuInput
-                                id="input-cpf"
-                                label="CPF"
+                                id="input-telefone"
+                                label="Telefone"
+                                type="tel"
                                 value={
-
                                     loading
                                         ? '...'
                                         : isEditing
-                                           ?user?.cpf || 'Não informado'
+                                            ? formatTelefone(formData.telefone)
+                                            : mascararTelefone(user?.telefone)
+                                }
+                                onChange={handleFieldChange('telefone')}
+                                required
+                                disabled={!isEditing}
+                                variant="standard"
+                            />
+                            <MeuInput
+                                id="input-cpf"
+                                label="CPF"
+                                value={
+                                    loading
+                                        ? '...'
+                                        : isEditing
+                                           ? user?.cpf || 'Não informado'
                                            : mascararCPF(user?.cpf)
-
-
                                 }
                                 disabled
                                 variant="standard"
                             />
-
                             <MeuInput
                                 id="input-data-nascimento"
                                 label="Data de Nascimento"
@@ -373,6 +417,8 @@ const mascararCPF = (cpf) => {
                         )}
                     </ProfileForm>
                 </SubCardContainer>
+
+                {/* Endereço */}
                 <SubCardContainer>
                     <ProfileForm onSubmit={handleSaveAddress} noValidate>
                         <SubCardHeader>
@@ -398,56 +444,164 @@ const mascararCPF = (cpf) => {
                                 )}
                             </ActionButtons>
                         </SubCardHeader>
-                    <DataCard>
-                        <MeuInput
-                            id="input-rua"
-                            label="Rua"
-                            value={isEditingAddress ? addressData.rua : loading ? '...' : user?.endereco?.rua || 'Não informado'}
-                            onChange={handleAddressFieldChange('rua')}
-                            required
-                            disabled={!isEditingAddress}
-                            variant="standard"
-                        />
-                        <MeuInput
-                            id="input-cidade"
-                            label="Cidade"
-                            value={isEditingAddress ? addressData.cidade : loading ? '...' : user?.endereco?.cidade || 'Não informado'}
-                            onChange={handleAddressFieldChange('cidade')}
-                            required
-                            disabled={!isEditingAddress}
-                            variant="standard"
-                        />
-                        <MeuInput
-                            id="input-estado"
-                            label="Estado"
-                            value={isEditingAddress ? addressData.estado : loading ? '...' : user?.endereco?.estado || 'Não informado'}
-                            onChange={handleAddressFieldChange('estado')}
-                            required
-                            disabled={!isEditingAddress}
-                            variant="standard"
-                        />
-                        <MeuInput
-                            id="input-pais"
-                            label="País"
-                            value={isEditingAddress ? addressData.pais : loading ? '...' : user?.endereco?.pais || 'Não informado'}
-                            onChange={handleAddressFieldChange('pais')}
-                            required
-                            disabled={!isEditingAddress}
-                            variant="standard"
-                        />
-                        <MeuInput
-                            id="input-cep"
-                            label="CEP"
-                            value={isEditingAddress ? addressData.cep : loading ? '...' : user?.endereco?.cep || 'Não informado'}
-                            onChange={handleAddressFieldChange('cep')}
-                            required
-                            disabled={!isEditingAddress}
-                            variant="standard"
-                        />
-                    </DataCard>
+                        <DataCard>
+                            <MeuInput
+                                id="input-rua"
+                                label="Rua"
+                                value={isEditingAddress ? addressData.rua : loading ? '...' : user?.endereco?.rua || 'Não informado'}
+                                onChange={handleAddressFieldChange('rua')}
+                                required
+                                disabled={!isEditingAddress}
+                                variant="standard"
+                            />
+                            <MeuInput
+                                id="input-cidade"
+                                label="Cidade"
+                                value={isEditingAddress ? addressData.cidade : loading ? '...' : user?.endereco?.cidade || 'Não informado'}
+                                onChange={handleAddressFieldChange('cidade')}
+                                required
+                                disabled={!isEditingAddress}
+                                variant="standard"
+                            />
+                            <MeuInput
+                                id="input-estado"
+                                label="Estado"
+                                value={isEditingAddress ? addressData.estado : loading ? '...' : user?.endereco?.estado || 'Não informado'}
+                                onChange={handleAddressFieldChange('estado')}
+                                required
+                                disabled={!isEditingAddress}
+                                variant="standard"
+                            />
+                            <MeuInput
+                                id="input-pais"
+                                label="País"
+                                value={isEditingAddress ? addressData.pais : loading ? '...' : user?.endereco?.pais || 'Não informado'}
+                                onChange={handleAddressFieldChange('pais')}
+                                required
+                                disabled={!isEditingAddress}
+                                variant="standard"
+                            />
+                            <MeuInput
+                                id="input-cep"
+                                label="CEP"
+                                value={isEditingAddress ? addressData.cep : loading ? '...' : user?.endereco?.cep || 'Não informado'}
+                                onChange={handleAddressFieldChange('cep')}
+                                required
+                                disabled={!isEditingAddress}
+                                variant="standard"
+                            />
+                        </DataCard>
                         {addressMessage && (
                             <ProfileMessage $error={addressMessageIsError} role={addressMessageIsError ? 'alert' : 'status'}>
                                 {addressMessage}
+                            </ProfileMessage>
+                        )}
+                    </ProfileForm>
+                </SubCardContainer>
+
+                {/* Alterar Senha */}
+                <SubCardContainer>
+                    <ProfileForm onSubmit={handleSavePassword} noValidate>
+                        <SubCardHeader>
+                            <SubTitle>Segurança / Senha</SubTitle>
+                            <ActionButtons>
+                                {isEditingPassword ? (
+                                    <>
+                                        <Button
+                                            onClick={() => { setIsEditingPassword(false); setPasswordMessage(''); }}
+                                            disabled={isSavingPassword}
+                                            variant="secondary"
+                                        >
+                                            Cancelar
+                                        </Button>
+                                        <Button Type="submit" disabled={isSavingPassword}>
+                                            {isSavingPassword ? 'Salvando...' : 'Salvar'}
+                                        </Button>
+                                    </>
+                                ) : (
+                                    <Button onClick={() => setIsEditingPassword(true)} disabled={loading}>
+                                        Alterar Senha
+                                    </Button>
+                                )}
+                            </ActionButtons>
+                        </SubCardHeader>
+                        <DataCard>
+                            <MeuInput
+                                id="input-senha-atual"
+                                label="Senha Atual"
+                                type={showSenhaAtual ? 'text' : 'password'}
+                                value={passwordData.senha_atual}
+                                onChange={(e) => setPasswordData({ ...passwordData, senha_atual: e.target.value })}
+                                required
+                                disabled={!isEditingPassword}
+                                variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da senha atual"
+                                                onClick={() => setShowSenhaAtual(!showSenhaAtual)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showSenhaAtual ? '👁️' : '🔒'}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            <MeuInput
+                                id="input-nova-senha"
+                                label="Nova Senha"
+                                type={showNovaSenha ? 'text' : 'password'}
+                                value={passwordData.nova_senha}
+                                onChange={(e) => setPasswordData({ ...passwordData, nova_senha: e.target.value })}
+                                required
+                                disabled={!isEditingPassword}
+                                variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da nova senha"
+                                                onClick={() => setShowNovaSenha(!showNovaSenha)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showNovaSenha ? '👁️' : '🔒'}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            <MeuInput
+                                id="input-confirmar-senha"
+                                label="Confirmar Nova Senha"
+                                type={showConfirmarSenha ? 'text' : 'password'}
+                                value={passwordData.confirmar_senha}
+                                onChange={(e) => setPasswordData({ ...passwordData, confirmar_senha: e.target.value })}
+                                required
+                                disabled={!isEditingPassword}
+                                variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da confirmação de senha"
+                                                onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showConfirmarSenha ? '👁️' : '🔒'}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                        </DataCard>
+                        {passwordMessage && (
+                            <ProfileMessage $error={passwordMessageIsError} role={passwordMessageIsError ? 'alert' : 'status'}>
+                                {passwordMessage}
                             </ProfileMessage>
                         )}
                     </ProfileForm>

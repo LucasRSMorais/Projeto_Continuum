@@ -13,7 +13,7 @@ function Sidebar() {
 
           
 
-          <li><a href="/home">Principal / Dashboard </a></li>
+          <li><a href="/Medico/home">Principal / Dashboard </a></li>
           <li><a href="/">Relatórios</a></li>
           <li><a href="/">Pacientes</a></li>
           <li><a href="/">Equipe</a></li>

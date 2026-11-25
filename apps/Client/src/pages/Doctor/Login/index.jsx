@@ -68,7 +68,7 @@ function Login() {
         return;
       }
 
-      navigate('/home');
+      navigate('/Medico/home');
 
     } catch (error) {
       console.error(error);
@@ -111,7 +111,7 @@ function Login() {
 
       await checkSession();
 
-      navigate('/home');
+      navigate('/Medico/home');
 
     } catch (error) {
       console.error(error);
@@ -227,7 +227,7 @@ function Login() {
           <C.LabelFirstAcess>
             Esqueceu a Senha?
             <C.Strong>
-              <Link to="/password">{' '}Clique aqui</Link>
+              <Link to="/Medico/Reset/buscaEmail">{' '}Clique aqui</Link>
             </C.Strong>
           </C.LabelFirstAcess>
         </C.Content>

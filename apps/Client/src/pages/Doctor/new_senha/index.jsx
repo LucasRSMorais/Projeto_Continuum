@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Button from '../../components/Buttons/Button';
-import Input from '../../components/Input';
-import { buildApiUrl } from '../../config/api';
+import Button from '../../../components/Buttons/Button';
+import Input from '../../../components/Input';
+import { buildApiUrl } from '../../../config/api';
 import * as C from './styles';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 

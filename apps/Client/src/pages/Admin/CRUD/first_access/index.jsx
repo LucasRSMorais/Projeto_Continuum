@@ -10,7 +10,7 @@ const documentos = {
   },
   servico: {
     titulo: 'Termo de Uso e Serviço - Portal do Paciente',
-    url: '/document/terms/patient/Termos%20de%20Uso%20e%20Servi%C3%A7o%20-%20Portal%20do%20Paciente.pdf',
+    url: '/document/terms/patient/Termos_de_Uso_Portal_do_Paciente_Continuum_v2.1.pdf',
   },
   dadosSensiveis: {
     titulo: 'Termo de Consentimento para Tratamento de Dados Sensíveis',
@@ -99,7 +99,7 @@ function PrimeiroAcessoPaciente() {
       }
 
       setMensagem(data.message);
-      window.setTimeout(() => navigate('/login_pacientes'), 1200);
+      window.setTimeout(() => navigate('/Paciente/login'), 1200);
     } catch (requestError) {
       console.error('Erro ao ativar primeiro acesso do paciente:', requestError);
       setErro(requestError.message || 'Não foi possível ativar o acesso. Tente novamente.');
@@ -250,7 +250,7 @@ function PrimeiroAcessoPaciente() {
         </C.Form>
 
         <p>
-          Já ativou sua conta? <C.Strong><Link to="/login_pacientes">Entrar</Link></C.Strong>
+          Já ativou sua conta? <C.Strong><Link to="/Paciente/login">Entrar</Link></C.Strong>
         </p>
       </C.Content>
     </C.Container>

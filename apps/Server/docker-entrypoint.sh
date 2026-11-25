@@ -1,21 +1,19 @@
+
 #!/bin/sh
 set -eu
 
-echo "========== CORRIGINDO MODULOS APACHE =========="
+echo "========== INICIANDO AMBIENTE SEGURO (NGINX + PHP-FPM) =========="
 
-mkdir -p /tmp/apache2/run /tmp/apache2/lock /tmp/apache2/log
+# Garante que os diretórios temporários do Nginx existam
+mkdir -p /tmp/nginx/client_body_temp \
+         /tmp/nginx/proxy_temp \
+         /tmp/nginx/fastcgi_temp \
+         /tmp/nginx/uwsgi_temp \
+         /tmp/nginx/scgi_temp
 
-rm -f /etc/apache2/mods-enabled/mpm_event.load
-rm -f /etc/apache2/mods-enabled/mpm_event.conf
-rm -f /etc/apache2/mods-enabled/mpm_worker.load
-rm -f /etc/apache2/mods-enabled/mpm_worker.conf
+# Inicia o PHP-FPM em background
+php-fpm -D
 
-echo "=== MODULOS MPM RESTANTES ==="
-ls -la /etc/apache2/mods-enabled/ | grep mpm || true
-
-echo "=== VALIDANDO APACHE ==="
-apache2ctl -M
-apache2ctl -t
-
-echo "=== INICIANDO APACHE ==="
-exec apache2-foreground
+# Inicia o Nginx em primeiro plano na porta 80
+echo "=== INICIANDO NGINX NA PORTA 80 ==="
+exec nginx -g "daemon off;"

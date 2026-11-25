@@ -58,15 +58,15 @@ jobs:
           docker compose -f apps/docker-compose.yml logs
           exit 1
 
-      # Verifica a versão real do Apache no container
-      - name: Verificar versão do Apache
+      # Verifica a versão real do Nginx no container
+      - name: Verificar versão do Nginx
         run: |
-          docker compose -f apps/docker-compose.yml exec -T backend apache2 -v
+          docker compose -f apps/docker-compose.yml exec -T backend nginx -v
 
-      # Verifica a versão dos pacotes Apache instalados
-      - name: Verificar pacote Apache2 instalado
+      # Verifica a versão do PHP
+      - name: Verificar versão do PHP
         run: |
-          docker compose -f apps/docker-compose.yml exec -T backend dpkg-query -W apache2 apache2-bin
+          docker compose -f apps/docker-compose.yml exec -T backend php -v
 
       # Executa a análise dinâmica de segurança
       - name: OWASP ZAP Scan
