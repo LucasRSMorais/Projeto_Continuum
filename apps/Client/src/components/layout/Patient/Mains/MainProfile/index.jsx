@@ -3,6 +3,10 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../../../../../services/utils/auth';
 import { ActionButtons, CardContainer, SubCardContainer, SubCardHeader, DataCard, ProfileForm, ProfileMessage, Title, SubTitle } from './styles';
 import { Button } from '../../../../../components/Buttons/Button';
@@ -89,12 +93,17 @@ const mascararCPF = (cpf) => {
     const [addressMessage, setAddressMessage] = useState('');
     const [addressMessageIsError, setAddressMessageIsError] = useState(false);
 
-    // Estados de Alteração de Senha
+    // Estados de Alteração de Senha e Visibilidade
     const [passwordData, setPasswordData] = useState({ senha_atual: '', nova_senha: '', confirmar_senha: '' });
     const [isEditingPassword, setIsEditingPassword] = useState(false);
     const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [passwordMessage, setPasswordMessage] = useState('');
     const [passwordMessageIsError, setPasswordMessageIsError] = useState(false);
+
+    // Estados para controlar o "olhinho" de exibir/ocultar cada campo de senha
+    const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+    const [showNovaSenha, setShowNovaSenha] = useState(false);
+    const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
 
     const startEditing = () => {
         setFormData({
@@ -522,32 +531,74 @@ const mascararCPF = (cpf) => {
                             <MeuInput
                                 id="input-senha-atual"
                                 label="Senha Atual"
-                                type="password"
+                                type={showSenhaAtual ? 'text' : 'password'}
                                 value={passwordData.senha_atual}
                                 onChange={(e) => setPasswordData({ ...passwordData, senha_atual: e.target.value })}
                                 required
                                 disabled={!isEditingPassword}
                                 variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da senha atual"
+                                                onClick={() => setShowSenhaAtual(!showSenhaAtual)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showSenhaAtual ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                             <MeuInput
                                 id="input-nova-senha"
                                 label="Nova Senha"
-                                type="password"
+                                type={showNovaSenha ? 'text' : 'password'}
                                 value={passwordData.nova_senha}
                                 onChange={(e) => setPasswordData({ ...passwordData, nova_senha: e.target.value })}
                                 required
                                 disabled={!isEditingPassword}
                                 variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da nova senha"
+                                                onClick={() => setShowNovaSenha(!showNovaSenha)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showNovaSenha ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                             <MeuInput
                                 id="input-confirmar-senha"
                                 label="Confirmar Nova Senha"
-                                type="password"
+                                type={showConfirmarSenha ? 'text' : 'password'}
                                 value={passwordData.confirmar_senha}
                                 onChange={(e) => setPasswordData({ ...passwordData, confirmar_senha: e.target.value })}
                                 required
                                 disabled={!isEditingPassword}
                                 variant="standard"
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                aria-label="alternar visibilidade da confirmação de senha"
+                                                onClick={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                                                edge="end"
+                                                disabled={!isEditingPassword}
+                                            >
+                                                {showConfirmarSenha ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
                             />
                         </DataCard>
                         {passwordMessage && (
