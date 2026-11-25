@@ -1,7 +1,5 @@
 <?php
 
-// Página responsável por verificar se o usuário está autenticado.
-// Também controla a expiração da sessão após 30 minutos de inatividade.
 require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../../config/patient_data_encryption.php";
 
@@ -13,8 +11,7 @@ session_set_cookie_params([
 
 session_start();
 
-// Define o tempo máximo permitido sem atividade do usuário.
-$tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
+$tempoExpiracao = 30 * 60; // 30 minutos
 
 if (
     isset($_SESSION['ultima_atividade']) &&
@@ -52,34 +49,36 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+$usuarioId = $_SESSION['usuario_id'];
 $perfil = $_SESSION['perfil'] ?? '';
 $paciente = [];
 $medico = [];
 $data_cadastro = null;
 
-// Se for paciente, busca nas colunas reais da tabela pacientes
-if (strtolower($perfil) === 'paciente') {
-    $stmt = $pdo->prepare(
-        "SELECT cpf, telefone, sexo, data_nascimento FROM pacientes WHERE id = :id"
-    );
-    $stmt->execute([':id' => $_SESSION['usuario_id']]);
-    $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+// 1. Tenta buscar primeiro na tabela de pacientes
+$stmtPaciente = $pdo->prepare(
+    "SELECT cpf, telefone, sexo, data_nascimento FROM pacientes WHERE id = :id"
+);
+$stmtPaciente->execute([':id' => $usuarioId]);
+$paciente = $stmtPaciente->fetch(PDO::FETCH_ASSOC);
 
+if ($paciente) {
+    // É paciente! Busca a data do cadastro nos logs
     $stmtConsetimento = $pdo->prepare(
         "SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1"
     );
-    $stmtConsetimento->execute([':id' => $_SESSION['usuario_id']]);
+    $stmtConsetimento->execute([':id' => $usuarioId]);
     $data_cadastro = $stmtConsetimento->fetchColumn();
 } else {
-    // Caso seja médico ou outro perfil da equipe
+    // Se não está em pacientes, busca na tabela de médicos
     $stmtMedico = $pdo->prepare(
         "SELECT especialidade FROM medicos WHERE id = :id"
     );
-    $stmtMedico->execute([':id' => $_SESSION['usuario_id']]);
+    $stmtMedico->execute([':id' => $usuarioId]);
     $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
-// Descriptografa o sexo do paciente caso ele exista
+// Descriptografa o sexo do paciente se ele existir
 $sexoDescriptografado = null;
 if (!empty($paciente['sexo'])) {
     try {
@@ -93,9 +92,9 @@ echo json_encode([
     "success" => true,
     "authenticated" => true,
     "usuario" => [
-        "id" => $_SESSION['usuario_id'],
-        "nome" => $_SESSION['nome'],
-        "email" => $_SESSION['email'],
+        "id" => $usuarioId,
+        "nome" => $_SESSION['nome'] ?? ($paciente ? 'Paciente' : 'Usuário'),
+        "email" => $_SESSION['email'] ?? '',
         "perfil" => $perfil,
         "especialidade" => $medico['especialidade'] ?? null,
         "cpf" => $paciente['cpf'] ?? null,
