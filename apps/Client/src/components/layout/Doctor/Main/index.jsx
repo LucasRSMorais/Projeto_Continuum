@@ -37,7 +37,9 @@ function Main() {
   const [handoffDescription, setHandoffDescription] = useState('');
 
   const { user } = useAuth();
-  const especialidadeMedico = user?.especialidade ? user.especialidade.trim() : '';
+  // Garante a leitura correta do objeto retornado pela sessão (seja user ou user.usuario)
+  const userData = user?.usuario || user || {};
+  const especialidadeMedico = userData?.especialidade ? userData.especialidade.trim() : '';
 
   const isSectorAllowed = (tipoSetor) => {
     if (!especialidadeMedico) {
@@ -46,7 +48,7 @@ function Main() {
     return especialidadeMedico.toLowerCase() === tipoSetor.toLowerCase();
   };
 
-  // Seleciona automaticamente o setor permitido assim que os dados do médico carregarem
+  // Seleciona automaticamente o primeiro setor permitido assim que os dados do médico carregarem
   useEffect(() => {
     const allowedEntry = Object.entries(SETOR_TIPOS_MAP).find(([, tipo]) =>
       isSectorAllowed(tipo)

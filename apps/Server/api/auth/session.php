@@ -4,14 +4,6 @@
 // Também controla a expiração da sessão após 30 minutos de inatividade.
 require_once __DIR__ . "/../../config/database.php";
 
-
-
-
-
-
-
-
-
 session_set_cookie_params([
     'httponly' => true,
     'secure' => true,
@@ -56,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // Se o usuário ainda não estiver autenticado, responde 401.
 if (!isset($_SESSION['usuario_id'])) {
     http_response_code(401);
-    
     echo json_encode([
         "success" => false,
         "authenticated" => false,
@@ -65,57 +56,40 @@ if (!isset($_SESSION['usuario_id'])) {
     exit;
 }
 
+$perfil = $_SESSION['perfil'] ?? '';
+$paciente = [];
+$medico = [];
+$data_cadastro = null;
 
+if ($perfil === 'medico') {
+    // Busca a especialidade e dados do médico na tabela medicos
+    $stmtMedico = $pdo->prepare(
+        "SELECT especialidade, crm, crm_uf FROM medicos WHERE id = :id"
+    );
+    $stmtMedico->execute([':id' => $_SESSION['usuario_id']]);
+    $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
+} else {
+    // Complementa os dados básicos da sessão com informações do cadastro do paciente.
+    // A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
+    // aceitar um identificador de usuário fornecido pelo cliente.
+    $stmt = $pdo->prepare(
+        "SELECT cpf, telefone, aceite_termo_uso, sexo, data_nascimento FROM pacientes WHERE id = :id"
+    );
+    $stmt->execute([
+        ':id' => $_SESSION['usuario_id']
+    ]);
+    $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-
-// Complementa os dados básicos da sessão com informações do cadastro do paciente.
-// A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
-// aceitar um identificador de usuário fornecido pelo cliente.
-$stmt = $pdo -> prepare(
-"SELECT cpf , telefone  , aceite_termo_uso , sexo , data_nascimento FROM pacientes WHERE id = :id"
-
-);
-
-
-$stmt->execute(
-
-
-[
-
-
-':id' => $_SESSION ['usuario_id']
-
-]
-
-);
-
-
-$paciente = $stmt -> fetch(PDO::FETCH_ASSOC);
-
-
-
-
-// Recupera o primeiro registro de auditoria do cadastro para expor a data
-// associada ao consentimento/cadastro apresentado no perfil do titular.
-$stmtConsetimento = $pdo->prepare(
-
-
-"SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1
-"
-);
-
-
-
-$stmtConsetimento-> execute([
-
-':id' => $_SESSION ['usuario_id']
-
-
-]);
-
-$data_cadastro = $stmtConsetimento-> fetchColumn();
-
-
+    // Recupera o primeiro registro de auditoria do cadastro para expor a data
+    // associada ao consentimento/cadastro apresentado no perfil do titular.
+    $stmtConsetimento = $pdo->prepare(
+        "SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1"
+    );
+    $stmtConsetimento->execute([
+        ':id' => $_SESSION['usuario_id']
+    ]);
+    $data_cadastro = $stmtConsetimento->fetchColumn();
+}
 
 // Retorna somente os campos usados pelo frontend; dados internos da sessão
 // e credenciais (como hashes de senha) não são incluídos na resposta.
@@ -126,13 +100,15 @@ echo json_encode([
         "id" => $_SESSION['usuario_id'],
         "nome" => $_SESSION['nome'],
         "email" => $_SESSION['email'],
-        "cpf" => $paciente ['cpf'] ?? null,
-        "telefone" => $paciente ['telefone']?? null ,
-          "data" => $data_cadastro ?: null ,
-          "aceite_termo_uso" => $paciente ['aceite_termo_uso'] ?? null,
-          "sexo" => $paciente ['sexo'] ?? null,
-          "data_nascimento" => $paciente ['data_nascimento'] ?? null
-
-        
+        "perfil" => $perfil,
+        "especialidade" => $medico['especialidade'] ?? null,
+        "crm" => $medico['crm'] ?? null,
+        "crm_uf" => $medico['crm_uf'] ?? null,
+        "cpf" => $paciente['cpf'] ?? null,
+        "telefone" => $paciente['telefone'] ?? null,
+        "data" => $data_cadastro ?: null,
+        "aceite_termo_uso" => $paciente['aceite_termo_uso'] ?? null,
+        "sexo" => $paciente['sexo'] ?? null,
+        "data_nascimento" => $paciente['data_nascimento'] ?? null
     ]
 ]);
