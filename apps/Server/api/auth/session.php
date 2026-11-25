@@ -61,8 +61,8 @@ $paciente = [];
 $medico = [];
 $data_cadastro = null;
 
-if ($perfil === 'medico') {
-    // Busca a especialidade e dados do médico na tabela medicos
+// Se não for paciente (ex: Staff, medico, etc.), busca os dados na tabela medicos
+if (strtolower($perfil) !== 'paciente') {
     $stmtMedico = $pdo->prepare(
         "SELECT especialidade, crm, crm_uf FROM medicos WHERE id = :id"
     );
@@ -70,8 +70,6 @@ if ($perfil === 'medico') {
     $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
 } else {
     // Complementa os dados básicos da sessão com informações do cadastro do paciente.
-    // A consulta parametrizada associa o resultado ao ID guardado na sessão, sem
-    // aceitar um identificador de usuário fornecido pelo cliente.
     $stmt = $pdo->prepare(
         "SELECT cpf, telefone, aceite_termo_uso, sexo, data_nascimento FROM pacientes WHERE id = :id"
     );
@@ -80,8 +78,7 @@ if ($perfil === 'medico') {
     ]);
     $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
-    // Recupera o primeiro registro de auditoria do cadastro para expor a data
-    // associada ao consentimento/cadastro apresentado no perfil do titular.
+    // Recupera o primeiro registro de auditoria do cadastro do paciente.
     $stmtConsetimento = $pdo->prepare(
         "SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1"
     );
@@ -91,8 +88,7 @@ if ($perfil === 'medico') {
     $data_cadastro = $stmtConsetimento->fetchColumn();
 }
 
-// Retorna somente os campos usados pelo frontend; dados internos da sessão
-// e credenciais (como hashes de senha) não são incluídos na resposta.
+// Retorna os dados da sessão incluindo a especialidade quando existir registro em medicos
 echo json_encode([
     "success" => true,
     "authenticated" => true,
