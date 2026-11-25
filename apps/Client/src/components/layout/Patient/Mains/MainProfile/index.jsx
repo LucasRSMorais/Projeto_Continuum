@@ -5,8 +5,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useAuth } from '../../../../../services/utils/auth';
 import { ActionButtons, CardContainer, SubCardContainer, SubCardHeader, DataCard, ProfileForm, ProfileMessage, Title, SubTitle } from './styles';
 import { Button } from '../../../../../components/Buttons/Button';
@@ -100,7 +99,7 @@ const mascararCPF = (cpf) => {
     const [passwordMessage, setPasswordMessage] = useState('');
     const [passwordMessageIsError, setPasswordMessageIsError] = useState(false);
 
-    // Estados para controlar o "olhinho" de exibir/ocultar cada campo de senha
+    // Estados para controlar o ícone de exibir/ocultar cada campo de senha
     const [showSenhaAtual, setShowSenhaAtual] = useState(false);
     const [showNovaSenha, setShowNovaSenha] = useState(false);
     const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
@@ -546,7 +545,7 @@ const mascararCPF = (cpf) => {
                                                 edge="end"
                                                 disabled={!isEditingPassword}
                                             >
-                                                {showSenhaAtual ? <VisibilityOff /> : <Visibility />}
+                                                {showSenhaAtual ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                             </IconButton>
                                         </InputAdornment>
                                     ),
@@ -570,7 +569,7 @@ const mascararCPF = (cpf) => {
                                                 edge="end"
                                                 disabled={!isEditingPassword}
                                             >
-                                                {showNovaSenha ? <VisibilityOff /> : <Visibility />}
+                                                {showNovaSenha ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                             </IconButton>
                                         </InputAdornment>
                                     ),
@@ -594,7 +593,7 @@ const mascararCPF = (cpf) => {
                                                 edge="end"
                                                 disabled={!isEditingPassword}
                                             >
-                                                {showConfirmarSenha ? <VisibilityOff /> : <Visibility />}
+                                                {showConfirmarSenha ? <FaEyeSlash size={18} /> : <FaEye size={18} />}
                                             </IconButton>
                                         </InputAdornment>
                                     ),
