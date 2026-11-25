@@ -3,6 +3,7 @@
 // Página responsável por verificar se o usuário está autenticado.
 // Também controla a expiração da sessão após 30 minutos de inatividade.
 require_once __DIR__ . "/../../config/database.php";
+require_once __DIR__ . "/../../config/patient_data_encryption.php";
 
 session_set_cookie_params([
     'httponly' => true,
@@ -56,10 +57,10 @@ $paciente = [];
 $medico = [];
 $data_cadastro = null;
 
-// Verifica se é paciente (ou perfil equivalente) para puxar os dados da tabela pacientes
-if (strtolower($perfil) === 'paciente' || strtolower($perfil) === 'usuario' || empty($perfil)) {
+// Se for paciente, busca nas colunas reais da tabela pacientes
+if (strtolower($perfil) === 'paciente') {
     $stmt = $pdo->prepare(
-        "SELECT cpf, telefone, aceite_termo_uso, sexo, data_nascimento FROM pacientes WHERE id = :id"
+        "SELECT cpf, telefone, sexo, data_nascimento FROM pacientes WHERE id = :id"
     );
     $stmt->execute([':id' => $_SESSION['usuario_id']]);
     $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
@@ -78,6 +79,16 @@ if (strtolower($perfil) === 'paciente' || strtolower($perfil) === 'usuario' || e
     $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
 }
 
+// Descriptografa o sexo do paciente caso ele exista
+$sexoDescriptografado = null;
+if (!empty($paciente['sexo'])) {
+    try {
+        $sexoDescriptografado = decryptPatientSensitiveValue($paciente['sexo']);
+    } catch (Throwable $e) {
+        $sexoDescriptografado = null;
+    }
+}
+
 echo json_encode([
     "success" => true,
     "authenticated" => true,
@@ -90,8 +101,7 @@ echo json_encode([
         "cpf" => $paciente['cpf'] ?? null,
         "telefone" => $paciente['telefone'] ?? null,
         "data" => $data_cadastro ?: null,
-        "aceite_termo_uso" => $paciente['aceite_termo_uso'] ?? null,
-        "sexo" => $paciente['sexo'] ?? null,
+        "sexo" => $sexoDescriptografado,
         "data_nascimento" => $paciente['data_nascimento'] ?? null
     ]
 ]);
