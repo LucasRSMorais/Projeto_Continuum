@@ -13,11 +13,8 @@ session_set_cookie_params([
 session_start();
 
 // Define o tempo máximo permitido sem atividade do usuário.
-// Isso protege contra sessões abertas por muito tempo sem uso real.
 $tempoExpiracao = 30 * 60; // Expira a sessão depois de 30 minutos sem atividade.
 
-// Se o tempo de inatividade excedeu o limite, apaga os dados da sessão no servidor.
-// Em seguida, a API responde 401 para indicar que o usuário precisa autenticar novamente.
 if (
     isset($_SESSION['ultima_atividade']) &&
     time() - $_SESSION['ultima_atividade'] > $tempoExpiracao
@@ -33,7 +30,6 @@ if (
     exit;
 }
 
-// Atualiza a marca de atividade somente depois de verificar que ela não expirou.
 $_SESSION['ultima_atividade'] = time();
 
 header("Content-Type: application/json; charset=UTF-8");
@@ -45,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Se o usuário ainda não estiver autenticado, responde 401.
 if (!isset($_SESSION['usuario_id'])) {
     http_response_code(401);
     echo json_encode([
@@ -61,34 +56,28 @@ $paciente = [];
 $medico = [];
 $data_cadastro = null;
 
-// Se não for paciente, busca apenas a especialidade na tabela medicos
-if (strtolower($perfil) !== 'paciente') {
+// Verifica se é paciente (ou perfil equivalente) para puxar os dados da tabela pacientes
+if (strtolower($perfil) === 'paciente' || strtolower($perfil) === 'usuario' || empty($perfil)) {
+    $stmt = $pdo->prepare(
+        "SELECT cpf, telefone, aceite_termo_uso, sexo, data_nascimento FROM pacientes WHERE id = :id"
+    );
+    $stmt->execute([':id' => $_SESSION['usuario_id']]);
+    $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $stmtConsetimento = $pdo->prepare(
+        "SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1"
+    );
+    $stmtConsetimento->execute([':id' => $_SESSION['usuario_id']]);
+    $data_cadastro = $stmtConsetimento->fetchColumn();
+} else {
+    // Caso seja médico ou outro perfil da equipe
     $stmtMedico = $pdo->prepare(
         "SELECT especialidade FROM medicos WHERE id = :id"
     );
     $stmtMedico->execute([':id' => $_SESSION['usuario_id']]);
     $medico = $stmtMedico->fetch(PDO::FETCH_ASSOC) ?: [];
-} else {
-    // Complementa os dados básicos da sessão com informações do cadastro do paciente.
-    $stmt = $pdo->prepare(
-        "SELECT cpf, telefone, aceite_termo_uso, sexo, data_nascimento FROM pacientes WHERE id = :id"
-    );
-    $stmt->execute([
-        ':id' => $_SESSION['usuario_id']
-    ]);
-    $paciente = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
-
-    // Recupera o primeiro registro de auditoria do cadastro do paciente.
-    $stmtConsetimento = $pdo->prepare(
-        "SELECT data_hora FROM logs_auditoria WHERE id_usuario = :id AND acao_realizada = 'CADASTRO_PACIENTE' AND tabela_afetada = 'pacientes' ORDER BY data_hora ASC LIMIT 1"
-    );
-    $stmtConsetimento->execute([
-        ':id' => $_SESSION['usuario_id']
-    ]);
-    $data_cadastro = $stmtConsetimento->fetchColumn();
 }
 
-// Retorna os dados da sessão incluindo a especialidade quando existir registro em medicos
 echo json_encode([
     "success" => true,
     "authenticated" => true,
